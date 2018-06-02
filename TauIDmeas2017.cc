@@ -334,7 +334,10 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	if (gentau_p4.size()>0 && print_count < 20) {
 	  ++print_count;
 	  cout << endl;
-	  for (unsigned int iMC = 0; iMC < mc_pt->size(); ++iMC) cout << jEntry << " " << iMC << "  PDG ID " << mc_pdgId->at(iMC) << "  Mother PDG ID " << mc_mother_index->at(iMC).at(0) << "  px " << mc_px->at(iMC) << endl;
+	  for (unsigned int iMC = 0; iMC < mc_pdgId->size(); ++iMC) {
+	    cout << jEntry;
+	    cout << " " << iMC << "  PDG ID " << mc_pdgId->at(iMC) << "  Mother PDG ID " << mc_mother_index->at(iMC).at(0) << "  px " << mc_px->at(iMC) << endl;
+	  }
 	  cout << gen_mutau << endl << endl;
 	}
 
@@ -409,9 +412,9 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
       //electron veto
       bool electron = false;
       for (unsigned int iEle = 0; iEle < gsf_pt->size(); ++iEle) {
-	if (gsf_VIDLoose->at(iEle) && gsf_pt->at(iEle) > 10 && fabs(gsf_eta->at(iEle)) < 2.5 && fabs(gsf_dxy_firstPVtx->at(iEle)) < 0.045 && fabs(gsf_dz_firstPVtx->at(iEle)) < 0.2 && gsf_passConversionVeto->at(iEle) && gsf_nLostInnerHits->at(iEle) <= 1 && gsf_relIso->at(iEle) < 0.3) electron = true;
+	if (gsf_VIDMVAMedium->at(iEle) && gsf_pt->at(iEle) > 10 && fabs(gsf_eta->at(iEle)) < 2.5 && fabs(gsf_dxy_firstPVtx->at(iEle)) < 0.045 && fabs(gsf_dz_firstPVtx->at(iEle)) < 0.2 /*&& gsf_passConversionVeto->at(iEle)*/ && gsf_nLostInnerHits->at(iEle) <= 1 && gsf_relIso->at(iEle) < 0.3) electron = true;
         if (electron) break;
-     }
+      }
       if (electron) continue;
 
       //bjet veto (medium WP for the bjet)                                                                                                                           
@@ -528,7 +531,6 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 
 	TLorentzVector mu_p4;
 	mu_p4.SetPtEtaPhiM(mu_gt_pt->at(iMu), mu_gt_eta->at(iMu), mu_gt_phi->at(iMu), mu_mass);
-
 	//start loop over reconstructed taus
 	for (unsigned int jj = 0; jj < orderedTau.size(); ++jj) {
 	  if (found_mutau_pair) break;
@@ -547,14 +549,12 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	  tauIDvalues.push_back(tau_byTightIsolationMVArun2v1DBoldDMwLT->at(iTau));
 	  tauIDvalues.push_back(tau_byVTightIsolationMVArun2v1DBoldDMwLT->at(iTau));
 	  tauIDvalues.push_back(tau_byVVTightIsolationMVArun2v1DBoldDMwLT->at(iTau));
-	  if (!QCD) {
-	    tauIDvalues.push_back(tau_byVLooseIsolationMVArun2v1DBoldDMwLTNew->at(iTau));
-	    tauIDvalues.push_back(tau_byLooseIsolationMVArun2v1DBoldDMwLTNew->at(iTau));
-	    tauIDvalues.push_back(tau_byMediumIsolationMVArun2v1DBoldDMwLTNew->at(iTau));
-	    tauIDvalues.push_back(tau_byTightIsolationMVArun2v1DBoldDMwLTNew->at(iTau));
-	    tauIDvalues.push_back(tau_byVTightIsolationMVArun2v1DBoldDMwLTNew->at(iTau));
-	    tauIDvalues.push_back(tau_byVVTightIsolationMVArun2v1DBoldDMwLTNew->at(iTau));
-	  }
+	  tauIDvalues.push_back(tau_byVLooseIsolationMVArun2v1DBnewDMwLT->at(iTau));
+	  tauIDvalues.push_back(tau_byLooseIsolationMVArun2v1DBnewDMwLT->at(iTau));
+	  tauIDvalues.push_back(tau_byMediumIsolationMVArun2v1DBnewDMwLT->at(iTau));
+	  tauIDvalues.push_back(tau_byTightIsolationMVArun2v1DBnewDMwLT->at(iTau));
+	  tauIDvalues.push_back(tau_byVTightIsolationMVArun2v1DBnewDMwLT->at(iTau));
+	  tauIDvalues.push_back(tau_byVVTightIsolationMVArun2v1DBnewDMwLT->at(iTau));
 
 	  for (int iTES = 0; iTES < 3; ++iTES) {
 	    TLorentzVector tau_p4, tau_TES_p4, vis_p4, met_p4, metmu_p4, total_p4;
