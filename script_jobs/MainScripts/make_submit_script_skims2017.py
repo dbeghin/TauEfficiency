@@ -5,7 +5,7 @@
 #Note : your code needs to be already compiler (with a .exe extension for this to work)
 
 import os
-from datasets2017_new import * #imports dataset paths: pnfn[], myname[] and myoption[] arrays 
+from datasets2017 import * #imports dataset paths: pnfn[], myname[] and myoption[] arrays 
 if __name__ == "__main__":
     location=os.getcwd();
     #name of your *compiled* code (omit the .exe extension)
@@ -20,17 +20,17 @@ if __name__ == "__main__":
         name_out =  myname[jj] + ".sh"
         outFile = open("../Jobs_to_submit/"+name_out , 'w')
         command1 = "source $VO_CMS_SW_DIR/cmsset_default.sh " + "\n"
-        command1 = command1 + "cd /user/dbeghin/CMSSW_9_2_6/src " + "\n" #go to the top of your CMSSW release
+        command1 = command1 + "cd /user/dbeghin/2nd/CMSSW_9_4_0/src " + "\n" #go to the top of your CMSSW release
         command1 = command1 + "eval `scram runtime -sh` " + "\n"   #load the cms environment
         command1 = command1 + "export X509_USER_PROXY=/user/dbeghin/x509up_u$(id -u dbeghin)" + "\n"
-        command1 = command1 + "gfal-mkdir srm://maite.iihe.ac.be:8443/pnfs/iihe/cms/store/user/dbeghin/Skims/2017/withTauMVA/Out_"+myname[jj] + "\n"
+        command1 = command1 + "gfal-mkdir srm://maite.iihe.ac.be:/pnfs/iihe/cms/store/user/dbeghin/Skims/2017/2018May17/New/Out_"+myname[jj] + "\n"
         command1 = command1 + "export scratchdir=$TMPDIR " + "\n"
         command1 = command1 + "cd $scratchdir" + "\n"      
         command1 = command1 + "mkdir Reweighting" + "\n"
-        command1 = command1 + "cp /user/dbeghin/Work/Taus/Reweighting/*.root Reweighting/" + "\n"
-        command1 = command1 + "cp /user/dbeghin/Work/Taus/" + code_name + ".exe $scratchdir/" + "\n"
-        #command1 = command1 + "export workdir=/user/dbeghin/Work/Taus/ " + "\n"  #Set your working directory, where the code is located
-        #command1 = command1 + "gfal-mkdir srm://maite.iihe.ac.be:8443/pnfs/iihe/cms/store/user/dbeghin/Skims/2017/withTauMVA/Out_"+myname[jj] + "\n"      #Make output directories
+        command1 = command1 + "cp /user/dbeghin/Work/POGTau/Reweighting/*.root Reweighting/" + "\n"
+        command1 = command1 + "cp /user/dbeghin/Work/POGTau/" + code_name + ".exe $scratchdir/" + "\n"
+        #command1 = command1 + "export workdir=/user/dbeghin/Work/POGTau/ " + "\n"  #Set your working directory, where the code is located
+        #command1 = command1 + "gfal-mkdir srm://maite.iihe.ac.be:/pnfs/iihe/cms/store/user/dbeghin/Skims/2017/2018May17/New/Out_"+myname[jj] + "\n"      #Make output directories
         #command1 = command1 + "cd $workdir"
         outFile.write(command1)
         command3 = "qsub -q localgrid@cream02 -o " + "../out_err/"+myname[jj] +".stdout -e " +"../out_err/"+myname[jj] +".stderr -l walltime=80:00:00    " + "../Jobs_to_submit/"+name_out + "\n"  #Command to submit one job to the localgrid
@@ -45,26 +45,26 @@ if __name__ == "__main__":
                 outFile.close()
                 outFile = open("../Jobs_to_submit/test"+str(ligne/files_per_job)+name_out , 'w')
                 command1 = "source $VO_CMS_SW_DIR/cmsset_default.sh " + "\n"
-                command1 = command1 + "cd /user/dbeghin/CMSSW_9_2_6/src " + "\n"
+                command1 = command1 + "cd /user/dbeghin/2nd/CMSSW_9_4_0/src " + "\n"
                 command1 = command1 + "eval `scram runtime -sh` " + "\n"
                 command1 = command1 + "export X509_USER_PROXY=/user/dbeghin/x509up_u$(id -u dbeghin)" + "\n"
                 command1 = command1 + "export scratchdir=$TMPDIR " + "\n"
-                #command1 = command1 + "export workdir=/user/dbeghin/Work/Taus/ " + "\n"
+                #command1 = command1 + "export workdir=/user/dbeghin/Work/POGTau/ " + "\n"
                 command1 = command1 + "cd $scratchdir" + "\n"      
                 command1 = command1 + "mkdir Reweighting" + "\n"
-                command1 = command1 + "cp /user/dbeghin/Work/Taus/Reweighting/*.root Reweighting/" + "\n"
-                command1 = command1 + "cp /user/dbeghin/Work/Taus/" + code_name + ".exe $scratchdir/" + "\n"
-                #command1 = command1 + "gfal-mkdir srm://maite.iihe.ac.be:8443/pnfs/iihe/cms/store/user/dbeghin/Skims/2017/withTauMVA/Out_"+myname[jj] + "\n"
+                command1 = command1 + "cp /user/dbeghin/Work/POGTau/Reweighting/*.root Reweighting/" + "\n"
+                command1 = command1 + "cp /user/dbeghin/Work/POGTau/" + code_name + ".exe $scratchdir/" + "\n"
+                #command1 = command1 + "gfal-mkdir srm://maite.iihe.ac.be:/pnfs/iihe/cms/store/user/dbeghin/Skims/2017/2018May17/New/Out_"+myname[jj] + "\n"
                 outFile.write(command1)
                 command3 = "qsub -q localgrid@cream02 -o "+ "../out_err/test"+str(ligne/files_per_job)+myname[jj] +".stdout -e " +"../out_err/test"+str(ligne/files_per_job)+myname[jj] +".stderr -l walltime=80:00:00    " + "../Jobs_to_submit/test"+str(ligne/files_per_job)+name_out + "\n"
                 submit_File.write(command3)
             #Below, the command to execute your code, use the correct syntax for your own code, with all arguments (file in, file out, etc.) in the proper order
             #Note that i[0:-1] is just the name of the root file in /pnfs
             command2 = "dccp dcap://maite.iihe.ac.be"+   i[0:-1] + " $scratchdir/" + "\n"
-            #command2 = command2 + "cp /user/dbeghin/Work/Taus/" + code_name + ".exe $scratchdir/" + "\n"
+            #command2 = command2 + "cp /user/dbeghin/Work/POGTau/" + code_name + ".exe $scratchdir/" + "\n"
             bare_fname = i[len(pnfn[jj]):-1]
             command2 = command2 + "\n" + "./" + code_name + ".exe " + "Out" +str(ligne)+myname[jj]+ ".root " +   bare_fname + " " + mynick[jj] + " stuff " + myoption[jj]
-            command2 = command2 + " \n"+ " gfal-copy -f  Out" +str(ligne)+myname[jj]+ ".root \t" + "srm://maite.iihe.ac.be:8443/pnfs/iihe/cms/store/user/dbeghin/Skims/2017/withTauMVA/Out_"+myname[jj]+"/Out" +str(ligne)+myname[jj]+ ".root"
+            command2 = command2 + " \n"+ " gfal-copy -f  Out" +str(ligne)+myname[jj]+ ".root \t" + "srm://maite.iihe.ac.be:/pnfs/iihe/cms/store/user/dbeghin/Skims/2017/2018May17/New/Out_"+myname[jj]+"/Out" +str(ligne)+myname[jj]+ ".root"
             command2 = command2 + "\n rm Out" +str(ligne)+myname[jj]+ ".root"
             command2 = command2 + " \n\n\n"
             outFile.write(command2)
