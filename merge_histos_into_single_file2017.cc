@@ -17,11 +17,11 @@
 using namespace std;
 
 
-TH1F* MC_histo(bool DYSig, TString var, TFile* file_in, double xs, long Nevents, int rebin) {
+TH1F* MC_histo(TString prestring, TString var, TFile* file_in, double xs, long Nevents, int rebin) {
 
   cout << file_in->GetName() << endl;
 
-  double lumi = 41.9 * pow(10,3); //luminosity in pb^-1
+  double lumi = 40.08 * pow(10,3); //luminosity in pb^-1
 
   double e_Nevents = pow(Nevents,0.5);
   double e_xs = 0.01*xs;
@@ -30,12 +30,7 @@ TH1F* MC_histo(bool DYSig, TString var, TFile* file_in, double xs, long Nevents,
   double w = xs*lumi/Nevents;
   cout << "Events in data/events in MC " << xs*lumi/Nevents << endl;
   
-  if (DYSig) {
-    var = "Sig_"+var;
-  }
-  else {
-    var = "Bkg_"+var;
-  }
+  var = prestring+var;
   TH1F* h = (TH1F*) file_in -> Get(var);
 
   h -> Sumw2();
@@ -55,7 +50,8 @@ int main(int argc, char** argv) {
   string option_name= option;
   //option = "QCD", "QCD_control", "final", "Wjets_pre", "Wjets_post", "quick_test"
 
-  int rebin = 1;//1;
+  int rebin = 5;//1;
+  if (option_name == "Fakes") rebin=1;
   float Wjets_scale_factor_notauID = 1.22504;//1.16223;//1.24298;
   bool final = false;
   bool antimu = false;
@@ -95,6 +91,10 @@ int main(int argc, char** argv) {
     name_out = "antimu";
     if(option_name == "AntiMu_control") name_out = "antimu_control";
   }
+  else if (option_name == "Fakes") {
+    folder_in = "TauID2017/TauFakes";
+    name_out = "TauFakes";
+  }
 
   TFile* file_out = new TFile("Figures/"+name_out+".root", "RECREATE");
   TFile* file_in_DY = new TFile(folder_in+"/Arranged_DY/DY.root", "R");
@@ -133,36 +133,38 @@ int main(int argc, char** argv) {
     TFile* file_in_QCD_1000toInf = new TFile(folder_in+"/Arranged_QCD/QCD_1000toInf.root", "R");        QCD_files.push_back(file_in_QCD_1000toInf);
   }    
 
-  TFile* file_in_TT = new TFile(folder_in+"/Arranged_TT/TT.root", "R");
+  TFile* file_in_TT_had = new TFile(folder_in+"/Arranged_TT/TT_had.root", "R");
+  TFile* file_in_TT_semilep = new TFile(folder_in+"/Arranged_TT/TT_semilep.root", "R");
+  TFile* file_in_TT_2l2nu = new TFile(folder_in+"/Arranged_TT/TT_2l2nu.root", "R");
   TFile* file_in_WW = new TFile(folder_in+"/Arranged_WW/WW.root", "R");
   TFile* file_in_WZ = new TFile(folder_in+"/Arranged_WZ/WZ.root", "R");
   TFile* file_in_ZZ = new TFile(folder_in+"/Arranged_ZZ/ZZ.root", "R");
   TFile* file_in_data = new TFile(folder_in+"/Arranged_data/data.root", "R");
-  
+  TFile* file_in_fakes = new TFile("TauID2017/Faketaus.root", "R");
   
 
   vector<TString> vars;
   //tau-iD independent
-  vars.push_back("tau_MVA");//0
-  vars.push_back("ev_DRmutau");//4
-  vars.push_back("ev_Mt_raw");//5
-  vars.push_back("ev_Pzeta");
+  //vars.push_back("tau_MVA");//0
+  //vars.push_back("ev_DRmutau");//4
+  //vars.push_back("ev_Mt_raw");//5
+  //vars.push_back("ev_Pzeta");
 
   //tau-ID dependent
   int tau_dependent_cutoff = vars.size();
   vars.push_back("ev_Mt");
   vars.push_back("ev_Mvis");
-  vars.push_back("ev_Mtot");
+  //vars.push_back("ev_Mtot");
   vars.push_back("tau_pt");
   vars.push_back("tau_eta");
   vars.push_back("tau_phi");
   vars.push_back("mu_pt");
   vars.push_back("mu_eta");
   vars.push_back("mu_phi");
-  vars.push_back("ev_METmumass");
-  vars.push_back("ev_MET");
-  vars.push_back("ev_METphi");
-  vars.push_back("ev_Nvertex");
+  //vars.push_back("ev_METmumass");
+  //vars.push_back("ev_MET");
+  //vars.push_back("ev_METphi");
+  //vars.push_back("ev_Nvertex");
   if (option_name != "Wjets_pre" && option_name != "WJets_pre" && option_name != "Wjets_post" && option_name != "WJets_post" && option_name != "AntiMu") {
     vars.push_back("ev_Mvis_TESdown");
     vars.push_back("ev_Mvis_TESup");
@@ -174,22 +176,22 @@ int main(int argc, char** argv) {
   }
 
   vector<TString> tauIDs;
-  tauIDs.push_back("noTauID");
-  tauIDs.push_back("cutbased_loose");
-  tauIDs.push_back("cutbased_medium");
-  tauIDs.push_back("cutbased_tight");
-  tauIDs.push_back("MVA_veryloose");
-  tauIDs.push_back("MVA_loose");
-  tauIDs.push_back("MVA_medium");
+  //tauIDs.push_back("noTauID");
+  //tauIDs.push_back("cutbased_loose");
+  //tauIDs.push_back("cutbased_medium");
+  //tauIDs.push_back("cutbased_tight");
+  //tauIDs.push_back("MVA_veryloose");
+  //tauIDs.push_back("MVA_loose");
+  //tauIDs.push_back("MVA_medium");
   tauIDs.push_back("MVA_tight");
-  tauIDs.push_back("MVA_verytight");
-  tauIDs.push_back("MVA_veryverytight");
-  tauIDs.push_back("MVAnew_veryloose");
-  tauIDs.push_back("MVAnew_loose");
-  tauIDs.push_back("MVAnew_medium");
-  tauIDs.push_back("MVAnew_tight");
-  tauIDs.push_back("MVAnew_verytight");
-  tauIDs.push_back("MVAnew_veryverytight");
+  //tauIDs.push_back("MVA_verytight");
+  //tauIDs.push_back("MVA_veryverytight");
+  //tauIDs.push_back("MVAnew_veryloose");
+  //tauIDs.push_back("MVAnew_loose");
+  //tauIDs.push_back("MVAnew_medium");
+  //tauIDs.push_back("MVAnew_tight");
+  //tauIDs.push_back("MVAnew_verytight");
+  //tauIDs.push_back("MVAnew_veryverytight");
 
   vector<TString> categ;
   categ.push_back("pass");
@@ -231,7 +233,9 @@ int main(int argc, char** argv) {
     double xs_QCD_1000toInf = 10.4305*0.15544;    xs_QCD.push_back(xs_QCD_1000toInf);
   }  
 
-  double xs_TT = 87.31;//831.76;                 
+  double xs_TT_had = 831.76*0.457;//831.76;                 
+  double xs_TT_semilep = 831.76*0.438;//831.76;                 
+  double xs_TT_2l2nu = 831.76*0.105;//831.76;                 
   double xs_WW = 64.3;
   double xs_WZ = 23.4;
   //double xs_WZTo3LNu = 1;
@@ -239,8 +243,8 @@ int main(int argc, char** argv) {
   double xs_ZZ = 10.16;
 
   //Nevents
-  long N_DY = 24500618 + 23202573 + 24190800 + 24381540 + 172472;
-  long N_WJets = 23133163;//25950745;
+  long N_DY = 96844363;
+  long N_WJets = 23219762;//25950745;
 
   long N_QCD_muenriched = 7373309;
   vector<long> N_QCD;
@@ -273,9 +277,11 @@ int main(int argc, char** argv) {
     long N_QCD_800to1000 = 15694987;           N_QCD.push_back(N_QCD_800to1000);
     long N_QCD_1000toInf = 11464778;           N_QCD.push_back(N_QCD_1000toInf);
   }    
-
-  long N_TT = 8634992;
-  long N_WW = 7547722;
+                  
+  long N_TT_2l2nu = 8615776;
+  long N_TT_semilep = 109715126;
+  long N_TT_had = 127935682;
+  long N_WW = 3928630;
   long N_WZ = 3928630;
   long N_ZZ = 1949768;
 
@@ -289,24 +295,14 @@ int main(int argc, char** argv) {
     if (i < tau_dependent_cutoff) {
       var_in = vars[i];
 
-      if (final || option_name == "quick_test") {
-	TH1F* h_DYSig = MC_histo(true, var_in, file_in_DY, xs_DY, N_DY, rebin);
+      if (final || option_name == "quick_test" || option_name == "Fakes") {
+	TH1F* h_DYSig = MC_histo("Sig_", var_in, file_in_DY, xs_DY, N_DY, rebin);
 	h_DYSig->SetName("DYS_"+var_in);
 	h_DYSig->Write();
-
-	TH1F* h_TTSig = MC_histo(true, var_in, file_in_TT, xs_TT, N_TT, rebin);
-	h_TTSig->SetName("TTS_"+var_in);
-	h_TTSig->Write();
       }
       
 
-      if (final) {
-	cout << file_in_QCD << endl;
-	TH1F* h_QCD = (TH1F*) file_in_QCD -> Get("QCD_"+var_in);//QCD is data-driven, already normalized
-	h_QCD->Rebin(rebin);
-	h_QCD->Write();
-      }
-      TH1F* h_DYBkg = MC_histo(false, var_in, file_in_DY, xs_DY, N_DY, rebin);
+      TH1F* h_DYBkg = MC_histo("Bkg_", var_in, file_in_DY, xs_DY, N_DY, rebin);
       h_DYBkg->SetName("DYB_"+var_in);
       h_DYBkg->Write();
 
@@ -320,7 +316,7 @@ int main(int argc, char** argv) {
       if (option_name == "Wjets_pre" || option_name == "Wjets_post" || option_name == "WJets_pre" || option_name == "WJets_post" || option_name == "quick_test" || option_name == "QCD_control" || antimu) {
 	vector<TH1F*> h_QCD_vector;
 	for (unsigned int iBin = 0; iBin<QCD_files.size(); ++iBin) {
-	  h_QCD_vector.push_back( MC_histo(false, var_in, QCD_files[iBin], xs_QCD[iBin], N_QCD[iBin], rebin) );
+	  h_QCD_vector.push_back( MC_histo("Bkg_", var_in, QCD_files[iBin], xs_QCD[iBin], N_QCD[iBin], rebin) );
 	}
 	TH1F* h_QCD = (TH1F*) h_QCD_vector[0]->Clone("QCD_"+var_in);
 	for (unsigned int iBin = 1; iBin<QCD_files.size(); ++iBin) {
@@ -330,13 +326,17 @@ int main(int argc, char** argv) {
       }
 
       
-      TH1F* h_TTBkg = MC_histo(false, var_in, file_in_TT, xs_TT, N_TT, rebin);
-      h_TTBkg -> SetName("TTB_"+var_in);
+      TH1F* h_TT_had = MC_histo("Bkg_", var_in, file_in_TT_had, xs_TT_had, N_TT_had, rebin);
+      TH1F* h_TT_semilep = MC_histo("Bkg_", var_in, file_in_TT_semilep, xs_TT_semilep, N_TT_semilep, rebin);
+      TH1F* h_TT_2l2nu = MC_histo("Bkg_", var_in, file_in_TT_2l2nu, xs_TT_2l2nu, N_TT_2l2nu, rebin);
+      TH1F* h_TTBkg = (TH1F*) h_TT_had->Clone("TTB_"+var_in);
+      h_TTBkg->Add(h_TT_semilep);
+      h_TTBkg->Add(h_TT_2l2nu);
       h_TTBkg->Write();
       
-      TH1F* h_WW = MC_histo(false, var_in, file_in_WW, xs_WW, N_WW, rebin);
-      TH1F* h_WZ = MC_histo(false, var_in, file_in_WZ, xs_WZ, N_WZ, rebin);
-      TH1F* h_ZZ = MC_histo(false, var_in, file_in_ZZ, xs_ZZ, N_ZZ, rebin);
+      TH1F* h_WW = MC_histo("Bkg_", var_in, file_in_WW, xs_WW, N_WW, rebin);
+      TH1F* h_WZ = MC_histo("Bkg_", var_in, file_in_WZ, xs_WZ, N_WZ, rebin);
+      TH1F* h_ZZ = MC_histo("Bkg_", var_in, file_in_ZZ, xs_ZZ, N_ZZ, rebin);
       TH1F* h_VV = (TH1F*) h_WW->Clone("VV_"+var_in);
       h_VV->Add(h_WZ);
       h_VV->Add(h_ZZ);
@@ -351,38 +351,33 @@ int main(int argc, char** argv) {
     else {
       for (unsigned int j = 0; j<tauIDs.size(); ++j) {
 	for (unsigned int k = 0; k<categ.size(); ++k) {
-	  if (j == 0 && k == 0) {
-	    var_in = vars[i] + "_" + tauIDs[j];
-	  }
-	  else if (j == 0 && k == 1) {
-	    continue;
-	  }
-	  else {
-	    var_in = vars[i] + "_" + tauIDs[j] + "_" + categ[k];
-	  }
+	  //if (j == 0 && k == 0) {
+	  //  var_in = vars[i] + "_" + tauIDs[j];
+	  //}
+	  //else if (j == 0 && k == 1) {
+	  //  continue;
+	  //}
+	  //else {
+	  var_in = vars[i] + "_" + tauIDs[j] + "_" + categ[k];
+	  //}
 	  cout << var_in << endl;
 
-	  if (final || option_name == "quick_test") {
-	    TH1F* h_DYSig = MC_histo(true, var_in, file_in_DY, xs_DY, N_DY, rebin);
+	  if (final || option_name == "quick_test" || option_name == "Fakes") {
+	    TH1F* h_DYSig = MC_histo("Sig_", var_in, file_in_DY, xs_DY, N_DY, rebin);
 	    h_DYSig->SetName("DYS_"+var_in);
 	    h_DYSig->Write();
 
-	    TH1F* h_TTSig = MC_histo(true, var_in, file_in_TT, xs_TT, N_TT, rebin);
-	    h_TTSig->SetName("TTS_"+var_in);
-	    h_TTSig->Write();
+	    //TH1F* h_TTSig = MC_histo("Sig_", var_in, file_in_TT, xs_TT, N_TT, rebin);
+	    //h_TTSig->SetName("TTS_"+var_in);
+	    //h_TTSig->Write();
 	  }
 
-	  if (final) {
-	    TH1F* h_QCD = (TH1F*) file_in_QCD -> Get("QCD_"+var_in);//QCD is data-driven, already normalized
-	    h_QCD->Rebin(rebin);
-	    h_QCD->Write();
-	  }
 
-	  TH1F* h_DYBkg = MC_histo(false, var_in, file_in_DY, xs_DY, N_DY, rebin);
-	  /*TH1F* h_DY1Bkg = MC_histo(false, var_in, file_in_DY1, xs_DY1, N_DY1, rebin);
-	  TH1F* h_DY2Bkg = MC_histo(false, var_in, file_in_DY2, xs_DY2, N_DY2, rebin);
-	  TH1F* h_DY3Bkg = MC_histo(false, var_in, file_in_DY3, xs_DY3, N_DY3, rebin);
-	  TH1F* h_DY4Bkg = MC_histo(false, var_in, file_in_DY4, xs_DY4, N_DY4, rebin);*/
+	  TH1F* h_DYBkg = MC_histo("Bkg_", var_in, file_in_DY, xs_DY, N_DY, rebin);
+	  /*TH1F* h_DY1Bkg = MC_histo("Bkg_", var_in, file_in_DY1, xs_DY1, N_DY1, rebin);
+	  TH1F* h_DY2Bkg = MC_histo("Bkg_", var_in, file_in_DY2, xs_DY2, N_DY2, rebin);
+	  TH1F* h_DY3Bkg = MC_histo("Bkg_", var_in, file_in_DY3, xs_DY3, N_DY3, rebin);
+	  TH1F* h_DY4Bkg = MC_histo("Bkg_", var_in, file_in_DY4, xs_DY4, N_DY4, rebin);*/
 	  
 	  /*TH1F* h_DYBkg = (TH1F*) h_DY0Bkg->Clone("DYB_"+var_in);
 	  h_DYBkg->Add(h_DY1Bkg);
@@ -402,7 +397,7 @@ int main(int argc, char** argv) {
 	  if (option_name == "Wjets_pre" || option_name == "Wjets_post" || option_name == "WJets_pre" || option_name == "WJets_post" || option_name == "quick_test" || option_name == "QCD_control" || antimu) {
 	    vector<TH1F*> h_QCD_vector;
 	    for (unsigned int iBin = 0; iBin<QCD_files.size(); ++iBin) {
-	      h_QCD_vector.push_back( MC_histo(false, var_in, QCD_files[iBin], xs_QCD[iBin], N_QCD[iBin], rebin) );
+	      h_QCD_vector.push_back( MC_histo("Bkg_", var_in, QCD_files[iBin], xs_QCD[iBin], N_QCD[iBin], rebin) );
 	    }
 	    TH1F* h_QCD = (TH1F*) h_QCD_vector[0]->Clone("QCD_"+var_in);
 	    for (unsigned int iBin = 1; iBin<QCD_files.size(); ++iBin) {
@@ -411,13 +406,17 @@ int main(int argc, char** argv) {
 	    h_QCD->Write();
 	  }
 
-	  TH1F* h_TTBkg = MC_histo(false, var_in, file_in_TT, xs_TT, N_TT, rebin);
-	  h_TTBkg -> SetName("TTB_"+var_in);
+	  TH1F* h_TT_had = MC_histo("Bkg_", var_in, file_in_TT_had, xs_TT_had, N_TT_had, rebin);
+	  TH1F* h_TT_semilep = MC_histo("Bkg_", var_in, file_in_TT_semilep, xs_TT_semilep, N_TT_semilep, rebin);
+	  TH1F* h_TT_2l2nu = MC_histo("Bkg_", var_in, file_in_TT_2l2nu, xs_TT_2l2nu, N_TT_2l2nu, rebin);
+	  TH1F* h_TTBkg = (TH1F*) h_TT_had->Clone("TTB_"+var_in);
+	  h_TTBkg->Add(h_TT_semilep);
+	  h_TTBkg->Add(h_TT_2l2nu);
 	  h_TTBkg->Write();
 
-	  TH1F* h_WW = MC_histo(false, var_in, file_in_WW, xs_WW, N_WW, rebin);
-	  TH1F* h_WZ = MC_histo(false, var_in, file_in_WZ, xs_WZ, N_WZ, rebin);
-	  TH1F* h_ZZ = MC_histo(false, var_in, file_in_ZZ, xs_ZZ, N_ZZ, rebin);
+	  TH1F* h_WW = MC_histo("Bkg_", var_in, file_in_WW, xs_WW, N_WW, rebin);
+	  TH1F* h_WZ = MC_histo("Bkg_", var_in, file_in_WZ, xs_WZ, N_WZ, rebin);
+	  TH1F* h_ZZ = MC_histo("Bkg_", var_in, file_in_ZZ, xs_ZZ, N_ZZ, rebin);
 	  TH1F* h_VV = (TH1F*) h_WW->Clone("VV_"+var_in);
 	  h_VV->Add(h_WZ);
 	  h_VV->Add(h_ZZ);
@@ -428,6 +427,15 @@ int main(int argc, char** argv) {
 	  h_data->Rebin(rebin);
 	  h_data -> SetName("data_"+var_in);
 	  h_data->Write();
+
+	  if (final && categ[k] == "pass") {
+	    cout << file_in_fakes->GetName() << " " << "faketau_"+var_in <<  endl;
+	    TH1F* h_fakes = (TH1F*) file_in_fakes -> Get("faketau_"+var_in);
+	    cout << "b" << endl;
+	    h_fakes->Rebin(rebin);
+	    cout << "c" << endl;
+	    h_fakes->Write();
+	  }
 	}
       }
     }

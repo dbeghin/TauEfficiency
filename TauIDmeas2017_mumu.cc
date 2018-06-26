@@ -105,7 +105,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 
       float pu_weight = 1;
       if (!data) {
-	pu_weight = PU_2017_Rereco::MC_pileup_weight(mc_trueNumInteractions, mc_nickname, "Rereco_all");
+	pu_weight = PU_2017_Rereco::MC_pileup_weight(mc_trueNumInteractions, mc_nickname, "Data_2017BtoF");
       }
 
       
@@ -251,12 +251,12 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
         if(mu_isPFMuon->at(iMu) && mu_gt_pt->at(iMu) > 10 && fabs(mu_gt_eta->at(iMu)) < 2.4 && fabs(mu_gt_dxy_firstPVtx->at(iMu)) < 0.045 && fabs(mu_gt_dz_firstPVtx->at(iMu)) < 0.2 && mu_pfIsoDbCorrected04->at(iMu) < 0.3 && mu_isMediumMuon->at(iMu)) ++Nmu;
         if (Nmu > 2) break;
       }
-      if (Nmu > 2) continue; //3rd muon veto
+      //if (Nmu > 2) continue; //3rd muon veto
 
       //electron veto
       bool electron = false;
       for (unsigned int iEle = 0; iEle < gsf_pt->size(); ++iEle) {
-        if (gsf_VIDLoose->at(iEle) && gsf_pt->at(iEle) > 10 && fabs(gsf_eta->at(iEle)) < 2.5 && fabs(gsf_dxy_firstPVtx->at(iEle)) < 0.045 && fabs(gsf_dz_firstPVtx->at(iEle)) < 0.2 && gsf_passConversionVeto->at(iEle) && gsf_nLostInnerHits->at(iEle) <= 1 && gsf_relIso->at(iEle) < 0.3) electron = true;
+        if (gsf_VIDLoose->at(iEle) && gsf_pt->at(iEle) > 10 && fabs(gsf_eta->at(iEle)) < 2.5 && fabs(gsf_dxy_firstPVtx->at(iEle)) < 0.045 && fabs(gsf_dz_firstPVtx->at(iEle)) < 0.2 /*&& gsf_passConversionVeto->at(iEle)*/ && gsf_nLostInnerHits->at(iEle) <= 1 && gsf_relIso->at(iEle) < 0.3) electron = true;
         if (electron) break;
       }
       if (electron) continue;
@@ -328,6 +328,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	  if (mu_gt_pt->at(iMu1) < 30.0) continue;
 	  if (fabs(mu_gt_eta->at(iMu1)) > 2.4) continue;
 	  if (!mu_isPFMuon->at(iMu1)) continue; //medium ID
+	  if (!mu_isMediumMuon->at(iMu1)) continue; //medium ID
 	  if (fabs(mu_gt_dxy_firstPVtx->at(iMu1)) > 0.045) continue;
 	  if (fabs(mu_gt_dz_firstPVtx->at(iMu1)) > 0.2) continue;
 	  float reliso = mu_pfIsoDbCorrected04->at(iMu1);

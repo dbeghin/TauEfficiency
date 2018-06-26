@@ -60,7 +60,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
    bool TT=false;
    if (type_of_data == "TT" || type_of_data == "TTinc") TT=true;
 
-   bool isWJetsphase, isQCDphase, isfinalphase, isAntiMuphase;
+   bool isWJetsphase, isQCDphase, isfinalphase, isAntiMuphase, isFakesphase;
    cout << phase << endl;
    cout << DY << endl;
    if (phase == "QCD") {
@@ -68,24 +68,35 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
      isWJetsphase = false;
      isfinalphase = false;
      isAntiMuphase = false;
+     isFakesphase = false;
    }
    else if (phase == "WJets") {
      isQCDphase = false;
      isWJetsphase = true;
      isfinalphase = false;
      isAntiMuphase = false;
+     isFakesphase = false;
    }
    else if (phase == "final") {
      isQCDphase = false;
      isWJetsphase = false;
      isfinalphase = true;
      isAntiMuphase = false;
+     isFakesphase = false;
    }
    else if (phase == "AntiMu") {
      isQCDphase = false;
      isWJetsphase = false;
      isfinalphase = false;
      isAntiMuphase = true;
+     isFakesphase = false;
+   }
+   else if (phase == "Fakes") {
+     isQCDphase = false;
+     isWJetsphase = false;
+     isfinalphase = false;
+     isAntiMuphase = false;
+     isFakesphase = true;
    }
    else {
      cout << phase << " does not exist!!!!" << endl;
@@ -123,12 +134,13 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
    vector<TString> bkg_or_sig;
    bkg_or_sig.push_back("Sig");
    bkg_or_sig.push_back("Bkg");
-   int two = bkg_or_sig.size();
+   bkg_or_sig.push_back("Jet");
+   int taun = bkg_or_sig.size();
 
 
-   vector<TH1F*> hnotauID[two];
+   vector<TH1F*> hnotauID[taun];
    for (unsigned int i = 0; i<histo_notauID_names.size(); ++i) {
-     for (unsigned int k = 0; k<two; ++k) {
+     for (unsigned int k = 0; k<taun; ++k) {
        hnotauID[k].push_back( new TH1F(bkg_or_sig[k]+"_"+histo_notauID_names[i], bkg_or_sig[k]+"_"+histo_notauID_names[i], nBins[i], x_min[i], x_max[i]) ); 
        hnotauID[k][i]->Sumw2();
      }
@@ -197,10 +209,10 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
    
    int nTauIDs = tauIDs.size();
 
-   vector<TH1F*> htau[two][nTauIDs];
+   vector<TH1F*> htau[taun][nTauIDs];
    for (unsigned int i = 0; i<histo_taudependent_names.size(); ++i) {
      for (unsigned int j = 0; j<nTauIDs ; ++j) {
-       for (unsigned int k = 0; k<two; ++k) {
+       for (unsigned int k = 0; k<taun; ++k) {
 	 htau[k][j].push_back( new TH1F(bkg_or_sig[k]+"_"+histo_taudependent_names[i]+"_"+tauIDs[j], bkg_or_sig[k]+"_"+histo_taudependent_names[i]+"_"+tauIDs[j], nBins_tau[i], x_min_tau[i], x_max_tau[i]) ); 
 	 htau[k][j][i]->Sumw2();
        }
@@ -226,14 +238,14 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 
       float pu_weight = 1;
       if (!data) {
-        pu_weight = PU_2017_Rereco::MC_pileup_weight(mc_trueNumInteractions, mc_nickname, "Rereco_all");
+        pu_weight = PU_2017_Rereco::MC_pileup_weight(mc_trueNumInteractions, mc_nickname, "Data_2017BtoF");
       }
       float first_weight = pu_weight;
       float reweight_njets = 1.0;
       
       bool gen_mutau = false, gen_mumu = false, unusualtau = false;
-      vector<TLorentzVector> gentau_had_visp4, gentau_mu_visp4, genmu_p4;
-      gentau_had_visp4.clear(), gentau_mu_visp4.clear(), genmu_p4.clear();
+      vector<TLorentzVector> gentau_had_visp4, gentau_mu_visp4, genmu_p4, jetp4;
+      gentau_had_visp4.clear(), gentau_mu_visp4.clear(), genmu_p4.clear(), jetp4.clear();
       if (!data) {
 	
 	vector<TLorentzVector> gentau_p4;
@@ -252,7 +264,12 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	      genmu_p4.push_back(p4);
 	    }//end condition on mus' mothers
 	  }//end condition on particle's id = mu
-
+	  if (abs(mc_pdgId->at(iMC)) <= 10 || abs(mc_pdgId->at(iMC)) >= 100) {
+	    if (mc_pt->at(iMC) < 10) continue;
+	    p4.SetPxPyPzE(mc_px->at(iMC), mc_py->at(iMC), mc_pz->at(iMC), mc_energy->at(iMC));
+	    if (p4.Pt() > 10000) continue;
+	    jetp4.push_back(p4);
+	  }
 
 	  //Find taus whose mothers are either photons or Z bosons
 	  if (abs(mc_pdgId->at(iMC)) == 15) {
@@ -322,11 +339,11 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	  if (print_count < 20) cout << jEntry << " iTau " << iTau1 << "  tau index " << tau_ind[iTau1] << "  decay mode " << tau_dm[iTau1] << endl;
 	  if (tau_dm[iTau1] != 2) continue;//hadronic tau
 	  gentau_visp4[iTau1] = gentau_p4[iTau1] - nutau_p4[iTau1];
-
+	  gentau_had_visp4.push_back(gentau_visp4[iTau1]);
+	    
 	  for (unsigned int iTau2 = 0; iTau2 < nTaus; ++iTau2) {
 	    if (tau_dm[iTau2] != 1) continue;//muon tau
 	    gen_mutau = true;
-	    gentau_had_visp4.push_back(gentau_visp4[iTau1]);
 	    gentau_mu_visp4.push_back( gentau_visp4[iTau2]);
 	  }
 	}
@@ -340,21 +357,8 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	  }
 	  cout << gen_mutau << endl << endl;
 	}
-
-
-	//Now, depending on the tau decay modes, we fill the gen-level histograms
-	for (unsigned int iMuTau = 0; iMuTau < gentau_had_visp4.size(); ++iMuTau) {
-	  hgen[0]->Fill(gentau_had_visp4[iMuTau].Pt(), first_weight);
-	  hgen[1]->Fill(gentau_had_visp4[iMuTau].Eta(), first_weight);
-	  hgen[2]->Fill(gentau_had_visp4[iMuTau].Phi(), first_weight);
-	  hgen[3]->Fill(gentau_mu_visp4[iMuTau].Pt(), first_weight);
-	  hgen[4]->Fill(gentau_mu_visp4[iMuTau].Eta(), first_weight);
-	  hgen[5]->Fill(gentau_mu_visp4[iMuTau].Phi(), first_weight);
-
-	  p4 = gentau_had_visp4[iMuTau] + gentau_mu_visp4[iMuTau];
-	  hgen[6]->Fill(p4.M(), first_weight);
-	}
       }//end is this MC? condition
+
 
       if (WJets) {
 	int njets = -2;
@@ -397,7 +401,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	
 	if (mu_gt_pt->at(iMu) > 15 && fabs(mu_gt_eta->at(iMu)) < 2.4 && mu_isGlobalMuon->at(iMu) && mu_isTrackerMuon->at(iMu) && mu_isPFMuon->at(iMu) &&fabs(mu_gt_dxy_firstPVtx->at(iMu)) < 0.045 && fabs(mu_gt_dz_firstPVtx->at(iMu)) < 0.2 && mu_pfIsoDbCorrected04->at(iMu) < 0.3) {
 	  mu1_p4.SetPtEtaPhiM(mu_gt_pt->at(iMu), mu_gt_eta->at(iMu), mu_gt_phi->at(iMu), mu_mass);
-	  for (unsigned int iMu2= 0; iMu2 < mu_gt_pt->size(); ++iMu2) {
+	  for (unsigned int iMu2= 0; iMu2 < iMu; ++iMu2) {
 	    if (mu_gt_pt->at(iMu2) > 15 && fabs(mu_gt_eta->at(iMu2)) < 2.4 && mu_isGlobalMuon->at(iMu2) && mu_isTrackerMuon->at(iMu2) && mu_isPFMuon->at(iMu2) &&fabs(mu_gt_dxy_firstPVtx->at(iMu2)) < 0.045 && fabs(mu_gt_dz_firstPVtx->at(iMu2)) < 0.2 && mu_pfIsoDbCorrected04->at(iMu2) < 0.3) {
 	      mu2_p4.SetPtEtaPhiM(mu_gt_pt->at(iMu2), mu_gt_eta->at(iMu2), mu_gt_phi->at(iMu2), mu_mass);
 	      if (mu1_p4.DeltaR(mu2_p4) > 0.15) dimuon = true;
@@ -603,14 +607,34 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	    //final_weight = first_weight;
 	    
 	    bool realtau = false;
-	    bool TT_realtau = false;
+	    bool jetmatch = false;
 	    if (!data) {
 	      for (unsigned int iGen = 0; iGen < gentau_had_visp4.size(); ++iGen) {
-		if (tau_p4.DeltaR(gentau_had_visp4[iGen]) > 0.5) continue;
-		realtau = true;
+		if (tau_p4.DeltaR(gentau_had_visp4[iGen]) < 0.5) {
+		  realtau = true;
+		  break;
+		}
+	      }
+	      for (unsigned int iGen = 0; iGen < jetp4.size(); ++iGen) {
+		if (tau_p4.DeltaR(jetp4[iGen]) < 0.5) {
+		  jetmatch = true;
+		}
 	      }
 	    }
-	    if (TT && realtau) TT_realtau = true;
+	    if (jetmatch) realtau = false;
+
+	    int iBkgOrSig = -1;
+	    if (realtau && DY_sig) {
+	      iBkgOrSig = 0;
+	    }
+	    else {
+	      if (jetmatch) {
+		iBkgOrSig = 2;
+	      }
+	      else {
+		iBkgOrSig = 1;
+	      }	      
+	    }
 
 	    if (iTES == 0) {
 	      if (realtau) {
@@ -657,7 +681,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 
 	    //misc. cuts
 	    bool SS = false;
-	    if (isfinalphase || isWJetsphase) {
+	    if (isfinalphase || isWJetsphase || isFakesphase) {
 	      if (tau_charge->at(iTau) * mu_gt_charge->at(iMu) > 0) continue; //SS veto (opposite for QCD estimation)
 	    }
 	    else if (isQCDphase) {
@@ -689,7 +713,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	    }
 
 
-	    if (isfinalphase || isQCDphase || isAntiMuphase) {
+	    if (isfinalphase || isQCDphase || isAntiMuphase || isFakesphase) {
 	      if (Mt > 50) Mt_accept = false;  //Mt cut, against Wjets (for Wjets CR, Mt>80)
 	    }
 	    else if (isWJetsphase) {
@@ -707,18 +731,13 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 
 	    float other_weights = 1;
 	    if (!data) other_weights = GetTriggerMuonIDMuonIsoReweight(mu_p4.Pt(), mu_p4.Eta());
+	    reweight_njets = 1;
 	    float final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight;
 	  
 	    
-	    if (DY && DY_sig) {
-	      if (Mt_accept && iTES == 2) hnotauID[0][1]->Fill(dR, final_weight);
-	      if (Mt_accept && iTES == 2) hnotauID[0][3]->Fill(p_zeta_mis-0.85*pzeta_vis, final_weight);
-	      //if (Mt_accept && iTES == 2) hnotauID[0][6]->Fill(x_zeta*x_zeta + y_zeta*y_zeta, final_weight);
-	    }
-	    else {
-	      if (Mt_accept && iTES == 2) hnotauID[1][1]->Fill(dR, final_weight);
-	      if (Mt_accept && iTES == 2) hnotauID[1][3]->Fill(p_zeta_mis-0.85*pzeta_vis, final_weight);
-	      }
+	    if (Mt_accept && iTES == 2) hnotauID[iBkgOrSig][1]->Fill(dR, final_weight);
+	    if (Mt_accept && iTES == 2) hnotauID[iBkgOrSig][3]->Fill(p_zeta_mis-0.85*pzeta_vis, final_weight);
+	    //if (Mt_accept && iTES == 2) hnotauID[0][6]->Fill(x_zeta*x_zeta + y_zeta*y_zeta, final_weight);
 	    
 	    if (tau_p4.DeltaR(mu_p4) < 0.5) continue;
 	    if (iTES==2 && Mt_accept) h_debug->Fill(3);
@@ -730,162 +749,95 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	    if(Mt_accept && iTES == 2) {
 	      found_mutau_pair = true;
 	    }
+
+	    if (isFakesphase) {
+	      cout << "shouldn't be here " <<  isFakesphase << endl;
+	      if (tau_byTightIsolationMVArun2v1DBoldDMwLT->at(iTau) > 0.5) continue;
+              if (tau_byVLooseIsolationMVArun2v1DBoldDMwLT->at(iTau) < 0.5) continue;
+	    }
+
+	    if (isFakesphase) final_weight *= FakeRate(tau_p4.Pt());
 	    
-	    bool fill_sig = false;
-	    if ( isfinalphase && ((DY && DY_sig) || TT_realtau) ) fill_sig = true;
 
-	    //fill "Sig" histograms
-	    if (fill_sig) {
-	      //mu histos
-	      if (iTES == 2) hnotauID[0][2]->Fill(Mt, final_weight);
-	      
-	      //tau MVA histo
-	      if (Mt_accept && iTES == 2) hnotauID[0][0]->Fill(tau_byIsolationMVArun2v1DBoldDMwLTraw->at(iTau), final_weight);
+	    //mu histos
+	    if (iTES == 2) hnotauID[iBkgOrSig][2]->Fill(Mt, final_weight);
 	    
-	      //no tau ID
-	      if (Mt_accept && iTES == 2) htau[0][0][0]->Fill(Mt, final_weight);
-	      if (Mt_accept && iTES == 2) htau[0][0][1]->Fill(vis_p4.M(), final_weight);
-	      if (Mt_accept && iTES == 0) htau[0][0][13]->Fill(vis_p4.M(), final_weight);
-	      if (Mt_accept && iTES == 1) htau[0][0][14]->Fill(vis_p4.M(), final_weight);
-	      if (Mt_accept && iTES == 2) htau[0][0][2]->Fill(total_p4.M(), final_weight);
-	      if (Mt_accept && iTES == 2) htau[0][0][3]->Fill(tau_p4.Pt(), final_weight);
-	      if (Mt_accept && iTES == 0) htau[0][0][15]->Fill(tau_p4.Pt(), final_weight);
-	      if (Mt_accept && iTES == 1) htau[0][0][16]->Fill(tau_p4.Pt(), final_weight);
-	      if (Mt_accept && iTES == 2) htau[0][0][4]->Fill(tau_p4.Eta(), final_weight);
-	      if (Mt_accept && iTES == 2) htau[0][0][5]->Fill(tau_p4.Phi(), final_weight);
-	      if (Mt_accept && iTES == 2) htau[0][0][6]->Fill(mu_gt_pt->at(iMu), final_weight);
-	      if (Mt_accept && iTES == 2) htau[0][0][7]->Fill(mu_gt_eta->at(iMu), final_weight);
-	      if (Mt_accept && iTES == 2) htau[0][0][8]->Fill(mu_gt_phi->at(iMu), final_weight);
-	      if (Mt_accept && iTES == 2) htau[0][0][17]->Fill(vis_p4.Pt(), final_weight);
-	      if (Mt_accept && iTES == 2) htau[0][0][18]->Fill(jet_n, final_weight);
-	      if (iTES == 2) htau[0][0][9]->Fill(metmu_p4.M(), final_weight);
-	      if (iTES == 2) htau[0][0][10]->Fill(MET_nominal_Pt, final_weight);
-	      if (iTES == 2) htau[0][0][11]->Fill(MET_nominal_phi, final_weight);
-	      if (Mt_accept && iTES == 2) htau[0][0][12]->Fill(pv_n, final_weight);
+	    //tau MVA histo
+	    if (Mt_accept && iTES == 2) hnotauID[iBkgOrSig][0]->Fill(tau_byIsolationMVArun2v1DBoldDMwLTraw->at(iTau), final_weight);
+	    
+	    //no tau ID
+	    if (Mt_accept && iTES == 2) htau[iBkgOrSig][0][0]->Fill(Mt, final_weight);
+	    if (!SS) if (Mt_accept && iTES == 2) htau[iBkgOrSig][0][1]->Fill(vis_p4.M(), final_weight);
+	    if (SS) if (Mt_accept && iTES == 2) htau[iBkgOrSig][0][20]->Fill(vis_p4.M(), final_weight);
+	    if (Mt_accept && iTES == 0) htau[iBkgOrSig][0][13]->Fill(vis_p4.M(), final_weight);
+	    if (Mt_accept && iTES == 1) htau[iBkgOrSig][0][14]->Fill(vis_p4.M(), final_weight);
+	    if (Mt_accept && iTES == 2) htau[iBkgOrSig][0][2]->Fill(total_p4.M(), final_weight);
+	    if (!SS) if (Mt_accept && iTES == 2) htau[iBkgOrSig][0][3]->Fill(tau_p4.Pt(), final_weight);
+	    if (SS) if (Mt_accept && iTES == 2) htau[iBkgOrSig][0][19]->Fill(tau_p4.Pt(), final_weight);
+	    if (Mt_accept && iTES == 0) htau[iBkgOrSig][0][15]->Fill(tau_p4.Pt(), final_weight);
+	    if (Mt_accept && iTES == 1) htau[iBkgOrSig][0][16]->Fill(tau_p4.Pt(), final_weight);
+	    if (Mt_accept && iTES == 2) htau[iBkgOrSig][0][4]->Fill(tau_p4.Eta(), final_weight);
+	    if (Mt_accept && iTES == 2) htau[iBkgOrSig][0][5]->Fill(tau_p4.Phi(), final_weight);
+	    if (!SS) if (Mt_accept && iTES == 2) htau[iBkgOrSig][0][6]->Fill(mu_gt_pt->at(iMu), final_weight);
+	    if (SS) if (Mt_accept && iTES == 2) htau[iBkgOrSig][0][21]->Fill(mu_gt_pt->at(iMu), final_weight);
+	    if (Mt_accept && iTES == 2) htau[iBkgOrSig][0][7]->Fill(mu_gt_eta->at(iMu), final_weight);
+	    if (Mt_accept && iTES == 2) htau[iBkgOrSig][0][8]->Fill(mu_gt_phi->at(iMu), final_weight);
+	    if (Mt_accept && iTES == 2) htau[iBkgOrSig][0][17]->Fill(vis_p4.Pt(), final_weight);
+	    if (Mt_accept && iTES == 2) htau[iBkgOrSig][0][18]->Fill(jet_n, final_weight);
+	    if (iTES == 2) htau[iBkgOrSig][0][9]->Fill(metmu_p4.M(), final_weight);
+	    if (iTES == 2) htau[iBkgOrSig][0][10]->Fill(MET_nominal_Pt, final_weight);
+	    if (iTES == 2) htau[iBkgOrSig][0][11]->Fill(MET_nominal_phi, final_weight);
+	    if (Mt_accept && iTES == 2) htau[iBkgOrSig][0][12]->Fill(pv_n, final_weight);
 
-	      for (unsigned int iValue=0; iValue<tauIDvalues.size(); ++iValue) {
-		int iHisto = -1;
+	    for (unsigned int iValue=0; iValue<tauIDvalues.size(); ++iValue) {
+	      int iHisto = -1;
 
-		if (tauIDvalues[iValue] > 0.5) {
-		  iHisto = 2*iValue+1;
-		}
-		else {
-		  iHisto = 2*iValue+2;
-		}
-
-	        if (Mt_accept && iTES == 2) htau[0][iHisto][0]->Fill(Mt, final_weight);
-	        if (!SS) if (Mt_accept && iTES == 2) htau[0][iHisto][1]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept && iTES == 0) htau[0][iHisto][13]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept && iTES == 1) htau[0][iHisto][14]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept && iTES == 2) htau[0][iHisto][2]->Fill(total_p4.M(), final_weight);
-	        if (!SS) if (Mt_accept && iTES == 2) htau[0][iHisto][3]->Fill(tau_pt->at(iTau), final_weight);
-		if (Mt_accept && iTES == 0) htau[0][iHisto][15]->Fill(tau_p4.Pt(), final_weight);
-		if (Mt_accept && iTES == 1) htau[0][iHisto][16]->Fill(tau_p4.Pt(), final_weight);
-	        if (Mt_accept && iTES == 2) htau[0][iHisto][4]->Fill(tau_p4.Eta(), final_weight);
-	        if (Mt_accept && iTES == 2) htau[0][iHisto][5]->Fill(tau_p4.Phi(), final_weight);
-		if (Mt_accept && iTES == 2) htau[0][iHisto][6]->Fill(mu_gt_pt->at(iMu), final_weight);
-		if (Mt_accept && iTES == 2) htau[0][iHisto][7]->Fill(mu_gt_eta->at(iMu), final_weight);
-		if (Mt_accept && iTES == 2) htau[0][iHisto][8]->Fill(mu_gt_phi->at(iMu), final_weight);
-		if (Mt_accept && iTES == 2) htau[0][iHisto][17]->Fill(vis_p4.Pt(), final_weight);
-		if (Mt_accept && iTES == 2) htau[0][iHisto][18]->Fill(jet_n, final_weight);
-	        if (iTES == 2) htau[0][iHisto][9]->Fill(metmu_p4.M(), final_weight);
-	        if (iTES == 2) htau[0][iHisto][10]->Fill(MET_nominal_Pt, final_weight);
-	        if (iTES == 2) htau[0][iHisto][11]->Fill(MET_nominal_phi, final_weight);
-	        if (Mt_accept && iTES == 2) htau[0][iHisto][12]->Fill(pv_n, final_weight);
+	      if (tauIDvalues[iValue] > 0.5) {
+		iHisto = 2*iValue+1;
 	      }
-
-	    }//end "Sig" histos
-	    else {
-	      //mu histos
-	      if (iTES == 2) hnotauID[1][2]->Fill(Mt, final_weight);
-	      
-	      //tau MVA histo
-	      if (Mt_accept && iTES == 2) hnotauID[1][0]->Fill(tau_byIsolationMVArun2v1DBoldDMwLTraw->at(iTau), final_weight);
-	      
-	      //various tau ID requirements
-	      //no tau ID
-	      if (Mt_accept && iTES == 2) htau[1][0][0]->Fill(Mt, final_weight);
-	      if (!SS) if (Mt_accept && iTES == 2) htau[1][0][1]->Fill(vis_p4.M(), final_weight);
-	      if (SS) if (Mt_accept && iTES == 2) htau[1][0][20]->Fill(vis_p4.M(), final_weight);
-	      if (Mt_accept && iTES == 0) htau[1][0][13]->Fill(vis_p4.M(), final_weight);
-	      if (Mt_accept && iTES == 1) htau[1][0][14]->Fill(vis_p4.M(), final_weight);
-	      if (Mt_accept && iTES == 2) htau[1][0][2]->Fill(total_p4.M(), final_weight);
-	      if (!SS) if (Mt_accept && iTES == 2) htau[1][0][3]->Fill(tau_p4.Pt(), final_weight);
-	      if (SS) if (Mt_accept && iTES == 2) htau[1][0][19]->Fill(tau_p4.Pt(), final_weight);
-	      if (Mt_accept && iTES == 0) htau[0][0][15]->Fill(tau_p4.Pt(), final_weight);
-	      if (Mt_accept && iTES == 1) htau[0][0][16]->Fill(tau_p4.Pt(), final_weight);
-	      if (Mt_accept && iTES == 2) htau[1][0][4]->Fill(tau_p4.Eta(), final_weight);
-	      if (Mt_accept && iTES == 2) htau[1][0][5]->Fill(tau_p4.Phi(), final_weight);
-	      if (!SS) if (Mt_accept && iTES == 2) htau[1][0][6]->Fill(mu_gt_pt->at(iMu), final_weight);
-	      if (SS) if (Mt_accept && iTES == 2) htau[1][0][21]->Fill(mu_gt_pt->at(iMu), final_weight);
-	      if (Mt_accept && iTES == 2) htau[1][0][7]->Fill(mu_gt_eta->at(iMu), final_weight);
-	      if (Mt_accept && iTES == 2) htau[1][0][8]->Fill(mu_gt_phi->at(iMu), final_weight);
-	      if (Mt_accept && iTES == 2) htau[1][0][17]->Fill(vis_p4.Pt(), final_weight);
-	      if (Mt_accept && iTES == 2) htau[1][0][18]->Fill(jet_n, final_weight);
-	      if (iTES == 2) htau[1][0][9]->Fill(metmu_p4.M(), final_weight);
-	      if (iTES == 2) htau[1][0][10]->Fill(MET_nominal_Pt, final_weight);
-	      if (iTES == 2) htau[1][0][11]->Fill(MET_nominal_phi, final_weight);
-	      if (Mt_accept && iTES == 2) htau[1][0][12]->Fill(pv_n, final_weight);
-	      //if (Mt_accept && iTES == 2) htau[1][0][8]->Fill(tau_numberOfSignalChargedHadrCands->at(0), final_weight);
-	      
-	      for (unsigned int iValue=0; iValue<tauIDvalues.size(); ++iValue) {
-		int iHisto = -1;
-		if (tauIDvalues[iValue] > 0.5) {
-		  iHisto = 2*iValue+1;
-		}
-		else {
-		  iHisto = 2*iValue+2;
-		}
-
-		float w_weight = 1;
-		if (WJets && !isWJetsphase) {
-		  TFile* file_wjets = new TFile("Reweighting/Wjets_weights.root","R");
-		  TH1F* Wjets_weights = (TH1F*) file_wjets->Get("ratio_"+tauIDs[iHisto]);
-		  int w_bin = Wjets_weights->FindBin(vis_p4.M());
-		  w_weight = Wjets_weights->GetBinContent(w_bin);
-		  file_wjets->Close();
-		}
-		final_weight = pu_weight*other_weights*w_weight*reweight_njets;
-
-	        if (Mt_accept && iTES == 2) htau[1][iHisto][0]->Fill(Mt, final_weight);
-	        if (!SS) if (Mt_accept && iTES == 2) htau[1][iHisto][1]->Fill(vis_p4.M(), final_weight);
-		if (SS) if (Mt_accept && iTES == 2) htau[1][iHisto][20]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept && iTES == 0) htau[1][iHisto][13]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept && iTES == 1) htau[1][iHisto][14]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept && iTES == 2) htau[1][iHisto][2]->Fill(total_p4.M(), final_weight);
-	        if (!SS) if (Mt_accept && iTES == 2) htau[1][iHisto][3]->Fill(tau_pt->at(iTau), final_weight);
-		if (SS) if (Mt_accept && iTES == 2) htau[1][iHisto][19]->Fill(tau_p4.Pt(), final_weight);
-		if (Mt_accept && iTES == 0) htau[0][iHisto][15]->Fill(tau_p4.Pt(), final_weight);
-		if (Mt_accept && iTES == 1) htau[0][iHisto][16]->Fill(tau_p4.Pt(), final_weight);
-	        if (Mt_accept && iTES == 2) htau[1][iHisto][4]->Fill(tau_p4.Eta(), final_weight);
-	        if (Mt_accept && iTES == 2) htau[1][iHisto][5]->Fill(tau_p4.Phi(), final_weight);
-		if (!SS) if (Mt_accept && iTES == 2) htau[1][iHisto][6]->Fill(mu_gt_pt->at(iMu), final_weight);
-		if (SS) if (Mt_accept && iTES == 2) htau[1][iHisto][21]->Fill(mu_gt_pt->at(iMu), final_weight);
-		if (Mt_accept && iTES == 2) htau[1][iHisto][7]->Fill(mu_gt_eta->at(iMu), final_weight);
-		if (Mt_accept && iTES == 2) htau[1][iHisto][8]->Fill(mu_gt_phi->at(iMu), final_weight);
-		if (Mt_accept && iTES == 2) htau[0][iHisto][17]->Fill(vis_p4.Pt(), final_weight);
-		if (Mt_accept && iTES == 2) htau[0][iHisto][18]->Fill(jet_n, final_weight);
-	        if (iTES == 2) htau[1][iHisto][9]->Fill(metmu_p4.M(), final_weight);
-	        if (iTES == 2) htau[1][iHisto][10]->Fill(MET_nominal_Pt, final_weight);
-	        if (iTES == 2) htau[1][iHisto][11]->Fill(MET_nominal_phi, final_weight);
-	        if (Mt_accept && iTES == 2) htau[1][iHisto][12]->Fill(pv_n, final_weight);
+	      else {
+		iHisto = 2*iValue+2;
 	      }
+	      if (iHisto == 13 && iTES == 2) cout << "pass " << final_weight << " " << tauIDs[iHisto] << " tight ID pass? " << tau_byTightIsolationMVArun2v1DBoldDMwLT->at(iTau) << "  SS? " << SS << " mass: " << vis_p4.M() << " Bkg? " << iBkgOrSig << endl;
 
-	    }//end background histos
-	    
+	      if (Mt_accept && iTES == 2) htau[iBkgOrSig][iHisto][0]->Fill(Mt, final_weight);
+	      if (iHisto == 13 && iTES == 2) cout << htau[1][13][1]->Integral() << endl;
+	      if (!SS) if (Mt_accept && iTES == 2) htau[iBkgOrSig][iHisto][1]->Fill(vis_p4.M(), final_weight);
+	      if (iHisto == 13 && iTES == 2) cout << htau[1][13][1]->Integral() <<  "  end" << endl << endl;
+	      if (SS) if (Mt_accept && iTES == 2) htau[iBkgOrSig][iHisto][20]->Fill(vis_p4.M(), final_weight);
+	      if (Mt_accept && iTES == 0) htau[iBkgOrSig][iHisto][13]->Fill(vis_p4.M(), final_weight);
+	      if (Mt_accept && iTES == 1) htau[iBkgOrSig][iHisto][14]->Fill(vis_p4.M(), final_weight);
+	      if (Mt_accept && iTES == 2) htau[iBkgOrSig][iHisto][2]->Fill(total_p4.M(), final_weight);
+	      if (!SS) if (Mt_accept && iTES == 2) htau[iBkgOrSig][iHisto][3]->Fill(tau_p4.Pt(), final_weight);
+	      if (SS) if (Mt_accept && iTES == 2) htau[iBkgOrSig][iHisto][19]->Fill(tau_p4.Pt(), final_weight);
+	      if (Mt_accept && iTES == 0) htau[iBkgOrSig][iHisto][15]->Fill(tau_p4.Pt(), final_weight);
+	      if (Mt_accept && iTES == 1) htau[iBkgOrSig][iHisto][16]->Fill(tau_p4.Pt(), final_weight);
+	      if (Mt_accept && iTES == 2) htau[iBkgOrSig][iHisto][4]->Fill(tau_p4.Eta(), final_weight);
+	      if (Mt_accept && iTES == 2) htau[iBkgOrSig][iHisto][5]->Fill(tau_p4.Phi(), final_weight);
+	      if (!SS) if (Mt_accept && iTES == 2) htau[iBkgOrSig][iHisto][6]->Fill(mu_gt_pt->at(iMu), final_weight);
+	      if (SS) if (Mt_accept && iTES == 2) htau[iBkgOrSig][iHisto][21]->Fill(mu_gt_pt->at(iMu), final_weight);
+	      if (Mt_accept && iTES == 2) htau[iBkgOrSig][iHisto][7]->Fill(mu_gt_eta->at(iMu), final_weight);
+	      if (Mt_accept && iTES == 2) htau[iBkgOrSig][iHisto][8]->Fill(mu_gt_phi->at(iMu), final_weight);
+	      if (Mt_accept && iTES == 2) htau[iBkgOrSig][iHisto][17]->Fill(vis_p4.Pt(), final_weight);
+	      if (Mt_accept && iTES == 2) htau[iBkgOrSig][iHisto][18]->Fill(jet_n, final_weight);
+	      if (iTES == 2) htau[iBkgOrSig][iHisto][9]->Fill(metmu_p4.M(), final_weight);
+	      if (iTES == 2) htau[iBkgOrSig][iHisto][10]->Fill(MET_nominal_Pt, final_weight);
+	      if (iTES == 2) htau[iBkgOrSig][iHisto][11]->Fill(MET_nominal_phi, final_weight);
+	      if (Mt_accept && iTES == 2) htau[iBkgOrSig][iHisto][12]->Fill(pv_n, final_weight);
+	    }
 	  }//loop over TES
 	}//loop over taus
       }//loop over muons
    }//loop over events
 
    file_out->cd();
-   hCounter->Write();
-   hCounter2->Write();
+   //hCounter->Write();
+   //hCounter2->Write();
    h_reweight->Write();
    h_weight_afterallsel->Write();
    h_debug->Write();
-   for (unsigned int i = 0; i<histo_notauID_names.size(); ++i) for (unsigned int k = 0; k<two; ++k) hnotauID[k][i]->Write();
-   for (unsigned int i = 0; i<histo_taudependent_names.size(); ++i) for (unsigned int j = 0; j<nTauIDs; ++j) for (unsigned int k = 0; k<two; ++k) htau[k][j][i]->Write();
+   for (unsigned int i = 0; i<histo_notauID_names.size(); ++i) for (unsigned int k = 0; k<taun; ++k) hnotauID[k][i]->Write();
+   for (unsigned int i = 0; i<histo_taudependent_names.size(); ++i) for (unsigned int j = 0; j<nTauIDs; ++j) for (unsigned int k = 0; k<taun; ++k) htau[k][j][i]->Write();
    if (DY) for (unsigned int i = 0; i<hgen.size(); ++i) hgen[i]->Write();
    file_out->Close();
 }

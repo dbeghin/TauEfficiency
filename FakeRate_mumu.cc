@@ -1,11 +1,11 @@
 #define IIHEAnalysis_cxx
 #include "IIHEAnalysis.h"
-#include "PU_reWeighting.cc"
 //#include <TH1.h>
 #include <TLorentzVector.h>
 //#include <TCanvas.h>
 #include "TString.h"
 #include <iostream>
+#include "PU_reWeighting.cc"
 
 using namespace std;
 
@@ -72,16 +72,34 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
    histo_names.push_back("ev_MET");         nBins.push_back(100);  x_min.push_back(0);    x_max.push_back(100);
    histo_names.push_back("ev_METphi");      nBins.push_back(64);   x_min.push_back(-3.2); x_max.push_back(3.2);
    histo_names.push_back("ev_Nvertex");     nBins.push_back(81);   x_min.push_back(-0.5); x_max.push_back(80.5);
-   histo_names.push_back("taupt_pass");     nBins.push_back(1000); x_min.push_back(0);    x_max.push_back(1000);
-   histo_names.push_back("taupt_fail");     nBins.push_back(1000); x_min.push_back(0);    x_max.push_back(1000);
-   histo_names.push_back("tau_MVA");        nBins.push_back(200);  x_min.push_back(-1);   x_max.push_back(1);
-
 
    vector<TH1F*> h;
    for (unsigned int i = 0; i<histo_names.size(); ++i) {
      h.push_back( new TH1F(histo_names[i], histo_names[i], nBins[i], x_min[i], x_max[i]) ); 
    }
 
+   vector<TString> htau_names;              vector<int> nBins_tau;     vector<float> x_min_tau,   x_max_tau; 
+   htau_names.push_back("taupt_pass");      nBins_tau.push_back(1000); x_min_tau.push_back(0);    x_max_tau.push_back(1000);
+   htau_names.push_back("taupt_fail");      nBins_tau.push_back(1000); x_min_tau.push_back(0);    x_max_tau.push_back(1000);
+   htau_names.push_back("tau_MVA");         nBins_tau.push_back(200);  x_min_tau.push_back(-1);   x_max_tau.push_back(1);
+
+   vector<TString> dms;
+   dms.push_back("DM0");
+   dms.push_back("DM1");
+   dms.push_back("DM10");
+
+   vector<TString> eta;
+   eta.push_back("barrel");
+   eta.push_back("endcap");
+
+   vector<TH1F*> htau[histo_names.size()][dms.size()];
+   for (unsigned int i = 0; i<htau_names.size(); ++i) {
+     for (unsigned int j = 0; j<dms.size(); ++j) {
+       for (unsigned int k = 0; k<eta.size(); ++k) {
+	 htau[i][j].push_back( new TH1F(htau_names[i]+"_"+dms[j]+"_"+eta[k], htau_names[i]+"_"+dms[j]+"_"+eta[k], nBins_tau[i], x_min_tau[i], x_max_tau[i]) ); 
+       }
+     }
+   }
 
 
    TH1F* h_reweight = new TH1F("h_r", "h_r", 100, -2, 2);
@@ -102,12 +120,13 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 
       float pu_weight = 1;
       if (!data) {
-        pu_weight = PU_2017_Rereco::MC_pileup_weight(mc_trueNumInteractions, mc_nick, "Rereco_all");
+        pu_weight = PU_2017_Rereco::MC_pileup_weight(mc_trueNumInteractions, mc_nick, "Data_2017BtoF");
       }
       
       bool gen_mutau = false;
       bool DYtomumu = false;
       TLorentzVector gentau_p4;
+      DY = false;
       if (DY) {
 	int moth_ind = -1, tau1_ind = -1, tau2_ind = -1, mu1_ind = -1, mu2_ind = -1, tau1_dm = -1, tau2_dm = -1;
 	TLorentzVector mu1_p4, mu2_p4, tau1_p4, tau2_p4, tau1_visp4, tau2_visp4, gen_mumu_p4, nutau1_p4, nutau2_p4;
@@ -234,7 +253,6 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
       }//end is this DY? condition
 
 
-
       //Is one of the triggers fired?
       bool PassMuonTrigger = false;
       if (trig_HLT_IsoMu27_accept) PassMuonTrigger = true;
@@ -244,16 +262,17 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
       //start muon counting loop
       int Nmu = 0;
       for (unsigned int iMu = 0; iMu < mu_gt_pt->size(); ++iMu) {
-        if(mu_gt_pt->at(iMu) > 10 && fabs(mu_gt_eta->at(iMu)) < 2.4 && fabs(mu_gt_dxy_firstPVtx->at(iMu)) < 0.045 && fabs(mu_gt_dz_firstPVtx->at(iMu)) < 0.2 && mu_pfIsoDbCorrected04->at(iMu) < 0.3 && mu_isMediumMuon->at(iMu)) ++Nmu;
+        if(mu_isPFMuon->at(iMu) && mu_gt_pt->at(iMu) > 10 && fabs(mu_gt_eta->at(iMu)) < 2.4 && fabs(mu_gt_dxy_firstPVtx->at(iMu)) < 0.045 && fabs(mu_gt_dz_firstPVtx->at(iMu)) < 0.2 && mu_pfIsoDbCorrected04->at(iMu) < 0.3 && mu_isMediumMuon->at(iMu)) ++Nmu;
         if (Nmu > 2) break;
       }
       if (Nmu > 2) continue; //2nd muon veto
 
+
       //electron veto
       bool electron = false;
       for (unsigned int iEle = 0; iEle < gsf_pt->size(); ++iEle) {
-        if (gsf_VIDLoose->at(iEle) && gsf_pt->at(iEle) > 10 && fabs(gsf_eta->at(iEle)) < 2.5 && fabs(gsf_dxy_firstPVtx->at(iEle)) < 0.045 && fabs(gsf_dz_firstPVtx->at(iEle)) < 0.2 /*&& gsf_passConversionVeto->at(iEle)*/ && gsf_nLostInnerHits->at(iEle) <= 1 && gsf_relIso->at(iEle) < 0.3) electron = true;
-        if (electron) break;
+	if (gsf_VIDLoose->at(iEle) && gsf_pt->at(iEle) > 10 && fabs(gsf_eta->at(iEle)) < 2.5 && fabs(gsf_dxy_firstPVtx->at(iEle)) < 0.045 && fabs(gsf_dz_firstPVtx->at(iEle)) < 0.2 && gsf_passConversionVeto->at(iEle) && gsf_nLostInnerHits->at(iEle) <= 1 && gsf_relIso->at(iEle) < 0.3) electron = true;
+	if (electron) break;
       }
       if (electron) continue;
 
@@ -267,7 +286,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 
 
 
-      //Sort muons, taus, by increasing isolation/decreasing pt                                                                                                                   
+      //Sort muons, taus, by increasing isolation/decreasing pt
       float iso = 1.5, pt = 0.0;
       int lowest = -1;
       vector<int> orderedMu, orderedTau;
@@ -275,7 +294,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
       bool interesting = false;
 
 
-      //sorting muons                                                                                                                                                             
+      //sorting muons
       for (unsigned int ii = 0; ii < mu_gt_pt->size(); ++ii) {
         rest.push_back(ii);
       }
@@ -295,7 +314,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
             pt = mu_gt_pt->at(rest[ii]);
             if (lowest > -1) rest2.push_back(lowest);
             lowest = rest[ii];
-            interesting = true;//just a flag to see if this actually happens                                                                                                      
+            interesting = true;//just a flag to see if this actually happens
           }
           else {
             rest2.push_back(rest[ii]);
@@ -307,10 +326,11 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 
 
 
+
       //start loop over reconstructed muons
       bool found_mumu_pair = false;
-      for (unsigned int ii = 1; ii < orderedMu.size(); ++ii) {
-	if (found_mumu_pair) break;
+      for (unsigned int ii = 0; ii < orderedMu.size(); ++ii) {
+	//if (found_mumu_pair) break;
 	int iMu1 = orderedMu[ii];
 	//start 2nd loop over reconstructed mus
 	for (unsigned int jj = 0; jj < ii; ++jj) {
@@ -343,20 +363,11 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	  if (total_p4.M() < 70 || total_p4.M() > 110) continue;
 
 	  if (!data) {
-	    final_weight = mc_w_sign*GetReweight_mumu(mu1_p4.Pt(), mu1_p4.Eta(), mu2_p4.Pt(), mu2_p4.Eta())*pu_weight;
+            final_weight = mc_w_sign*GetReweight_mumu(mu1_p4.Pt(), mu1_p4.Eta(), mu2_p4.Pt(), mu2_p4.Eta())*pu_weight;
 	  }
 	  
 	  met_p4.SetPtEtaPhiM(MET_nominal_Pt, 0, MET_nominal_phi, 0);
 	  metmu_p4 = met_p4 + mu1_p4;
-
-	  //check if there's a DY match
-	  bool DY_match = false;
-	  if (DY) {
-	    //we need to have a mumu pair at gen-level, Mu1 must have same sign and be DeltaR-compatible with one gen mu
-	    if (gen_mutau &&  /*tau_charge->at(iTau)*gentau_charge > 0  &&*/  (mu1_p4.DeltaR(gentau_p4) < 0.5 || mu2_p4.DeltaR(gentau_p4) < 0.5) ){
-	      DY_match = true;
-	    }
-	  }
 
 	  if (final_weight != final_weight) continue;
 
@@ -376,6 +387,11 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	    if (tau_againstMuonTight3->at(iTau) < 0.5) continue;
 	    if (tau_againstElectronVLooseMVA6->at(iTau) < 0.5) continue;
 	    
+	    TLorentzVector tau_p4;
+	    tau_p4.SetPxPyPzE(tau_px->at(iTau), tau_py->at(iTau), tau_pz->at(iTau), tau_px->at(iTau));
+	    if (tau_p4.DeltaR(mu1_p4) < 0.5) continue;
+	    if (tau_p4.DeltaR(mu2_p4) < 0.5) continue;
+
 	    //mu histos
 	    h[0]->Fill(mu_gt_pt->at(iMu1), final_weight);
 	    h[0]->Fill(mu_gt_pt->at(iMu2), final_weight);
@@ -405,10 +421,27 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	    h[15]->Fill(MET_nominal_phi, final_weight);
 	    h[16]->Fill(pv_n, final_weight);
 
+	    int j_dm = -1, k_eta = -1;
+	    if (tau_decayMode->at(iTau) == 0) {
+	      j_dm = 0;
+	    }
+	    else if (tau_decayMode->at(iTau) == 1) {
+	      j_dm = 1;
+	    }
+	    else if (tau_decayMode->at(iTau) == 10) {
+	      j_dm = 2;
+	    }
+	    if (fabs(tau_eta->at(iTau)) < 1.5) {
+	      k_eta = 0;
+	    }
+	    else {
+	      k_eta = 1;
+	    }
+
 	    //Tau histos
-	    if (tau_byTightIsolationMVArun2v1DBoldDMwLT->at(iTau) > 0.5) h[17]->Fill(tau_pt->at(iTau), final_weight);
-	    if ((tau_byTightIsolationMVArun2v1DBoldDMwLT->at(iTau) < 0.5) && (tau_byLooseIsolationMVArun2v1DBoldDMwLT->at(iTau) > 0.5)) h[18]->Fill(tau_pt->at(iTau), final_weight);
-	    h[19]->Fill(tau_byIsolationMVArun2v1DBoldDMwLTraw->at(iTau), final_weight);
+	    if (tau_byTightIsolationMVArun2v1DBoldDMwLT->at(iTau) > 0.5) htau[0][j_dm][k_eta]->Fill(tau_pt->at(iTau), final_weight);
+	    if ((tau_byTightIsolationMVArun2v1DBoldDMwLT->at(iTau) < 0.5) && (tau_byVLooseIsolationMVArun2v1DBoldDMwLT->at(iTau) > 0.5)) htau[1][j_dm][k_eta]->Fill(tau_pt->at(iTau), final_weight);
+	    htau[2][j_dm][k_eta]->Fill(tau_byIsolationMVArun2v1DBoldDMwLTraw->at(iTau), final_weight);
 	  }//loop over taus
 	}//loop over mus
       }//loop over muons
@@ -419,6 +452,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
    //hCounter2->Write();
    h_reweight->Write();
    for (unsigned int i = 0; i<histo_names.size(); ++i) h[i]->Write();
+   for (unsigned int i=0; i<htau_names.size(); ++i) for (unsigned int j=0; j<dms.size(); ++j) for (unsigned int k=0; k<eta.size(); ++k) htau[i][j][k]->Write();
    file_out->Close();
 
 }

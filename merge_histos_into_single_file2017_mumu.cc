@@ -21,7 +21,7 @@ TH1F* MC_histo(bool DYSig, TString var, TFile* file_in, double xs, long Nevents,
 
   cout << file_in->GetName() << endl;
 
-  double lumi = 41.9 * pow(10,3); //luminosity in pb^-1
+  double lumi = 40.08 * pow(10,3); //luminosity in pb^-1
 
   double e_Nevents = pow(Nevents,0.5);
   double e_xs = 0.01*xs;
@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
   TFile* file_out = new TFile("Figures/"+name_out+".root", "RECREATE");
   TFile* file_in_DY = new TFile(folder_in+"/Arranged_DY/DY.root", "R");
   TFile* file_in_WJets = new TFile(folder_in+"/Arranged_WJets/WJets.root", "R");
-  TFile* file_in_TT = new TFile(folder_in+"/Arranged_TT/TT.root", "R");
+  TFile* file_in_TT = new TFile(folder_in+"/Arranged_TT/TT_2l2nu.root", "R");
   TFile* file_in_WW = new TFile(folder_in+"/Arranged_WW/WW.root", "R");
   TFile* file_in_WZ = new TFile(folder_in+"/Arranged_WZ/WZ.root", "R");
   TFile* file_in_ZZ = new TFile(folder_in+"/Arranged_ZZ/ZZ.root", "R");
@@ -84,24 +84,24 @@ int main(int argc, char** argv) {
   
 
   vector<TString> vars;
-  //vars.push_back("mu_pt");
-  //vars.push_back("mu_eta");
-  //vars.push_back("mu_phi");
-  vars.push_back("mu1_pt");
-  vars.push_back("mu1_eta");
-  vars.push_back("mu1_phi");
-  vars.push_back("mu2_pt");
-  vars.push_back("mu2_eta");
-  vars.push_back("mu2_phi");
+  vars.push_back("mu_pt");
+  vars.push_back("mu_eta");
+  vars.push_back("mu_phi");
+  //vars.push_back("mu1_pt");
+  //vars.push_back("mu1_eta");
+  //vars.push_back("mu1_phi");
+  //vars.push_back("mu2_pt");
+  //vars.push_back("mu2_eta");
+  //vars.push_back("mu2_phi");
   //vars.push_back("ev_DRmumu");
   //vars.push_back("ev_Mt_raw");
-  vars.push_back("ev_Mt");
+  //vars.push_back("ev_Mt");
   vars.push_back("ev_Mvis");
-  vars.push_back("ev_Mvis_SS");
+  //vars.push_back("ev_Mvis_SS");
   /*vars.push_back("ev_METmumass");
   vars.push_back("ev_MET");
   vars.push_back("ev_METphi");*/
-  vars.push_back("ev_Nvertex");
+  //vars.push_back("ev_Nvertex");
 
 
 
@@ -127,7 +127,7 @@ int main(int argc, char** argv) {
   double xs_QCD_1000toInf = 10.4305*0.15544;    xs_QCD.push_back(xs_QCD_1000toInf);
 
   //Nevents
-  long N_DY = 24500618 + 23202573 + 24190800 + 24381540 + 172472;//29271547 + 18828004 + 29166928 + 19577884;//18245119;
+  long N_DY = 96844363;//29271547 + 18828004 + 29166928 + 19577884;//18245119;
   long N_WJets = 23133163;//25950745;
   long N_TT = 8634992;
   long N_WW = 7547722;
@@ -162,16 +162,6 @@ int main(int argc, char** argv) {
     h_DYBkg -> SetName("DYS_"+var_in);
     h_DYBkg->Write();
     
-    vector<TH1F*> h_QCD_vector;
-    for (unsigned int iBin = 0; iBin<QCD_files.size(); ++iBin) {
-      h_QCD_vector.push_back( MC_histo(true, var_in, QCD_files[iBin], xs_QCD[iBin], N_QCD[iBin], rebin) );
-    }
-    TH1F* h_QCD = (TH1F*) h_QCD_vector[0]->Clone("QCD_"+var_in);
-    for (unsigned int iBin = 1; iBin<QCD_files.size(); ++iBin) {
-      h_QCD->Add(h_QCD_vector[iBin]);
-    }
-    h_QCD->Write();
-      
     TH1F* h_WJets = MC_histo(true, var_in, file_in_WJets, xs_WJets, N_WJets, rebin);
     h_WJets -> SetName("WJets_"+var_in);
     h_WJets->Write();
@@ -180,10 +170,6 @@ int main(int argc, char** argv) {
     h_TT -> SetName("TTB_"+var_in);
     h_TT->Write();
 
-    TH1F* h_TTS = (TH1F*) h_TT->Clone("TTS_"+var_in);
-    for (unsigned int iBin=1; iBin<h_TTS->GetNbinsX()+1; ++iBin) h_TTS->SetBinContent(iBin, 0);
-    h_TTS->Write();
-      
     TH1F* h_WW = MC_histo(true, var_in, file_in_WW, xs_WW, N_WW, rebin);
     //TH1F* h_WZ = MC_histo(true, var_in, file_in_WZ, xs_WZ, N_WZ, rebin);
     //TH1F* h_ZZ = MC_histo(true, var_in, file_in_ZZ, xs_ZZ, N_ZZ, rebin);
