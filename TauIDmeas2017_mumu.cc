@@ -94,6 +94,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
    Long64_t nEntries = fChain->GetEntriesFast();
    Long64_t nbytes = 0, nb = 0;
    int print_count = 0;
+   long prev_jEntry = 0;
    //start loop over all events
    for (Long64_t jEntry = 0; jEntry < nEntries; ++jEntry) {
       Long64_t iEntry = LoadTree(jEntry);
@@ -105,7 +106,10 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 
       float pu_weight = 1;
       if (!data) {
-	pu_weight = PU_2017_Rereco::MC_pileup_weight(mc_trueNumInteractions, mc_nickname, "Data_2017BtoF");
+	//pu_weight = PU_2017_Rereco::MC_pileup_weight(mc_trueNumInteractions, mc_nickname, "Data_2017BtoF");
+	//pu_weight = PU_2017_Rereco::MC_pileup_weight(mc_trueNumInteractions, mc_nickname, "Data_2017BtoF_high");
+	pu_weight = PU_2017_Rereco::MC_pileup_weight(mc_trueNumInteractions, mc_nickname, "Data_2017BtoF_low");
+	//pu_weight = PU_2017_Rereco::MC_pileup_weight(mc_trueNumInteractions, mc_nickname, "Data_2017BtoF_80mb");
       }
 
       
@@ -256,7 +260,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
       //electron veto
       bool electron = false;
       for (unsigned int iEle = 0; iEle < gsf_pt->size(); ++iEle) {
-        if (gsf_VIDLoose->at(iEle) && gsf_pt->at(iEle) > 10 && fabs(gsf_eta->at(iEle)) < 2.5 && fabs(gsf_dxy_firstPVtx->at(iEle)) < 0.045 && fabs(gsf_dz_firstPVtx->at(iEle)) < 0.2 /*&& gsf_passConversionVeto->at(iEle)*/ && gsf_nLostInnerHits->at(iEle) <= 1 && gsf_relIso->at(iEle) < 0.3) electron = true;
+        if (gsf_VIDLoose->at(iEle) && gsf_pt->at(iEle) > 10 && fabs(gsf_eta->at(iEle)) < 2.5 && fabs(gsf_dxy_firstPVtx->at(iEle)) < 0.045 && fabs(gsf_dz_firstPVtx->at(iEle)) < 0.2 && gsf_passConversionVeto->at(iEle) && gsf_nLostInnerHits->at(iEle) <= 1 && gsf_relIso->at(iEle) < 0.3) electron = true;
         if (electron) break;
       }
       if (electron) continue;
@@ -364,100 +368,63 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	  }
 
 	  float other_weights = 1;
-	  if (!data) other_weights = GetReweight_mumu(mu1_p4.Pt(), mu1_p4.Eta(), mu2_p4.Pt(), mu2_p4.Eta());
-	  float final_weight = pu_weight*other_weights;
+	  float mc_wweight = 1;
+	  pu_weight = 1; //FIXME
+	  if (!data) other_weights = GetReweight_mumu(mu1_p4.Pt(), mu1_p4.Eta(), mu2_p4.Pt(), mu2_p4.Eta()), mc_wweight = mc_w_sign;
+	  float final_weight = pu_weight*other_weights*mc_wweight;
 	  if (final_weight != final_weight) continue;
 
 	  float Mt = pow(2 * mu_gt_pt->at(iMu1) * MET_nominal_Pt * (1 - cos(mu_gt_phi->at(iMu1) - MET_nominal_phi) ), 0.5);
-	  if (!(DY && DY_match)) {
-	    h[0][10]->Fill(Mt, final_weight);
-	    h[0][13]->Fill(metmu_p4.M(), final_weight);
-	  }
-	  else {
-	    h[1][10]->Fill(Mt, final_weight);
-	    h[1][13]->Fill(metmu_p4.M(), final_weight);
-	  }	    
+	  h[1][10]->Fill(Mt, final_weight);
+	  h[1][13]->Fill(metmu_p4.M(), final_weight);
 	  //if (Mt > 50) continue;  //Mt cut, against Wjets (for Wjets CR, Mt>80)
 
 	  float dR = mu1_p4.DeltaR(mu2_p4);
-	  if (!(DY && DY_match)) {
-	    h[0][9]->Fill(dR, final_weight);
-	  }
-	  else {
-	    h[1][9]->Fill(dR, final_weight);
-	  }	    
+	  h[1][9]->Fill(dR, final_weight);
 	  if (dR < 0.5) continue;
 
-	  h_reweight->Fill(other_weights);
+	  //h_reweight->Fill(final_weight);
+	  //h_reweight->Fill(pu_weight);
+	  h_reweight->Fill(mc_trueNumInteractions);
 	  //misc. cuts
 	  if (mu_gt_charge->at(iMu1) * mu_gt_charge->at(iMu2) > 0) {
 	    h[1][17]->Fill(total_p4.M(), final_weight);
 	    continue; //OS veto
 	  }
+	  h_reweight->Fill(final_weight);
 
-	  //fill DY signal histograms
-	  if (!(DY && DY_match) || true) {
-	    //mu histos
-	    h[1][0]->Fill(mu_gt_pt->at(iMu1), final_weight);
-	    h[1][0]->Fill(mu_gt_pt->at(iMu2), final_weight);
+	  //if (jEntry != prev_jEntry) cout << endl << endl;
+	  //cout << jEntry << " " << pu_weight << endl;
+	  //prev_jEntry = jEntry;
 
-	    h[1][1]->Fill(mu_gt_eta->at(iMu1), final_weight);
-	    h[1][1]->Fill(mu_gt_eta->at(iMu2), final_weight);
+	  h[1][0]->Fill(mu_gt_pt->at(iMu1), final_weight);
+	  h[1][0]->Fill(mu_gt_pt->at(iMu2), final_weight);
 
-	    h[1][2]->Fill(mu_gt_phi->at(iMu1), final_weight);
-	    h[1][2]->Fill(mu_gt_phi->at(iMu2), final_weight);
-	    
+	  h[1][1]->Fill(mu_gt_eta->at(iMu1), final_weight);
+	  h[1][1]->Fill(mu_gt_eta->at(iMu2), final_weight);
 
-	    //Mu1 histos
-	    h[1][3]->Fill(mu_gt_pt->at(iMu1), final_weight);
-	    h[1][4]->Fill(mu_gt_eta->at(iMu1), final_weight);
-	    h[1][5]->Fill(mu_gt_phi->at(iMu1), final_weight);
+	  h[1][2]->Fill(mu_gt_phi->at(iMu1), final_weight);
+	  h[1][2]->Fill(mu_gt_phi->at(iMu2), final_weight);
+	 
 
-
-	    //Mu2 histos
-	    h[1][6]->Fill(mu_gt_pt->at(iMu2), final_weight);
-	    h[1][7]->Fill(mu_gt_eta->at(iMu2), final_weight);
-	    h[1][8]->Fill(mu_gt_phi->at(iMu2), final_weight);
-
-	    
-	    //misc. hitos
-	    h[1][11]->Fill(Mt, final_weight);
-	    h[1][12]->Fill(total_p4.M(), final_weight);
-	    h[1][14]->Fill(MET_nominal_Pt, final_weight);
-	    h[1][15]->Fill(MET_nominal_phi, final_weight);
-	    h[1][16]->Fill(pv_n, final_weight);
-	  }//end DY match histos
-	  else {
-	    //mu histos
-	    h[0][0]->Fill(mu_gt_pt->at(iMu1), final_weight);
-	    h[0][0]->Fill(mu_gt_pt->at(iMu2), final_weight);
-
-	    h[0][1]->Fill(mu_gt_eta->at(iMu1), final_weight);
-	    h[0][1]->Fill(mu_gt_eta->at(iMu2), final_weight);
-
-	    h[0][2]->Fill(mu_gt_phi->at(iMu1), final_weight);
-	    h[0][2]->Fill(mu_gt_phi->at(iMu2), final_weight);
-	    
-
-	    //Mu1 histos
-	    h[0][3]->Fill(mu_gt_pt->at(iMu1), final_weight);
-	    h[0][4]->Fill(mu_gt_eta->at(iMu1), final_weight);
-	    h[0][5]->Fill(mu_gt_phi->at(iMu1), final_weight);
+	  //Mu1 histos
+	  h[1][3]->Fill(mu_gt_pt->at(iMu1), final_weight);
+	  h[1][4]->Fill(mu_gt_eta->at(iMu1), final_weight);
+	  h[1][5]->Fill(mu_gt_phi->at(iMu1), final_weight);
 
 
-	    //Mu2 histos
-	    h[0][6]->Fill(mu_gt_pt->at(iMu2), final_weight);
-	    h[0][7]->Fill(mu_gt_eta->at(iMu2), final_weight);
-	    h[0][8]->Fill(mu_gt_phi->at(iMu2), final_weight);
+	  //Mu2 histos
+	  h[1][6]->Fill(mu_gt_pt->at(iMu2), final_weight);
+	  h[1][7]->Fill(mu_gt_eta->at(iMu2), final_weight);
+	  h[1][8]->Fill(mu_gt_phi->at(iMu2), final_weight);
 
-	    
-	    //misc. hitos
-	    h[0][11]->Fill(Mt, final_weight);
-	    h[0][12]->Fill(total_p4.M(), final_weight);
-	    h[0][14]->Fill(MET_nominal_Pt, final_weight);
-	    h[0][15]->Fill(MET_nominal_phi, final_weight);
-	    h[0][16]->Fill(pv_n, final_weight);
-	  }//end background histos
+	 
+	  //misc. hitos
+	  h[1][11]->Fill(Mt, final_weight);
+	  h[1][12]->Fill(total_p4.M(), final_weight);
+	  h[1][14]->Fill(MET_nominal_Pt, final_weight);
+	  h[1][15]->Fill(MET_nominal_phi, final_weight);
+	  h[1][16]->Fill(pv_n, final_weight);
 
 	}//loop over mus
       }//loop over muons
