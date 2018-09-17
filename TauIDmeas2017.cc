@@ -264,7 +264,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	      genmu_p4.push_back(p4);
 	    }//end condition on mus' mothers
 	  }//end condition on particle's id = mu
-	  if (abs(mc_pdgId->at(iMC)) <= 10 || abs(mc_pdgId->at(iMC)) >= 100) {
+	  if (abs(mc_pdgId->at(iMC)) <= 10 || abs(mc_pdgId->at(iMC)) >= 100 || abs(mc_pdgId->at(iMC)) == 21) {
 	    if (mc_pt->at(iMC) < 10) continue;
 	    p4.SetPxPyPzE(mc_px->at(iMC), mc_py->at(iMC), mc_pz->at(iMC), mc_energy->at(iMC));
 	    if (p4.Pt() > 10000) continue;
@@ -410,16 +410,16 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	}
 	if (dimuon) break;
       }
-      if (Nmu > 1) continue; //2nd muon veto                                                                                                                                                                
+      //if (Nmu > 1) continue; //2nd muon veto                                                                                                                                                                
       if (dimuon) continue;
 
       //electron veto
       bool electron = false;
       for (unsigned int iEle = 0; iEle < gsf_pt->size(); ++iEle) {
-	if (gsf_VIDMVAMedium->at(iEle) && gsf_pt->at(iEle) > 10 && fabs(gsf_eta->at(iEle)) < 2.5 && fabs(gsf_dxy_firstPVtx->at(iEle)) < 0.045 && fabs(gsf_dz_firstPVtx->at(iEle)) < 0.2 /*&& gsf_passConversionVeto->at(iEle)*/ && gsf_nLostInnerHits->at(iEle) <= 1 && gsf_relIso->at(iEle) < 0.3) electron = true;
+	if (gsf_VIDMVAMedium->at(iEle) && gsf_pt->at(iEle) > 10 && fabs(gsf_eta->at(iEle)) < 2.5 && fabs(gsf_dxy_firstPVtx->at(iEle)) < 0.045 && fabs(gsf_dz_firstPVtx->at(iEle)) < 0.2 && gsf_passConversionVeto->at(iEle) && gsf_nLostInnerHits->at(iEle) <= 1 && gsf_relIso->at(iEle) < 0.3) electron = true;
         if (electron) break;
       }
-      if (electron) continue;
+      //if (electron) continue; //FIXME
 
       //bjet veto (medium WP for the bjet)                                                                                                                           
       /*bool bjet = false;
@@ -728,11 +728,14 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	    if (iTES==2 && Mt_accept) h_debug->Fill(2);
 
 	    float dR = tau_p4.DeltaR(mu_p4);
-
+	    
+	    float mc_weight = 1;
+	    if (!data) mc_weight = mc_w_sign;
+	    
 	    float other_weights = 1;
 	    if (!data) other_weights = GetTriggerMuonIDMuonIsoReweight(mu_p4.Pt(), mu_p4.Eta());
 	    reweight_njets = 1;
-	    float final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight;
+	    float final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight;
 	  
 	    
 	    if (Mt_accept && iTES == 2) hnotauID[iBkgOrSig][1]->Fill(dR, final_weight);
@@ -798,12 +801,10 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	      else {
 		iHisto = 2*iValue+2;
 	      }
-	      if (iHisto == 13 && iTES == 2) cout << "pass " << final_weight << " " << tauIDs[iHisto] << " tight ID pass? " << tau_byTightIsolationMVArun2v1DBoldDMwLT->at(iTau) << "  SS? " << SS << " mass: " << vis_p4.M() << " Bkg? " << iBkgOrSig << endl;
+	      //if (Mt_accept && iHisto == 13 && iTES == 2) cout << jEntry << endl;
 
 	      if (Mt_accept && iTES == 2) htau[iBkgOrSig][iHisto][0]->Fill(Mt, final_weight);
-	      if (iHisto == 13 && iTES == 2) cout << htau[1][13][1]->Integral() << endl;
 	      if (!SS) if (Mt_accept && iTES == 2) htau[iBkgOrSig][iHisto][1]->Fill(vis_p4.M(), final_weight);
-	      if (iHisto == 13 && iTES == 2) cout << htau[1][13][1]->Integral() <<  "  end" << endl << endl;
 	      if (SS) if (Mt_accept && iTES == 2) htau[iBkgOrSig][iHisto][20]->Fill(vis_p4.M(), final_weight);
 	      if (Mt_accept && iTES == 0) htau[iBkgOrSig][iHisto][13]->Fill(vis_p4.M(), final_weight);
 	      if (Mt_accept && iTES == 1) htau[iBkgOrSig][iHisto][14]->Fill(vis_p4.M(), final_weight);

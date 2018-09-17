@@ -265,7 +265,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
         if(mu_isPFMuon->at(iMu) && mu_gt_pt->at(iMu) > 10 && fabs(mu_gt_eta->at(iMu)) < 2.4 && fabs(mu_gt_dxy_firstPVtx->at(iMu)) < 0.045 && fabs(mu_gt_dz_firstPVtx->at(iMu)) < 0.2 && mu_pfIsoDbCorrected04->at(iMu) < 0.3 && mu_isMediumMuon->at(iMu)) ++Nmu;
         if (Nmu > 2) break;
       }
-      if (Nmu > 2) continue; //2nd muon veto
+      if (Nmu > 2) continue; //3rd muon veto
 
 
       //electron veto

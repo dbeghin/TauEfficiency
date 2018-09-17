@@ -21,7 +21,12 @@ TH1F* MC_histo(bool DYSig, TString var, TFile* file_in, double xs, long Nevents,
 
   cout << file_in->GetName() << endl;
 
-  double lumi = 40.08 * pow(10,3); //luminosity in pb^-1
+  //double lumi = 41525.735; //luminosity in pb^-1
+  double lumi = 4794; //luminosity 2017B in pb^-1
+  //double lumi = 9631; //luminosity 2017C in pb^-1
+  //double lumi = 4248; //luminosity 2017D in pb^-1
+  //double lumi = 9314; //luminosity 2017E in pb^-1
+  //double lumi = 13539; //luminosity 2017F in pb^-1
 
   double e_Nevents = pow(Nevents,0.5);
   double e_xs = 0.01*xs;
@@ -54,7 +59,9 @@ TH1F* MC_histo(bool DYSig, TString var, TFile* file_in, double xs, long Nevents,
 int main(int argc, char** argv) {
 
 
-  int rebin = 2;//60;//2;
+  //int rebin = 2;
+  //int rebin = 60;
+  int rebin = 1;
 
   TString folder_in = "TauID2017/MuMu"; 
   TString name_out = "histos_mumu";
@@ -83,25 +90,25 @@ int main(int argc, char** argv) {
   TFile* file_in_QCD_1000toInf = new TFile(folder_in+"/Arranged_QCD/QCD_1000toInf.root", "R");        QCD_files.push_back(file_in_QCD_1000toInf);
   
 
-  vector<TString> vars;
-  vars.push_back("mu_pt");
-  vars.push_back("mu_eta");
-  vars.push_back("mu_phi");
-  //vars.push_back("mu1_pt");
-  //vars.push_back("mu1_eta");
-  //vars.push_back("mu1_phi");
-  //vars.push_back("mu2_pt");
-  //vars.push_back("mu2_eta");
-  //vars.push_back("mu2_phi");
-  //vars.push_back("ev_DRmumu");
-  //vars.push_back("ev_Mt_raw");
-  //vars.push_back("ev_Mt");
-  vars.push_back("ev_Mvis");
-  //vars.push_back("ev_Mvis_SS");
-  /*vars.push_back("ev_METmumass");
-  vars.push_back("ev_MET");
-  vars.push_back("ev_METphi");*/
-  //vars.push_back("ev_Nvertex");
+  vector<TString> vars;                    vector<int> rrebin;
+  vars.push_back("mu_pt");                 rrebin.push_back(2);
+  vars.push_back("mu_eta");	 	   rrebin.push_back(2);
+  vars.push_back("mu_phi");	 	   rrebin.push_back(2);
+  vars.push_back("mu1_pt");	 	   rrebin.push_back(2);
+  vars.push_back("mu1_eta");	 	   rrebin.push_back(2);
+  vars.push_back("mu1_phi");	 	   rrebin.push_back(2);
+  vars.push_back("mu2_pt");	 	   rrebin.push_back(2);
+  vars.push_back("mu2_eta");	 	   rrebin.push_back(2);
+  vars.push_back("mu2_phi");	 	   rrebin.push_back(2);
+  vars.push_back("ev_DRmumu");	 	   rrebin.push_back(2);	 
+  vars.push_back("ev_Mt_raw");	 	   rrebin.push_back(2);	 
+  vars.push_back("ev_Mt");	 	   rrebin.push_back(2);
+  vars.push_back("ev_Mvis");	 	   rrebin.push_back(60);//FIXME
+  //vars.push_back("ev_Mvis_SS");	   rrebin.push_back(2);	 
+  //vars.push_back("ev_METmumass");	   rrebin.push_back(2);
+  vars.push_back("ev_MET");	 	   rrebin.push_back(2);
+  vars.push_back("ev_METphi");	 	   rrebin.push_back(2);	 
+  vars.push_back("ev_Nvertex");  	   rrebin.push_back(1);
 
 
 
@@ -127,7 +134,8 @@ int main(int argc, char** argv) {
   double xs_QCD_1000toInf = 10.4305*0.15544;    xs_QCD.push_back(xs_QCD_1000toInf);
 
   //Nevents
-  long N_DY = 96844363;//29271547 + 18828004 + 29166928 + 19577884;//18245119;
+  long N_DY =  96844363;
+  //long N_DY =  144230225;
   long N_WJets = 23133163;//25950745;
   long N_TT = 8634992;
   long N_WW = 7547722;
@@ -154,6 +162,7 @@ int main(int argc, char** argv) {
   for (unsigned int i = 0; i<vars.size(); ++i) {
 
     var_in = vars[i];
+    int rebin = rrebin[i];
     
     TH1F* h_DYSig = MC_histo(true, var_in, file_in_DY, xs_DY, N_DY, rebin);
     h_DYSig -> SetName("DYB_"+var_in);

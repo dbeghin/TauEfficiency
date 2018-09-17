@@ -90,6 +90,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 
 
    TH1F* h_reweight = new TH1F("h_r", "h_r", 100, -2, 2);
+   TH1F* h_events = new TH1F("h_events", "h_events", 1, 0, 1);
 
    Long64_t nEntries = fChain->GetEntriesFast();
    Long64_t nbytes = 0, nb = 0;
@@ -100,6 +101,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
       Long64_t iEntry = LoadTree(jEntry);
       if (iEntry < 0) break;
       if (jEntry % 1000 == 0) fprintf(stdout, "\r  Processed events: %8d of %8d ", jEntry, nEntries);
+      h_events->Fill(0);
 
       nb = fChain->GetEntry(jEntry);
       nbytes += nb;
@@ -309,13 +311,22 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
         orderedMu.push_back(lowest);
         rest = rest2;
       }
-
-
+      //FIXME
+      
       //start loop over reconstructed muons
+      bool bPassedSel = false;
       for (unsigned int ii = 0; ii < orderedMu.size(); ++ii) {
+	if (bPassedSel) break;
+
+	//for (unsigned int ii = 0; ii < mu_gt_pt->size(); ++ii) {
 	int iMuA = orderedMu[ii];
+	//int iMuA = ii;
+
 	//start 2nd loop over reconstructed mus
 	for (unsigned int jj = ii+1; jj < orderedMu.size(); ++jj) {
+	  if (bPassedSel) break;
+
+	  //for (unsigned int jj = ii+1; jj < mu_gt_pt->size(); ++jj) {
 	  int iMuB = orderedMu[jj];
 	  int iMu1 = -1, iMu2 = -1;
 	  //TRandom3* rand = new TRandom3();
@@ -369,9 +380,10 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 
 	  float other_weights = 1;
 	  float mc_wweight = 1;
-	  pu_weight = 1; //FIXME
+	  //pu_weight = 1; //FIXME
 	  if (!data) other_weights = GetReweight_mumu(mu1_p4.Pt(), mu1_p4.Eta(), mu2_p4.Pt(), mu2_p4.Eta()), mc_wweight = mc_w_sign;
 	  float final_weight = pu_weight*other_weights*mc_wweight;
+	  //final_weight = 1; //FIXME
 	  if (final_weight != final_weight) continue;
 
 	  float Mt = pow(2 * mu_gt_pt->at(iMu1) * MET_nominal_Pt * (1 - cos(mu_gt_phi->at(iMu1) - MET_nominal_phi) ), 0.5);
@@ -383,15 +395,16 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	  h[1][9]->Fill(dR, final_weight);
 	  if (dR < 0.5) continue;
 
-	  //h_reweight->Fill(final_weight);
-	  //h_reweight->Fill(pu_weight);
-	  h_reweight->Fill(mc_trueNumInteractions);
 	  //misc. cuts
 	  if (mu_gt_charge->at(iMu1) * mu_gt_charge->at(iMu2) > 0) {
 	    h[1][17]->Fill(total_p4.M(), final_weight);
-	    continue; //OS veto
+	    continue; //SS veto
 	  }
+
+	  bPassedSel = true;
 	  h_reweight->Fill(final_weight);
+	  //h_reweight->Fill(pu_weight);
+	  //h_reweight->Fill(mc_trueNumInteractions);
 
 	  //if (jEntry != prev_jEntry) cout << endl << endl;
 	  //cout << jEntry << " " << pu_weight << endl;
@@ -434,6 +447,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
    //hCounter->Write();
    //hCounter2->Write();
    h_reweight->Write();
+   h_events->Write();
    for (unsigned int i = 0; i<histo_names.size(); ++i) for (unsigned int k = 0; k<two; ++k) h[k][i]->Write();
    file_out->Close();
 

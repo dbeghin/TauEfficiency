@@ -44,6 +44,7 @@ int main(int argc, char** argv) {
   vars.push_back("mu_pt");
   vars.push_back("mu_eta");
   vars.push_back("mu_phi");
+  vars.push_back("ev_Nvertex");
 
   TString tauID = "_MVA_tight";
 
