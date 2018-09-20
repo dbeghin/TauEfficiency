@@ -403,7 +403,7 @@ public :
    vector<int>     *EEHits_ieta;
    vector<int>     *EEHits_iphi;
    vector<int>     *EEHits_RecoFlag;
-   vector<int>     *gsf_VIDMVAVCategories;
+   //vector<int>     *gsf_VIDMVAVCategories;
    vector<int>     *EEHits_kSaturated;
    vector<int>     *EEHits_kLeadingEdgeRecovered;
    vector<int>     *EEHits_kNeighboursRecovered;
@@ -2156,7 +2156,7 @@ public :
    TBranch        *b_EEHits_ieta;   //!
    TBranch        *b_EEHits_iphi;   //!
    TBranch        *b_EEHits_RecoFlag;   //!
-   TBranch        *b_gsf_VIDMVAVCategories;   //!
+   //TBranch        *b_gsf_VIDMVAVCategories;   //!
    TBranch        *b_EEHits_kSaturated;   //!
    TBranch        *b_EEHits_kLeadingEdgeRecovered;   //!
    TBranch        *b_EEHits_kNeighboursRecovered;   //!
@@ -3945,7 +3945,7 @@ void IIHEAnalysis::Init(TTree *tree)
    EEHits_ieta = 0;
    EEHits_iphi = 0;
    EEHits_RecoFlag = 0;
-   gsf_VIDMVAVCategories = 0;
+   //gsf_VIDMVAVCategories = 0;
    EEHits_kSaturated = 0;
    EEHits_kLeadingEdgeRecovered = 0;
    EEHits_kNeighboursRecovered = 0;
@@ -4957,7 +4957,7 @@ void IIHEAnalysis::Init(TTree *tree)
    fChain->SetBranchAddress("gsf_VIDHEEP7", &gsf_VIDHEEP7, &b_gsf_VIDHEEP7);
    fChain->SetBranchAddress("gsf_VIDMVAMedium", &gsf_VIDMVAMedium, &b_gsf_VIDMVAMedium);
    fChain->SetBranchAddress("gsf_VIDMVATight", &gsf_VIDMVATight, &b_gsf_VIDMVATight);
-   fChain->SetBranchAddress("gsf_VIDMVAValue", &gsf_VIDMVAValue, &b_gsf_VIDMVAValue);
+   //fChain->SetBranchAddress("gsf_VIDMVAValue", &gsf_VIDMVAValue, &b_gsf_VIDMVAValue);
    fChain->SetBranchAddress("gsf_deltaEtaSeedClusterTrackAtCalo", &gsf_deltaEtaSeedClusterTrackAtCalo, &b_gsf_deltaEtaSeedClusterTrackAtCalo);
    fChain->SetBranchAddress("gsf_deltaPhiSeedClusterTrackAtCalo", &gsf_deltaPhiSeedClusterTrackAtCalo, &b_gsf_deltaPhiSeedClusterTrackAtCalo);
    fChain->SetBranchAddress("gsf_ecalEnergy", &gsf_ecalEnergy, &b_gsf_ecalEnergy);
@@ -5066,7 +5066,7 @@ void IIHEAnalysis::Init(TTree *tree)
    fChain->SetBranchAddress("EEHits_ieta", &EEHits_ieta, &b_EEHits_ieta);
    fChain->SetBranchAddress("EEHits_iphi", &EEHits_iphi, &b_EEHits_iphi);
    fChain->SetBranchAddress("EEHits_RecoFlag", &EEHits_RecoFlag, &b_EEHits_RecoFlag);
-   fChain->SetBranchAddress("gsf_VIDMVAVCategories", &gsf_VIDMVAVCategories, &b_gsf_VIDMVAVCategories);
+   //fChain->SetBranchAddress("gsf_VIDMVAVCategories", &gsf_VIDMVAVCategories, &b_gsf_VIDMVAVCategories);
    fChain->SetBranchAddress("EEHits_kSaturated", &EEHits_kSaturated, &b_EEHits_kSaturated);
    fChain->SetBranchAddress("EEHits_kLeadingEdgeRecovered", &EEHits_kLeadingEdgeRecovered, &b_EEHits_kLeadingEdgeRecovered);
    fChain->SetBranchAddress("EEHits_kNeighboursRecovered", &EEHits_kNeighboursRecovered, &b_EEHits_kNeighboursRecovered);
@@ -5867,8 +5867,8 @@ void IIHEAnalysis::Init(TTree *tree)
    //fChain->SetBranchAddress("trig_HLT_IsoMu24_prescale", &trig_HLT_IsoMu24_prescale, &b_trig_HLT_IsoMu24_prescale);
    //fChain->SetBranchAddress("trig_HLT_IsoMu24_eta2p1_accept", &trig_HLT_IsoMu24_eta2p1_accept, &b_trig_HLT_IsoMu24_eta2p1_accept);
    //fChain->SetBranchAddress("trig_HLT_IsoMu24_eta2p1_prescale", &trig_HLT_IsoMu24_eta2p1_prescale, &b_trig_HLT_IsoMu24_eta2p1_prescale);
-   //fChain->SetBranchAddress("trig_HLT_IsoMu27_accept", &trig_HLT_IsoMu27_accept, &b_trig_HLT_IsoMu27_accept);
-   //fChain->SetBranchAddress("trig_HLT_IsoMu27_prescale", &trig_HLT_IsoMu27_prescale, &b_trig_HLT_IsoMu27_prescale);
+   fChain->SetBranchAddress("trig_HLT_IsoMu27_accept", &trig_HLT_IsoMu27_accept, &b_trig_HLT_IsoMu27_accept);
+   fChain->SetBranchAddress("trig_HLT_IsoMu27_prescale", &trig_HLT_IsoMu27_prescale, &b_trig_HLT_IsoMu27_prescale);
    //fChain->SetBranchAddress("trig_HLT_IsoMu30_accept", &trig_HLT_IsoMu30_accept, &b_trig_HLT_IsoMu30_accept);
    //fChain->SetBranchAddress("trig_HLT_IsoMu30_prescale", &trig_HLT_IsoMu30_prescale, &b_trig_HLT_IsoMu30_prescale);
    //fChain->SetBranchAddress("trig_HLT_L1SingleMu18_accept", &trig_HLT_L1SingleMu18_accept, &b_trig_HLT_L1SingleMu18_accept);
