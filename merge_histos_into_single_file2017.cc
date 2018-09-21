@@ -21,7 +21,7 @@ TH1F* MC_histo(TString prestring, TString var, TFile* file_in, double xs, long N
 
   cout << file_in->GetName() << endl;
 
-  double lumi = 40.08 * pow(10,3); //luminosity in pb^-1
+  double lumi = 41525.735; //luminosity in pb^-1
 
   double e_Nevents = pow(Nevents,0.5);
   double e_xs = 0.01*xs;
@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
   string option_name= option;
   //option = "QCD", "QCD_control", "final", "Wjets_pre", "Wjets_post", "quick_test"
 
-  int rebin = 5;//1;
+  int rebin = 1;
   if (option_name == "Fakes") rebin=1;
   float Wjets_scale_factor_notauID = 1.22504;//1.16223;//1.24298;
   bool final = false;
@@ -164,7 +164,7 @@ int main(int argc, char** argv) {
   //vars.push_back("ev_METmumass");
   //vars.push_back("ev_MET");
   //vars.push_back("ev_METphi");
-  //vars.push_back("ev_Nvertex");
+  vars.push_back("ev_Nvertex");
   if (option_name != "Wjets_pre" && option_name != "WJets_pre" && option_name != "Wjets_post" && option_name != "WJets_post" && option_name != "AntiMu") {
     vars.push_back("ev_Mvis_TESdown");
     vars.push_back("ev_Mvis_TESup");
@@ -243,7 +243,7 @@ int main(int argc, char** argv) {
   double xs_ZZ = 10.16;
 
   //Nevents
-  long N_DY = 96844363;
+  long N_DY = 96844363; //144230225;
   long N_WJets = 23219762;//25950745;
 
   long N_QCD_muenriched = 7373309;

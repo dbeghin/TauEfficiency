@@ -396,8 +396,8 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
       bool dimuon = false;
       for (unsigned int iMu = 0; iMu < mu_gt_pt->size(); ++iMu) {
 	TLorentzVector mu1_p4, mu2_p4;
-        if(mu_isPFMuon->at(iMu) && mu_gt_pt->at(iMu) > 10 && fabs(mu_gt_eta->at(iMu)) < 2.4 && fabs(mu_gt_dxy_firstPVtx->at(iMu)) < 0.045 && fabs(mu_gt_dz_firstPVtx->at(iMu)) < 0.2 && mu_pfIsoDbCorrected04->at(iMu) < 0.3 && mu_isMediumMuon->at(iMu)) ++Nmu;
-        if (Nmu > 1) break;
+        /*if(mu_isPFMuon->at(iMu) && mu_gt_pt->at(iMu) > 10 && fabs(mu_gt_eta->at(iMu)) < 2.4 && fabs(mu_gt_dxy_firstPVtx->at(iMu)) < 0.045 && fabs(mu_gt_dz_firstPVtx->at(iMu)) < 0.2 && mu_pfIsoDbCorrected04->at(iMu) < 0.3 && mu_isMediumMuon->at(iMu)) ++Nmu;
+	  if (Nmu > 1) break;*/
 	
 	if (mu_gt_pt->at(iMu) > 15 && fabs(mu_gt_eta->at(iMu)) < 2.4 && mu_isGlobalMuon->at(iMu) && mu_isTrackerMuon->at(iMu) && mu_isPFMuon->at(iMu) &&fabs(mu_gt_dxy_firstPVtx->at(iMu)) < 0.045 && fabs(mu_gt_dz_firstPVtx->at(iMu)) < 0.2 && mu_pfIsoDbCorrected04->at(iMu) < 0.3) {
 	  mu1_p4.SetPtEtaPhiM(mu_gt_pt->at(iMu), mu_gt_eta->at(iMu), mu_gt_phi->at(iMu), mu_mass);
@@ -410,7 +410,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	}
 	if (dimuon) break;
       }
-      //if (Nmu > 1) continue; //2nd muon veto                                                                                                                                                                
+      //if (Nmu > 1) continue; //2nd muon veto                             
       if (dimuon) continue;
 
       //electron veto
@@ -419,7 +419,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	if (gsf_VIDMVAMedium->at(iEle) && gsf_pt->at(iEle) > 10 && fabs(gsf_eta->at(iEle)) < 2.5 && fabs(gsf_dxy_firstPVtx->at(iEle)) < 0.045 && fabs(gsf_dz_firstPVtx->at(iEle)) < 0.2 && gsf_passConversionVeto->at(iEle) && gsf_nLostInnerHits->at(iEle) <= 1 && gsf_relIso->at(iEle) < 0.3) electron = true;
         if (electron) break;
       }
-      //if (electron) continue; //FIXME
+      if (electron) continue;
 
       //bjet veto (medium WP for the bjet)                                                                                                                           
       /*bool bjet = false;
@@ -503,16 +503,6 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 
 
 
-      /*if (print_count < 20 || interesting) {
-	for (unsigned int ii = 0; ii < orderedMu.size(); ++ii) {
-	  cout << "iso mu " << mu_pfIsoDbCorrected04->at(orderedMu[ii]) << "  pt mu " << mu_gt_pt->at(orderedMu[ii]) << endl;
-	  for (unsigned int jj = 0; jj < orderedTau.size(); ++jj) cout << "                              iso tau " << tau_byIsolationMVArun2v1DBoldDMwLTraw->at(orderedTau[jj]) << "  pt tau " << tau_pt->at(orderedTau[jj]) << endl;
-	}
-	cout << endl << endl;
-	}*/
-	
-
-
 
       //start loop over reconstructed muons
       bool found_mutau_pair = false;
@@ -539,9 +529,6 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	for (unsigned int jj = 0; jj < orderedTau.size(); ++jj) {
 	  if (found_mutau_pair) break;
 	  int iTau = orderedTau[jj];
-	  //0 : TES down
-	  //1 : TES up
-	  //2 : no TES
 
 	  vector<float> tauIDvalues;
 	  tauIDvalues.push_back(tau_byLooseCombinedIsolationDeltaBetaCorr3Hits->at(iTau));
@@ -561,6 +548,9 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	  tauIDvalues.push_back(tau_byVVTightIsolationMVArun2v1DBnewDMwLT->at(iTau));
 
 	  for (int iTES = 0; iTES < 3; ++iTES) {
+	    //0 : TES down
+	    //1 : TES up
+	    //2 : no TES
 	    TLorentzVector tau_p4, tau_TES_p4, vis_p4, met_p4, metmu_p4, total_p4;
 	    //met_p4.SetPxPyPzE(MET_Px, MET_nominal_Py, 0, MET_nominal_Pt);
 	    float met_px = MET_nominal_Px;
@@ -595,6 +585,8 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 		      break;
 		    }
 		  }
+		  if (!fakemu_match) continue;
+
 		  if (fabs(tau_p4.Eta())<0.4) fakemu_reweight = 1.200;
 		  else if (fabs(tau_p4.Eta())<0.8) fakemu_reweight = 1.4;
 		  else if (fabs(tau_p4.Eta())<1.2) fakemu_reweight = 1.09;
@@ -685,7 +677,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	      if (tau_charge->at(iTau) * mu_gt_charge->at(iMu) > 0) continue; //SS veto (opposite for QCD estimation)
 	    }
 	    else if (isQCDphase) {
-	      if (tau_charge->at(iTau) * mu_gt_charge->at(iMu) < 0) continue; //OS veto (opposite for QCD estimation)
+	      if (tau_charge->at(iTau) * mu_gt_charge->at(iMu) < 0) continue; //OS veto
 	    }
 	    else {
 	      if (isAntiMuphase) {
@@ -754,7 +746,6 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	    }
 
 	    if (isFakesphase) {
-	      cout << "shouldn't be here " <<  isFakesphase << endl;
 	      if (tau_byTightIsolationMVArun2v1DBoldDMwLT->at(iTau) > 0.5) continue;
               if (tau_byVLooseIsolationMVArun2v1DBoldDMwLT->at(iTau) < 0.5) continue;
 	    }

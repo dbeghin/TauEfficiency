@@ -21,8 +21,8 @@ TH1F* MC_histo(bool DYSig, TString var, TFile* file_in, double xs, long Nevents,
 
   cout << file_in->GetName() << endl;
 
-  //double lumi = 41525.735; //luminosity in pb^-1
-  double lumi = 4794; //luminosity 2017B in pb^-1
+  double lumi = 41525.735; //luminosity in pb^-1
+  //double lumi = 4794; //luminosity 2017B in pb^-1
   //double lumi = 9631; //luminosity 2017C in pb^-1
   //double lumi = 4248; //luminosity 2017D in pb^-1
   //double lumi = 9314; //luminosity 2017E in pb^-1
@@ -113,7 +113,7 @@ int main(int argc, char** argv) {
 
 
   //cross-sections
-  double xs_DY = 5675.4;
+  double xs_DY = 5675.4;//6233.55;
   double xs_WJets = 61526.7;
   double xs_TT = 87.31;//831.76;
   double xs_WW = 64.3;

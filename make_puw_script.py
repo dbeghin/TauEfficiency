@@ -1,7 +1,8 @@
 import ROOT
 import os
-fout=open("PU_reWeighting.C","w")
-Dir="/user/dbeghin/public/mc_pu/"
+fout=open("PU_reWeighting.cc","w")
+#Dir="/user/dbeghin/public/mc_pu/"
+Dir="./mc_pu/"
 file_list=[]
 files = os.listdir(Dir)
 for ifile in files:
