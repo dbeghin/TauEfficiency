@@ -21,7 +21,7 @@ TH1F* MC_histo(TString var, TFile* file_in, double xs, long Nevents, int rebin) 
 
   cout << file_in->GetName() << endl;
 
-  double lumi = 40.08 * pow(10,3); //luminosity in pb^-1
+  double lumi = 41525.735; //luminosity in pb^-1
 
   double e_Nevents = pow(Nevents,0.5);
   double e_xs = 0.01*xs;
@@ -85,9 +85,40 @@ int main(int argc, char** argv) {
   vars.push_back("mu_phi");
   vars.push_back("ev_Nvertex");
   int tau_cutoff = vars.size();
-  vars.push_back("taupt_pass");
-  vars.push_back("taupt_fail");
-  vars.push_back("tau_MVA");
+  vars.push_back("taupt");
+
+  vector<TString> HPS_WP;
+  HPS_WP.push_back("cutbased_loose");
+  HPS_WP.push_back("cutbased_medium");
+  HPS_WP.push_back("cutbased_tight");
+
+  HPS_WP.push_back("MVA_2016vloose");
+  HPS_WP.push_back("MVA_2016loose");
+  HPS_WP.push_back("MVA_2016medium");
+  HPS_WP.push_back("MVA_2016tight");
+  HPS_WP.push_back("MVA_2016vtight");
+  HPS_WP.push_back("MVA_2016vvtight");
+
+  HPS_WP.push_back("MVA_2017v1vvloose");
+  HPS_WP.push_back("MVA_2017v1vloose");
+  HPS_WP.push_back("MVA_2017v1loose");
+  HPS_WP.push_back("MVA_2017v1medium");
+  HPS_WP.push_back("MVA_2017v1tight");
+  HPS_WP.push_back("MVA_2017v1vtight");
+  HPS_WP.push_back("MVA_2017v1vvtight");
+
+  HPS_WP.push_back("MVA_2017v2vvloose");
+  HPS_WP.push_back("MVA_2017v2vloose");
+  HPS_WP.push_back("MVA_2017v2loose");
+  HPS_WP.push_back("MVA_2017v2medium");
+  HPS_WP.push_back("MVA_2017v2tight");
+  HPS_WP.push_back("MVA_2017v2vtight");
+  HPS_WP.push_back("MVA_2017v2vvtight");
+
+
+  vector<TString> passfail;
+  passfail.push_back("pass");
+  passfail.push_back("fail");
 
 
   vector<TString> dms;
@@ -121,7 +152,7 @@ int main(int argc, char** argv) {
   double xs_QCD_1000toInf = 10.4305*0.15544;    xs_QCD.push_back(xs_QCD_1000toInf);
 
   //Nevents
-  long N_DY = 96844363;//29271547 + 18828004 + 29166928 + 19577884;//18245119;
+  long N_DY = 144230225;
   long N_WJets = 23133163;//25950745;
   long N_TT = 8615776;
   long N_WW = 7528052;
@@ -149,52 +180,58 @@ int main(int argc, char** argv) {
     for (unsigned int j = 0; j<dms.size(); ++j) {
       if ( (i<tau_cutoff) && (j>0) ) break;
       for (unsigned int k = 0; k<eta.size(); ++k) {
+	if ( (i<tau_cutoff) && (k>0) ) break;
+	for (unsigned int l = 0; l<HPS_WP.size(); ++l) {
+	  if ( (i<tau_cutoff) && (l>0) ) break;
+	  for (unsigned int m = 0; m<passfail.size(); ++m) {
 
-        if (i < tau_cutoff) {
-          var_in = vars[i];
-          if (k>0) break;
-        }
-        else {
-          var_in = vars[i]+"_"+dms[j]+"_"+eta[k];
-	}
-        cout << endl << endl <<var_in << endl;
+	    if (i < tau_cutoff) {
+	      if (m>0) break;
+	      var_in = vars[i];
+	    }
+	    else {
+	      var_in = vars[i]+"_"+HPS_WP[l]+"_"+passfail[m]+"_"+dms[j]+"_"+eta[k];
+	    }
+	    cout << endl << endl <<var_in << endl;
     
-        TH1F* h_DY = MC_histo(var_in, file_in_DY, xs_DY, N_DY, rebin);
-        h_DY -> SetName("DY_"+var_in);
-        h_DY->Write();
-        
-        //vector<TH1F*> h_QCD_vector;
-        //for (unsigned int iBin = 0; iBin<QCD_files.size(); ++iBin) {
-        //  h_QCD_vector.push_back( MC_histo(var_in, QCD_files[iBin], xs_QCD[iBin], N_QCD[iBin], rebin) );
-        //}
-        //TH1F* h_QCD = (TH1F*) h_QCD_vector[0]->Clone("QCD_"+var_in);
-        //for (unsigned int iBin = 1; iBin<QCD_files.size(); ++iBin) {
-        //  h_QCD->Add(h_QCD_vector[iBin]);
-        //}
-        //h_QCD->Write();
-          
-        TH1F* h_WJets = MC_histo(var_in, file_in_WJets, xs_WJets, N_WJets, rebin);
-        h_WJets -> SetName("WJets_"+var_in);
-        h_WJets->Write();
-          
-        TH1F* h_TT = MC_histo(var_in, file_in_TT, xs_TT, N_TT, rebin);
-        h_TT -> SetName("TT_"+var_in);
-        h_TT->Write();
-        
-        TH1F* h_WW = MC_histo(var_in, file_in_WW, xs_WW, N_WW, rebin);
-        //TH1F* h_WZ = MC_histo(var_in, file_in_WZ, xs_WZ, N_WZ, rebin);
-        //TH1F* h_ZZ = MC_histo(var_in, file_in_ZZ, xs_ZZ, N_ZZ, rebin);
-        TH1F* h_VV = (TH1F*) h_WW->Clone("VV_"+var_in);
-        //h_VV->Add(h_WZ);
-        //h_VV->Add(h_ZZ);
-        //h_VV -> SetName("VV_"+var_in);
-        h_VV->Write();
-        
-        
-        TH1F* h_data = (TH1F*) file_in_data -> Get(+var_in);//Data is, by definition, normalized
-        h_data -> SetName("data_"+var_in);
-        h_data->Rebin(rebin);
-        h_data->Write();
+            TH1F* h_DY = MC_histo(var_in, file_in_DY, xs_DY, N_DY, rebin);
+            h_DY -> SetName("DY_"+var_in);
+            h_DY->Write();
+            
+            //vector<TH1F*> h_QCD_vector;
+            //for (unsigned int iBin = 0; iBin<QCD_files.size(); ++iBin) {
+            //  h_QCD_vector.push_back( MC_histo(var_in, QCD_files[iBin], xs_QCD[iBin], N_QCD[iBin], rebin) );
+            //}
+            //TH1F* h_QCD = (TH1F*) h_QCD_vector[0]->Clone("QCD_"+var_in);
+            //for (unsigned int iBin = 1; iBin<QCD_files.size(); ++iBin) {
+            //  h_QCD->Add(h_QCD_vector[iBin]);
+            //}
+            //h_QCD->Write();
+              
+            /*TH1F* h_WJets = MC_histo(var_in, file_in_WJets, xs_WJets, N_WJets, rebin);
+            h_WJets -> SetName("WJets_"+var_in);
+            h_WJets->Write();
+              
+            TH1F* h_TT = MC_histo(var_in, file_in_TT, xs_TT, N_TT, rebin);
+            h_TT -> SetName("TT_"+var_in);
+            h_TT->Write();
+            
+            TH1F* h_WW = MC_histo(var_in, file_in_WW, xs_WW, N_WW, rebin);
+            //TH1F* h_WZ = MC_histo(var_in, file_in_WZ, xs_WZ, N_WZ, rebin);
+            //TH1F* h_ZZ = MC_histo(var_in, file_in_ZZ, xs_ZZ, N_ZZ, rebin);
+            TH1F* h_VV = (TH1F*) h_WW->Clone("VV_"+var_in);
+            //h_VV->Add(h_WZ);
+            //h_VV->Add(h_ZZ);
+            //h_VV -> SetName("VV_"+var_in);
+            h_VV->Write();*/
+            
+            
+            TH1F* h_data = (TH1F*) file_in_data -> Get(+var_in);//Data is, by definition, normalized
+            h_data -> SetName("data_"+var_in);
+            h_data->Rebin(rebin);
+            h_data->Write();
+	  }
+	}
       }
     }
   }

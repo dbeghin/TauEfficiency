@@ -19,29 +19,29 @@ int main(int argc, char** argv) {
 
 
   vector<TString> tauID;
-  tauID.push_back("cutbased_loose");
-  tauID.push_back("cutbased_medium");
-  tauID.push_back("cutbased_tight");
-  tauID.push_back("MVA_veryloose");
-  tauID.push_back("MVA_loose");
-  tauID.push_back("MVA_medium");
+  //tauID.push_back("cutbased_loose");
+  //tauID.push_back("cutbased_medium");
+  //tauID.push_back("cutbased_tight");
+  //tauID.push_back("MVA_veryloose");
+  //tauID.push_back("MVA_loose");
+  //tauID.push_back("MVA_medium");
   tauID.push_back("MVA_tight");
-  tauID.push_back("MVA_verytight");
-  tauID.push_back("MVA_veryverytight");
-  tauID.push_back("MVAnew_veryloose");
-  tauID.push_back("MVAnew_loose");
-  tauID.push_back("MVAnew_medium");
-  tauID.push_back("MVAnew_tight");
-  tauID.push_back("MVAnew_verytight");
-  tauID.push_back("MVAnew_veryverytight");
+  //tauID.push_back("MVA_verytight");
+  //tauID.push_back("MVA_veryverytight");
+  //tauID.push_back("MVAnew_veryloose");
+  //tauID.push_back("MVAnew_loose");
+  //tauID.push_back("MVAnew_medium");
+  //tauID.push_back("MVAnew_tight");
+  //tauID.push_back("MVAnew_verytight");
+  //tauID.push_back("MVAnew_veryverytight");
 
   vector<TString> in_names,                       out_names;
+  in_names.push_back("faketau_ev_Mvis");	  out_names.push_back("faketau");
   in_names.push_back("DYS_ev_Mvis");              out_names.push_back("DYS");  
   in_names.push_back("DYB_ev_Mvis");  		  out_names.push_back("DYB");  
-  in_names.push_back("WJets_ev_Mvis");		  out_names.push_back("WJets");
-  in_names.push_back("QCD_ev_Mvis");  		  out_names.push_back("QCD");  
+  //in_names.push_back("QCD_ev_Mvis");  		  out_names.push_back("QCD");  
   in_names.push_back("VV_ev_Mvis");   		  out_names.push_back("VV");   
-  in_names.push_back("TTS_ev_Mvis");   		  out_names.push_back("TTS");   
+  //in_names.push_back("TTS_ev_Mvis");   		  out_names.push_back("TTS");   
   in_names.push_back("TTB_ev_Mvis");   		  out_names.push_back("TTB");   
   in_names.push_back("data_ev_Mvis"); 		  out_names.push_back("data_obs");
 
@@ -86,7 +86,7 @@ int main(int argc, char** argv) {
 
 
 
-    TDirectory* fail_dir = file_out->mkdir("fail");
+    /*TDirectory* fail_dir = file_out->mkdir("fail");
     fail_dir->cd();
     for (unsigned int j=0; j<in_names.size(); ++j) {
       for (unsigned int k=0; k<in_TES.size(); ++k) {
@@ -120,13 +120,15 @@ int main(int argc, char** argv) {
 	h2->Write();
       }
     }
-    fail_dir->Close();
+    fail_dir->Close();*/
 
 
     TDirectory* Zmumu_dir = file_out->mkdir("zmumu");
     Zmumu_dir->cd();
     for (unsigned int j=0; j<in_names.size(); ++j) {
-      TH1F* h = (TH1F*) file_in_mumu->Get(in_names[j]);
+      TString inn = in_names[j];
+      if (j==0) inn = "WJets_ev_Mvis";
+      TH1F* h = (TH1F*) file_in_mumu->Get(inn);
       TH1F* h2 = new TH1F(h->GetName(), h->GetTitle(), 1, 60, 120);
       int ll=0;
       for (unsigned int l=1; l<h->GetNbinsX()+1; ++l) {

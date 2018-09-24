@@ -29,16 +29,15 @@ float norm_F(float x, float y){
 }
 
 
-double FakeRate(double taupt) {
-  double SF=1;
-  if( taupt >= 20. && taupt < 30.)         { SF=0.256835;}
-  else if( taupt >= 30. && taupt < 40.)    { SF=0.247621;}
-  else if( taupt >= 40. && taupt < 50.)    { SF=0.238297;}
-  else if( taupt >= 50. && taupt < 70.)    { SF=0.224676;}
-  else if( taupt >= 70. && taupt < 100.)   { SF=0.217464;}
-  else if( taupt >= 100. && taupt < 150.)  { SF=0.193622;}
-  else if( taupt >= 150. && taupt < 250.)  { SF=0.191667;}
-  else if( taupt >= 250. && taupt < 1000.) { SF=0.190000;}
+double FakeRate(double taupt, TString HPS_WP, TString DM, TString eta) {
+  double SF=0.5;
+
+  TFile* fake_file = new TFile("Reweighting/fakerate.root","R");
+  TString fake_string = "FakeRate_byTauPt_data_"+HPS_WP+"_"+DM+"_"+eta;
+  TH1F* fake_histo = (TH1F*) fake_file->Get(fake_string);
+
+  int iBin = fake_histo->FindBin(taupt);
+  SF = fake_histo->GetBinContent(iBin);
 
   double reweight = SF/(1-SF);
 

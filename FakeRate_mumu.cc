@@ -78,10 +78,39 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
      h.push_back( new TH1F(histo_names[i], histo_names[i], nBins[i], x_min[i], x_max[i]) ); 
    }
 
-   vector<TString> htau_names;              vector<int> nBins_tau;     vector<float> x_min_tau,   x_max_tau; 
-   htau_names.push_back("taupt_pass");      nBins_tau.push_back(1000); x_min_tau.push_back(0);    x_max_tau.push_back(1000);
-   htau_names.push_back("taupt_fail");      nBins_tau.push_back(1000); x_min_tau.push_back(0);    x_max_tau.push_back(1000);
-   htau_names.push_back("tau_MVA");         nBins_tau.push_back(200);  x_min_tau.push_back(-1);   x_max_tau.push_back(1);
+   vector<TString> HPS_WP;
+   HPS_WP.push_back("cutbased_loose");
+   HPS_WP.push_back("cutbased_medium");
+   HPS_WP.push_back("cutbased_tight");
+
+   HPS_WP.push_back("MVA_2016vloose");
+   HPS_WP.push_back("MVA_2016loose");
+   HPS_WP.push_back("MVA_2016medium");
+   HPS_WP.push_back("MVA_2016tight");
+   HPS_WP.push_back("MVA_2016vtight");
+   HPS_WP.push_back("MVA_2016vvtight");
+
+   HPS_WP.push_back("MVA_2017v1vvloose");
+   HPS_WP.push_back("MVA_2017v1vloose");
+   HPS_WP.push_back("MVA_2017v1loose");
+   HPS_WP.push_back("MVA_2017v1medium");
+   HPS_WP.push_back("MVA_2017v1tight");
+   HPS_WP.push_back("MVA_2017v1vtight");
+   HPS_WP.push_back("MVA_2017v1vvtight");
+
+   HPS_WP.push_back("MVA_2017v2vvloose");
+   HPS_WP.push_back("MVA_2017v2vloose");
+   HPS_WP.push_back("MVA_2017v2loose");
+   HPS_WP.push_back("MVA_2017v2medium");
+   HPS_WP.push_back("MVA_2017v2tight");
+   HPS_WP.push_back("MVA_2017v2vtight");
+   HPS_WP.push_back("MVA_2017v2vvtight");
+
+
+   vector<TString> passfail;
+   passfail.push_back("pass");
+   passfail.push_back("fail");
+
 
    vector<TString> dms;
    dms.push_back("DM0");
@@ -92,11 +121,15 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
    eta.push_back("barrel");
    eta.push_back("endcap");
 
-   vector<TH1F*> htau[histo_names.size()][dms.size()];
-   for (unsigned int i = 0; i<htau_names.size(); ++i) {
-     for (unsigned int j = 0; j<dms.size(); ++j) {
-       for (unsigned int k = 0; k<eta.size(); ++k) {
-	 htau[i][j].push_back( new TH1F(htau_names[i]+"_"+dms[j]+"_"+eta[k], htau_names[i]+"_"+dms[j]+"_"+eta[k], nBins_tau[i], x_min_tau[i], x_max_tau[i]) ); 
+   int nBins_tau = 1000;  float x_min_tau = 0;    float x_max_tau = 1000;
+
+   vector<TH1F*> htau[HPS_WP.size()][passfail.size()][dms.size()];
+   for (unsigned int i1 = 0; i1<HPS_WP.size(); ++i1) {
+     for (unsigned int i2 = 0; i2<passfail.size(); ++i2) {
+       for (unsigned int j = 0; j<dms.size(); ++j) {
+	 for (unsigned int k = 0; k<eta.size(); ++k) {
+	   htau[i1][i2][j].push_back( new TH1F("taupt_"+HPS_WP[i1]+"_"+passfail[i2]+"_"+dms[j]+"_"+eta[k], "taupt_"+HPS_WP[i1]+"_"+passfail[i2]+"_"+dms[j]+"_"+eta[k], nBins_tau, x_min_tau, x_max_tau) ); 
+	 }
        }
      }
    }
@@ -185,7 +218,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	    if (tau_decayModeFinding->at(iTau) < 0.5) continue;
 	    if (tau_againstMuonTight3->at(iTau) < 0.5) continue;
 	    if (tau_againstElectronVLooseMVA6->at(iTau) < 0.5) continue;
-	    
+
 	    TLorentzVector tau_p4;
 	    tau_p4.SetPxPyPzE(tau_px->at(iTau), tau_py->at(iTau), tau_pz->at(iTau), tau_px->at(iTau));
 	    if (tau_p4.DeltaR(mu1_p4) < 0.5) continue;
@@ -224,10 +257,10 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	    if (tau_decayMode->at(iTau) == 0) {
 	      j_dm = 0;
 	    }
-	    else if (tau_decayMode->at(iTau) == 1) {
+	    else if (tau_decayMode->at(iTau) == 1 || tau_decayMode->at(iTau) == 2) {
 	      j_dm = 1;
 	    }
-	    else if (tau_decayMode->at(iTau) == 10) {
+	    else if (tau_decayMode->at(iTau) == 10 || tau_decayMode->at(iTau) == 11) {
 	      j_dm = 2;
 	    }
 	    if (fabs(tau_eta->at(iTau)) < 1.5) {
@@ -237,10 +270,65 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	      k_eta = 1;
 	    }
 
+	    vector<float> tauIDvalues;                                                              vector<int> specialValues;
+	    tauIDvalues.push_back(tau_byLooseCombinedIsolationDeltaBetaCorr3Hits->at(iTau));        specialValues.push_back(tauIDvalues.size()-1);
+	    tauIDvalues.push_back(tau_byMediumCombinedIsolationDeltaBetaCorr3Hits->at(iTau));
+	    tauIDvalues.push_back(tau_byTightCombinedIsolationDeltaBetaCorr3Hits->at(iTau));
+
+	    tauIDvalues.push_back(tau_byVLooseIsolationMVArun2v1DBoldDMwLT->at(iTau));              specialValues.push_back(tauIDvalues.size()-1);
+	    tauIDvalues.push_back(tau_byLooseIsolationMVArun2v1DBoldDMwLT->at(iTau));
+	    tauIDvalues.push_back(tau_byMediumIsolationMVArun2v1DBoldDMwLT->at(iTau));
+	    tauIDvalues.push_back(tau_byTightIsolationMVArun2v1DBoldDMwLT->at(iTau));
+	    tauIDvalues.push_back(tau_byVTightIsolationMVArun2v1DBoldDMwLT->at(iTau));
+	    tauIDvalues.push_back(tau_byVVTightIsolationMVArun2v1DBoldDMwLT->at(iTau));
+
+	    tauIDvalues.push_back(tau_byVVLooseIsolationMVArun2017v1DBoldDMwLT2017->at(iTau));      specialValues.push_back(tauIDvalues.size()-1);
+	    tauIDvalues.push_back(tau_byVLooseIsolationMVArun2017v1DBoldDMwLT2017->at(iTau));
+	    tauIDvalues.push_back(tau_byLooseIsolationMVArun2017v1DBoldDMwLT2017->at(iTau));
+	    tauIDvalues.push_back(tau_byMediumIsolationMVArun2017v1DBoldDMwLT2017->at(iTau));
+	    tauIDvalues.push_back(tau_byTightIsolationMVArun2017v1DBoldDMwLT2017->at(iTau));
+	    tauIDvalues.push_back(tau_byVTightIsolationMVArun2017v1DBoldDMwLT2017->at(iTau));
+	    tauIDvalues.push_back(tau_byVVTightIsolationMVArun2017v1DBoldDMwLT2017->at(iTau));
+
+	    tauIDvalues.push_back(tau_byVVLooseIsolationMVArun2017v2DBoldDMwLT2017->at(iTau));      specialValues.push_back(tauIDvalues.size()-1);
+	    tauIDvalues.push_back(tau_byVLooseIsolationMVArun2017v2DBoldDMwLT2017->at(iTau));
+	    tauIDvalues.push_back(tau_byLooseIsolationMVArun2017v2DBoldDMwLT2017->at(iTau));
+	    tauIDvalues.push_back(tau_byMediumIsolationMVArun2017v2DBoldDMwLT2017->at(iTau));
+	    tauIDvalues.push_back(tau_byTightIsolationMVArun2017v2DBoldDMwLT2017->at(iTau));
+	    tauIDvalues.push_back(tau_byVTightIsolationMVArun2017v2DBoldDMwLT2017->at(iTau));
+	    tauIDvalues.push_back(tau_byVVTightIsolationMVArun2017v2DBoldDMwLT2017->at(iTau));
+
 	    //Tau histos
-	    if (tau_byTightIsolationMVArun2v1DBoldDMwLT->at(iTau) > 0.5) htau[0][j_dm][k_eta]->Fill(tau_pt->at(iTau), final_weight);
-	    if ((tau_byTightIsolationMVArun2v1DBoldDMwLT->at(iTau) < 0.5) && (tau_byVLooseIsolationMVArun2v1DBoldDMwLT->at(iTau) > 0.5)) htau[1][j_dm][k_eta]->Fill(tau_pt->at(iTau), final_weight);
-	    htau[2][j_dm][k_eta]->Fill(tau_byIsolationMVArun2v1DBoldDMwLTraw->at(iTau), final_weight);
+	    int latestloosestID = -1;
+	    for (unsigned int iID=0; iID<tauIDvalues.size(); ++iID) {
+	      bool special = false;
+	      for (unsigned int s=0; s<specialValues.size(); ++s) {
+		if (iID == specialValues[s]) {
+		  special = true;
+		  latestloosestID = iID;
+		  break;
+		}
+	      }
+
+	      //loosest IDs have to be treated differently
+	      if (special) {
+		if (tauIDvalues[iID] > 0.5) {
+		  htau[iID][0][j_dm][k_eta]->Fill(tau_pt->at(iTau), final_weight);
+		}
+		else {
+		  htau[iID][1][j_dm][k_eta]->Fill(tau_pt->at(iTau), final_weight);
+		}
+	      }
+	      else {
+		if (tauIDvalues[latestloosestID] < 0.5) continue;
+		if (tauIDvalues[iID] > 0.5) {
+		  htau[iID][0][j_dm][k_eta]->Fill(tau_pt->at(iTau), final_weight);
+		}
+		else {
+		  htau[iID][1][j_dm][k_eta]->Fill(tau_pt->at(iTau), final_weight);
+		}
+	      }
+	    }		
 	  }//loop over taus
 	}//loop over mus
       }//loop over muons
@@ -251,7 +339,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
    //hCounter2->Write();
    h_reweight->Write();
    for (unsigned int i = 0; i<histo_names.size(); ++i) h[i]->Write();
-   for (unsigned int i=0; i<htau_names.size(); ++i) for (unsigned int j=0; j<dms.size(); ++j) for (unsigned int k=0; k<eta.size(); ++k) htau[i][j][k]->Write();
+   for (unsigned int i1=0; i1<HPS_WP.size(); ++i1) for (unsigned int i2=0; i2<passfail.size(); ++i2) for (unsigned int j=0; j<dms.size(); ++j) for (unsigned int k=0; k<eta.size(); ++k) htau[i1][i2][j][k]->Write();
    file_out->Close();
 
 }
