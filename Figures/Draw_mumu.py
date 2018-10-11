@@ -13,7 +13,7 @@ def add_lumi():
     lumi.SetTextColor(    1 )
     lumi.SetTextSize(0.06)
     lumi.SetTextFont (   42 )
-    lumi.AddText("2017, 41.9 fb^{-1} (13 TeV)")
+    lumi.AddText("2017, 40.08 fb^{-1} (13 TeV)")
     #lumi.AddText("2017C, 9.8 fb^{-1} (13 TeV)")
     #lumi.AddText("2017E, 9.4 fb^{-1} (13 TeV)")
     #lumi.AddText("2017F, 13.6 fb^{-1} (13 TeV)")
@@ -72,13 +72,11 @@ trans=ROOT.TColor(new_idx, adapt.GetRed(), adapt.GetGreen(),adapt.GetBlue(), "",
 #ncat=2
 
 var=[]
-'''
 var.append("mu_pt")
 var.append("mu_eta")
 var.append("mu_phi")
-'''
-var.append("mu1_pt")
-var.append("mu1_eta")
+#var.append("mu1_pt")
+#var.append("mu1_eta")
 #var.append("mu1_phi")
 #var.append("mu2_pt")
 #var.append("mu2_eta")
@@ -86,25 +84,23 @@ var.append("mu1_eta")
 #var.append("ev_DRmumu")
 #var.append("ev_Mt_raw")
 #var.append("ev_Mt")
-var.append("ev_Mvis")
+#var.append("ev_Mvis")
 #var.append("ev_Mvis_SS")
 '''
 var.append("ev_METmumass")
 var.append("ev_MET")
 var.append("ev_METphi")
 '''
-var.append("ev_Nvertex")
+#var.append("ev_Nvertex")
 nvar=len(var)
 print nvar
 
 photogenic_var=[]
-'''
 photogenic_var.append("#mu p_{T} (GeV)")
 photogenic_var.append("#mu #eta")
 photogenic_var.append("#mu #phi")
-'''
-photogenic_var.append("#mu_{1} p_{T} (GeV)")
-photogenic_var.append("#mu_{1} #eta")
+#photogenic_var.append("#mu_{1} p_{T} (GeV)")
+#photogenic_var.append("#mu_{1} #eta")
 #photogenic_var.append("#mu_{1} #phi")
 #photogenic_var.append("#mu_{2} p_{T} (GeV)")
 #photogenic_var.append("#mu_{2} #eta")
@@ -114,20 +110,19 @@ photogenic_var.append("#DeltaR (#mu #mu)")
 photogenic_var.append("m_{T} (#mu E_{T}^{miss}) (GeV)")
 '''
 #photogenic_var.append("m_{T} (#mu E_{T}^{miss}) (GeV)")
-photogenic_var.append("m_{vis} (GeV)")
+#photogenic_var.append("m_{vis} (GeV)")
 #photogenic_var.append("m_{vis} (SS) (GeV)")
 '''
 photogenic_var.append("m (#mu E_{T}^{miss}) (GeV)")
 photogenic_var.append("E_{T}^{miss} (GeV)")
 photogenic_var.append("#phi (E_{T}^{miss})")
 '''
-photogenic_var.append("N_{vertex}")
+#photogenic_var.append("N_{vertex}")
 
 for k in range (0,nvar):
     var_in = var[k]
     #print var_in
     Data=file.Get("data_"+var_in)
-    QCD=file.Get("QCD_"+var_in)
     W=file.Get("WJets_"+var_in)
     TT=file.Get("TTB_"+var_in)
     VV=file.Get("VV_"+var_in)#VV
@@ -150,7 +145,6 @@ for k in range (0,nvar):
     Data.GetYaxis().SetTitle("Events/bin")
     
     
-    QCD.SetFillColor(ROOT.TColor.GetColor("#ffccff"))
     W.SetFillColor(ROOT.TColor.GetColor("#de5a6a"))
     TT.SetFillColor(ROOT.TColor.GetColor("#9999cc"))
     DYB.SetFillColor(ROOT.TColor.GetColor("#4496c8"))
@@ -160,7 +154,6 @@ for k in range (0,nvar):
     Data.SetMarkerStyle(20)
     Data.SetMarkerSize(1)
     
-    QCD.SetLineColor(1)
     W.SetLineColor(1)
     TT.SetLineColor(1)
     
@@ -173,7 +166,6 @@ for k in range (0,nvar):
 
     stack=ROOT.THStack("stack","stack")
     
-    stack.Add(QCD)
     stack.Add(W)
     stack.Add(TT)
     stack.Add(DYS)
@@ -182,7 +174,6 @@ for k in range (0,nvar):
     
     errorBand = W.Clone()
     
-    errorBand.Add(QCD)
     errorBand.Add(TT)
     
     errorBand.Add(DYS)
@@ -227,7 +218,6 @@ for k in range (0,nvar):
     legende.AddEntry(TT,"t#bar{t}+jets","f")
     legende.AddEntry(W,"Electroweak","f")
     
-    legende.AddEntry(QCD,"QCD multijet","f")
     legende.AddEntry(errorBand,"Uncertainty","f")
     legende.Draw()
 
