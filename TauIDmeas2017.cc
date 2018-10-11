@@ -1,4 +1,4 @@
-#define IIHEAnalysis_cxx
+1;4205;0c#define IIHEAnalysis_cxx
 #include "IIHEAnalysis.h"
 #include "PU_reWeighting.cc"
 //#include <TH1.h>
@@ -531,7 +531,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	  if (found_mutau_pair) break;
 	  int iTau = orderedTau[jj];
 
-	  vector<float> tauIDvalues; cout << tauIDvalues.size() << endl;                                                              vector<int> specialValues;
+	  vector<float> tauIDvalues;                                                              vector<int> specialValues;
 	  tauIDvalues.push_back(tau_byLooseCombinedIsolationDeltaBetaCorr3Hits->at(iTau));        specialValues.push_back(tauIDvalues.size()-1);
 	  tauIDvalues.push_back(tau_byMediumCombinedIsolationDeltaBetaCorr3Hits->at(iTau));
 	  tauIDvalues.push_back(tau_byTightCombinedIsolationDeltaBetaCorr3Hits->at(iTau));
@@ -786,10 +786,10 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 		  dm = "DM0";
 		}
 		else if (tau_decayMode->at(iTau) == 1 || tau_decayMode->at(iTau) == 2) {
-		  dm = "dm1";
+		  dm = "DM1";
 		}
 		else if (tau_decayMode->at(iTau) == 10 || tau_decayMode->at(iTau) == 11) {
-		  dm = "dm2";
+		  dm = "DM10";
 		}
 		if (fabs(tau_eta->at(iTau)) < 1.5) {
 		  eta = "barrel";

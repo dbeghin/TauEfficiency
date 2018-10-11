@@ -175,23 +175,33 @@ int main(int argc, char** argv) {
     vars.push_back("mu_pt_SS");
   }
 
-  vector<TString> tauIDs;
-  //tauIDs.push_back("noTauID");
-  //tauIDs.push_back("cutbased_loose");
-  //tauIDs.push_back("cutbased_medium");
-  //tauIDs.push_back("cutbased_tight");
-  //tauIDs.push_back("MVA_veryloose");
-  //tauIDs.push_back("MVA_loose");
-  //tauIDs.push_back("MVA_medium");
-  tauIDs.push_back("MVA_tight");
-  //tauIDs.push_back("MVA_verytight");
-  //tauIDs.push_back("MVA_veryverytight");
-  //tauIDs.push_back("MVAnew_veryloose");
-  //tauIDs.push_back("MVAnew_loose");
-  //tauIDs.push_back("MVAnew_medium");
-  //tauIDs.push_back("MVAnew_tight");
-  //tauIDs.push_back("MVAnew_verytight");
-  //tauIDs.push_back("MVAnew_veryverytight");
+  vector<TString> HPS_WP;
+  HPS_WP.push_back("cutbased_loose");
+  HPS_WP.push_back("cutbased_medium");
+  HPS_WP.push_back("cutbased_tight");
+
+  HPS_WP.push_back("MVA_2016vloose");
+  HPS_WP.push_back("MVA_2016loose");
+  HPS_WP.push_back("MVA_2016medium");
+  HPS_WP.push_back("MVA_2016tight");
+  HPS_WP.push_back("MVA_2016vtight");
+  HPS_WP.push_back("MVA_2016vvtight");
+
+  HPS_WP.push_back("MVA_2017v1vvloose");
+  HPS_WP.push_back("MVA_2017v1vloose");
+  HPS_WP.push_back("MVA_2017v1loose");
+  HPS_WP.push_back("MVA_2017v1medium");
+  HPS_WP.push_back("MVA_2017v1tight");
+  HPS_WP.push_back("MVA_2017v1vtight");
+  HPS_WP.push_back("MVA_2017v1vvtight");
+
+  HPS_WP.push_back("MVA_2017v2vvloose");
+  HPS_WP.push_back("MVA_2017v2vloose");
+  HPS_WP.push_back("MVA_2017v2loose");
+  HPS_WP.push_back("MVA_2017v2medium");
+  HPS_WP.push_back("MVA_2017v2tight");
+  HPS_WP.push_back("MVA_2017v2vtight");
+  HPS_WP.push_back("MVA_2017v2vvtight");
 
   vector<TString> categ;
   categ.push_back("pass");
@@ -307,11 +317,11 @@ int main(int argc, char** argv) {
       h_DYBkg->Write();
 
 
-      TH1F* h_WJets = (TH1F*) file_in_WJets -> Get("Bkg_"+var_in); //already normed
-      h_WJets->Rebin(rebin);
-      if (option_name != "Wjets_pre" && option_name != "WJets_pre") h_WJets->Scale(Wjets_scale_factor_notauID);
-      h_WJets -> SetName("WJets_"+var_in);
-      h_WJets->Write();
+      //TH1F* h_WJets = (TH1F*) file_in_WJets -> Get("Bkg_"+var_in); //already normed
+      //h_WJets->Rebin(rebin);
+      //if (option_name != "Wjets_pre" && option_name != "WJets_pre") h_WJets->Scale(Wjets_scale_factor_notauID);
+      //h_WJets -> SetName("WJets_"+var_in);
+      //h_WJets->Write();
       
       if (option_name == "Wjets_pre" || option_name == "Wjets_post" || option_name == "WJets_pre" || option_name == "WJets_post" || option_name == "quick_test" || option_name == "QCD_control" || antimu) {
 	vector<TH1F*> h_QCD_vector;
@@ -349,16 +359,16 @@ int main(int argc, char** argv) {
       h_data->Write();
     }//end tau-ID independent histos
     else {
-      for (unsigned int j = 0; j<tauIDs.size(); ++j) {
+      for (unsigned int j = 0; j<HPS_WP.size(); ++j) {
 	for (unsigned int k = 0; k<categ.size(); ++k) {
 	  //if (j == 0 && k == 0) {
-	  //  var_in = vars[i] + "_" + tauIDs[j];
+	  //  var_in = vars[i] + "_" + HPS_WP[j];
 	  //}
 	  //else if (j == 0 && k == 1) {
 	  //  continue;
 	  //}
 	  //else {
-	  var_in = vars[i] + "_" + tauIDs[j] + "_" + categ[k];
+	  var_in = vars[i] + "_" + HPS_WP[j] + "_" + categ[k];
 	  //}
 	  cout << var_in << endl;
 
@@ -388,11 +398,11 @@ int main(int argc, char** argv) {
 	  h_DYBkg->Write();
 
 
-	  TH1F* h_WJets = (TH1F*) file_in_WJets -> Get("Bkg_"+var_in); //already normed
-	  h_WJets->Rebin(rebin);
+	  //TH1F* h_WJets = (TH1F*) file_in_WJets -> Get("Bkg_"+var_in); //already normed
+	  //h_WJets->Rebin(rebin);
 	  //if (option_name != "Wjets_pre" && option_name != "WJets_pre") h_WJets->Scale(Wjets_scale_factor[k][j]);
-	  h_WJets -> SetName("WJets_"+var_in);
-	  h_WJets->Write();
+	  //h_WJets -> SetName("WJets_"+var_in);
+	  //h_WJets->Write();
       
 	  if (option_name == "Wjets_pre" || option_name == "Wjets_post" || option_name == "WJets_pre" || option_name == "WJets_post" || option_name == "quick_test" || option_name == "QCD_control" || antimu) {
 	    vector<TH1F*> h_QCD_vector;
@@ -405,7 +415,7 @@ int main(int argc, char** argv) {
 	    }
 	    h_QCD->Write();
 	  }
-
+	  
 	  TH1F* h_TT_had = MC_histo("Bkg_", var_in, file_in_TT_had, xs_TT_had, N_TT_had, rebin);
 	  TH1F* h_TT_semilep = MC_histo("Bkg_", var_in, file_in_TT_semilep, xs_TT_semilep, N_TT_semilep, rebin);
 	  TH1F* h_TT_2l2nu = MC_histo("Bkg_", var_in, file_in_TT_2l2nu, xs_TT_2l2nu, N_TT_2l2nu, rebin);

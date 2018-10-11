@@ -19,21 +19,32 @@ int main(int argc, char** argv) {
 
 
   vector<TString> tauID;
-  //tauID.push_back("cutbased_loose");
-  //tauID.push_back("cutbased_medium");
-  //tauID.push_back("cutbased_tight");
-  //tauID.push_back("MVA_veryloose");
-  //tauID.push_back("MVA_loose");
-  //tauID.push_back("MVA_medium");
-  tauID.push_back("MVA_tight");
-  //tauID.push_back("MVA_verytight");
-  //tauID.push_back("MVA_veryverytight");
-  //tauID.push_back("MVAnew_veryloose");
-  //tauID.push_back("MVAnew_loose");
-  //tauID.push_back("MVAnew_medium");
-  //tauID.push_back("MVAnew_tight");
-  //tauID.push_back("MVAnew_verytight");
-  //tauID.push_back("MVAnew_veryverytight");
+  tauID.push_back("cutbased_loose");
+  tauID.push_back("cutbased_medium");
+  tauID.push_back("cutbased_tight");
+
+  tauID.push_back("MVA_2016vloose");
+  tauID.push_back("MVA_2016loose");
+  tauID.push_back("MVA_2016medium");
+  tauID.push_back("MVA_2016tight");
+  tauID.push_back("MVA_2016vtight");
+  tauID.push_back("MVA_2016vvtight");
+
+  tauID.push_back("MVA_2017v1vvloose");
+  tauID.push_back("MVA_2017v1vloose");
+  tauID.push_back("MVA_2017v1loose");
+  tauID.push_back("MVA_2017v1medium");
+  tauID.push_back("MVA_2017v1tight");
+  tauID.push_back("MVA_2017v1vtight");
+  tauID.push_back("MVA_2017v1vvtight");
+
+  tauID.push_back("MVA_2017v2vvloose");
+  tauID.push_back("MVA_2017v2vloose");
+  tauID.push_back("MVA_2017v2loose");
+  tauID.push_back("MVA_2017v2medium");
+  tauID.push_back("MVA_2017v2tight");
+  tauID.push_back("MVA_2017v2vtight");
+  tauID.push_back("MVA_2017v2vvtight");
 
   vector<TString> in_names,                       out_names;
   in_names.push_back("faketau_ev_Mvis");	  out_names.push_back("faketau");
