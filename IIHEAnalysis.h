@@ -38,6 +38,24 @@ double FakeRate(double taupt, TString HPS_WP, TString DM, TString eta) {
 
   int iBin = fake_histo->FindBin(taupt);
   SF = fake_histo->GetBinContent(iBin);
+  fake_file->Close();
+
+  double reweight = SF/(1-SF);
+
+  return reweight;
+
+}
+
+double FakeRateFlat(TString HPS_WP, TString DM) {
+  double SF=0.5;
+
+  TFile* fake_file = new TFile("Reweighting/fakerate.root","R");
+  TString fake_string = "ptratio_data_"+HPS_WP+"_"+DM+"_total";
+  TH1F* fake_histo = (TH1F*) fake_file->Get(fake_string);
+
+  int iBin = 1; //the first bin, with all low pt taus, is the interesting one
+  SF = fake_histo->GetBinContent(iBin);
+  fake_file->Close();
 
   double reweight = SF/(1-SF);
 
