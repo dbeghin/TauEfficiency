@@ -23,17 +23,15 @@ int main(int argc, char** argv) {
   string type_in = *(argv + 5);
   string type= type_in;
   TFile *fIn = TFile::Open(inname.c_str());
-  TH1F* hCounter = (TH1F*) fIn->Get("h1");
-  TH1F* hCounter2 = (TH1F*) fIn->Get("h2");
   TTree* tree = (TTree*) fIn->Get("IIHEAnalysis");
 
 
   IIHEAnalysis* a = new IIHEAnalysis(tree);
-  a->Loop(phase, type, out_name, mc_nickname, hCounter, hCounter2);
+  a->Loop(phase, type, out_name, mc_nickname);
   return 0;
 }
 
-void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, string mc_nickname, TH1F* hCounter, TH1F* hCounter2) {
+void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, string mc_nickname) {
    if (fChain == 0) return;
 
 
@@ -269,7 +267,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
       Long64_t iEntry = LoadTree(jEntry);
       if (iEntry < 0) break;
       if (jEntry % 1000 == 0) fprintf(stdout, "\r  Processed events: %8d of %8d ", jEntry, nEntries);
-      if (jEntry % 10 == 0) cout << endl << "Processed events:" << jEntry << " of " <<  nEntries;
+      //if (jEntry % 10 == 0) cout << endl << "Processed events:" << jEntry << " of " <<  nEntries;
       
 
       nb = fChain->GetEntry(jEntry);
@@ -277,9 +275,9 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 
       float pu_weight = 1, pu_weight_high = 1, pu_weight_low = 1;
       if (!data) {
-        pu_weight = PU_2017_Rereco::MC_pileup_weight(mc_trueNumInteractions, mc_nickname, "Data_2017BtoF");
-        pu_weight_high = PU_2017_Rereco::MC_pileup_weight(mc_trueNumInteractions, mc_nickname, "Data_2017BtoF_high");
-        pu_weight_low = PU_2017_Rereco::MC_pileup_weight(mc_trueNumInteractions, mc_nickname, "Data_2017BtoF_low");
+        pu_weight = PU_2017_Rereco::MC_pileup_weight(mc_trueNumInteractions, mc_nickname, "Data_METcorr_2017BtoF");
+        pu_weight_high = PU_2017_Rereco::MC_pileup_weight(mc_trueNumInteractions, mc_nickname, "Data_METcorr_2017BtoF_high");
+        pu_weight_low = PU_2017_Rereco::MC_pileup_weight(mc_trueNumInteractions, mc_nickname, "Data_METcorr_2017BtoF_low");
       }
       float first_weight = pu_weight;
       float reweight_njets = 1.0;
@@ -394,7 +392,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	  cout << endl;
 	  for (unsigned int iMC = 0; iMC < mc_pdgId->size(); ++iMC) {
 	    cout << jEntry;
-	    cout << " " << iMC << "  PDG ID " << mc_pdgId->at(iMC) << "  Mother PDG ID " << mc_mother_index->at(iMC).at(0) << "  px " << mc_px->at(iMC) << endl;
+	    cout << " " << iMC << "  PDG ID " << mc_pdgId->at(iMC) << "  Mother Number " << mc_mother_index->at(iMC).at(0) << "  pt " << mc_pt->at(iMC) << /*"  eta " << mc_eta->at(iMC) << "  phi " << mc_phi->at(iMC) <<*/ endl;
 	  }
 	  cout << gen_mutau << endl << endl;
 	}
@@ -456,12 +454,12 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
       if (dimuon) continue;
 
       //electron veto
-      bool electron = false;
-      for (unsigned int iEle = 0; iEle < gsf_pt->size(); ++iEle) {
-	if (gsf_VIDMVAMedium->at(iEle) && gsf_pt->at(iEle) > 10 && fabs(gsf_eta->at(iEle)) < 2.5 && fabs(gsf_dxy_firstPVtx->at(iEle)) < 0.045 && fabs(gsf_dz_firstPVtx->at(iEle)) < 0.2 && gsf_passConversionVeto->at(iEle) && gsf_nLostInnerHits->at(iEle) <= 1 && gsf_relIso->at(iEle) < 0.3) electron = true;
-        if (electron) break;
-      }
-      if (electron) continue;
+      //bool electron = false;
+      //for (unsigned int iEle = 0; iEle < gsf_pt->size(); ++iEle) {
+      //if (gsf_VIDMVAMedium->at(iEle) && gsf_pt->at(iEle) > 10 && fabs(gsf_eta->at(iEle)) < 2.5 && fabs(gsf_dxy_firstPVtx->at(iEle)) < 0.045 && fabs(gsf_dz_firstPVtx->at(iEle)) < 0.2 && /*gsf_passConversionVeto->at(iEle) &&*/ gsf_nLostInnerHits->at(iEle) <= 1 && gsf_relIso->at(iEle) < 0.3) electron = true;
+      //if (electron) break;
+      //}
+      //if (electron) continue;//FIXME
 
       //bjet veto (medium WP for the bjet)                                                                                                                           
       /*bool bjet = false;
@@ -569,7 +567,39 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	//start loop over reconstructed taus
 	for (unsigned int jj = 0; jj < orderedTau.size(); ++jj) {
 	  if (found_mutau_pair) break;
+
 	  int iTau = orderedTau[jj];
+	  //Move selections as far up as possible to speed things up...
+	  //cuts which do not involve the tau pt or the MET
+	  if (fabs(tau_eta->at(iTau)) > 2.3) continue;
+	  if (tau_decayModeFinding->at(iTau) < 0.5) continue;
+	  if (tau_againstMuonTight3->at(iTau) < 0.5) continue;
+	  if (tau_againstElectronVLooseMVA6->at(iTau) < 0.5) continue;
+	  if (!isAntiMuphase) {
+	    if (fabs(tau_lead_dz->at(iTau)) > 0.2) continue;
+	  }
+	  if (fabs(tau_charge->at(iTau)) != 1) continue;
+
+	  //misc. cuts
+	  bool SS = false;
+	  if (isfinalphase || isWJetsphase || isFakesphase) {
+	    if (tau_charge->at(iTau) * mu_gt_charge->at(iMu) > 0) continue; //SS veto (opposite for QCD estimation)
+	  }
+	  else if (isQCDphase) {
+	    if (tau_charge->at(iTau) * mu_gt_charge->at(iMu) < 0) continue; //OS veto
+	  }
+	  else {
+	    if (isAntiMuphase) {
+	      SS = false;
+	      if (tau_charge->at(iTau) * mu_gt_charge->at(iMu) > 0) SS = true;
+	    }
+	    else {
+	      cout << "Error : non-existent phase!!!!" << endl;
+	      break;
+	    }
+	  }
+
+
 
 	  vector<float> tauIDvalues;                                                              vector<int> specialValues;
 	  tauIDvalues.push_back(tau_byLooseCombinedIsolationDeltaBetaCorr3Hits->at(iTau));        specialValues.push_back(tauIDvalues.size()-1);
@@ -601,7 +631,13 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 
 
 	  //check if if it's DY bkg or signal
-	  TLorentzVector tau_p4;
+	  TLorentzVector tau_p4, met_p4;
+	  float met_px = MET_eefix_Px;
+	  float met_py = MET_eefix_Py;
+	  float met_pt = MET_eefix_Pt;
+	  tau_p4.SetPtEtaPhiE(tau_pt->at(iTau), tau_eta->at(iTau), tau_phi->at(iTau), tau_energy->at(iTau));
+	  met_p4.SetPxPyPzE(met_px, met_py, 0, met_pt);
+
 	  bool DY_sig = false;
 	  bool fakemu_match = false;
 	  float fakemu_reweight = 1;
@@ -609,7 +645,6 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	    //we need to have a tau_mu tau_h pair at gen-level, the tau_h must have same sign and be DeltaR-compatible with the reco tau
 	    if (gen_mutau) {
 	      for (unsigned int iGen = 0; iGen < gentau_had_visp4.size(); ++iGen) {
-		//cout << "dR  " << tau_p4.DeltaR(gentau_had_visp4[iGen]) << endl;
 		if (tau_p4.DeltaR(gentau_had_visp4[iGen]) < 0.5) {
 		  DY_sig = true;
 		  break;
@@ -650,7 +685,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	      }
 	    }
 	    for (unsigned int iGen = 0; iGen < jetp4.size(); ++iGen) {
-	      if (tau_p4.DeltaR(jetp4[iGen]) < 0.5) {
+	      if (tau_p4.DeltaR(jetp4[iGen]) < 0.2) {
 		jetmatch = true;
 	      }
 	    }
@@ -669,26 +704,27 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	      iBkgOrSig = 1;
 	    }	      
 	  }
-
+	  
 	  for (int iTES = 0; iTES < 3; ++iTES) {
 	    //0 : TES down
 	    //1 : TES up
 	    //2 : no TES
-	    TLorentzVector tau_p4, tau_TES_p4, tau_MES_p4, vis_p4, met_p4, metmu_p4, total_p4;
-	    //met_p4.SetPxPyPzE(MET_Px, MET_nominal_Py, 0, MET_nominal_Pt);
-	    float met_px = MET_nominal_Px;
-	    float met_py = MET_nominal_Py;
-	    float met_pt = MET_nominal_Pt;
-	    tau_p4.SetPtEtaPhiE(tau_pt->at(iTau), tau_eta->at(iTau), tau_phi->at(iTau), tau_energy->at(iTau));
-	    met_p4.SetPxPyPzE(met_px, met_py, 0, met_pt);
+	    //only vary the tau energy scale if it's a real tau
+	    if (!realtau && iTES != 2) continue;
+
+	    TLorentzVector tau_TES_p4, tau_MES_p4, vis_p4, total_p4;
+	    //met_p4.SetPxPyPzE(MET_Px, MET_eefix_Py, 0, MET_eefix_Pt);
+
 
 	    for (int iMES = 0; iMES < 3; ++iMES) {
 	      if (iTES !=2 && iMES !=2) continue;
+	      if (!fakemu_match && iMES != 2) continue;
 	      //0 : MES down
 	      //1 : MES up
 	      //2 : no MES
 
 	      
+	      tau_p4.SetPtEtaPhiE(tau_pt->at(iTau), tau_eta->at(iTau), tau_phi->at(iTau), tau_energy->at(iTau));
 	      if (iTES == 0) {
 	        if (realtau) {
 		  //TES down by 3%
@@ -725,23 +761,10 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	      }
 
 
-
 	      vis_p4 = tau_p4 + mu_p4;
 	      total_p4 = vis_p4;// + met_p4;
-	      metmu_p4 = /*met_p4 +*/ mu_p4;
 	      
 	      if (tau_p4.Pt() < 20.0) continue;
-	      if (fabs(tau_eta->at(iTau)) > 2.3) continue;
-	      if (tau_decayModeFinding->at(iTau) < 0.5) continue;
-	      if (tau_againstMuonTight3->at(iTau) < 0.5) continue;
-	      if (tau_againstElectronVLooseMVA6->at(iTau) < 0.5) continue;
-	      //if (tau_ptLeadChargedCand->at(iTau) < 5) continue;
-	      if (!isAntiMuphase) {
-	        if (fabs(tau_lead_dz->at(iTau)) > 0.2) continue;
-	      }
-	      if (fabs(tau_charge->at(iTau)) != 1) continue;
-	      if (iTES==2) h_debug->Fill(0);
-	      
 	      
 	      
 	      //Pzeta calculation
@@ -753,27 +776,8 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	      float pzeta_vis=(tau_p4.Px()+mu_p4.Px())*x_zeta+(tau_p4.Py()+mu_p4.Py())*y_zeta;
 	      bool cut_zeta= p_zeta_mis-0.85*pzeta_vis>-25;
 	      
-	      //misc. cuts
-	      bool SS = false;
-	      if (isfinalphase || isWJetsphase || isFakesphase) {
-	        if (tau_charge->at(iTau) * mu_gt_charge->at(iMu) > 0) continue; //SS veto (opposite for QCD estimation)
-	      }
-	      else if (isQCDphase) {
-	        if (tau_charge->at(iTau) * mu_gt_charge->at(iMu) < 0) continue; //OS veto
-	      }
-	      else {
-	        if (isAntiMuphase) {
-	      	SS = false;
-	      	if (tau_charge->at(iTau) * mu_gt_charge->at(iMu) > 0) SS = true;
-	        }
-	        else {
-	      	cout << "Error : non-existent phase!!!!" << endl;
-	      	break;
-	        }
-	      }
-	      if (iTES==2) h_debug->Fill(1);
 	      
-	      
+
 	      if (first_weight != first_weight) continue;
 	      
 	      float Mt;
@@ -822,12 +826,11 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	      
 	      
 	      
-	      if(Mt_accept && iTES == 2 /*&& DY_sig*/) h_weight_afterallsel->Fill(final_weight), h_debug->Fill(4);	 
-	      if(Mt_accept && iTES == 2) {
+	      if(Mt_accept && iTES == 2 && iMES == 2) {
 	        found_mutau_pair = true;
 	      }
 	      
-	      
+
 	      
 	      //mu histos
 	      if (iTES == 2) hnotauID[iBkgOrSig][2]->Fill(Mt, final_weight);
@@ -835,7 +838,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	      //tau MVA histo
 	      if (Mt_accept && iTES == 2) hnotauID[iBkgOrSig][0]->Fill(tau_byIsolationMVArun2v1DBoldDMwLTraw->at(iTau), final_weight);
 	      
-	      int latestloosestID = -1;
+	      int latestloosestID = -1, s_counter = 0;
 	      float fakerate_weight = 1, fakerate_weight_low = 1, fakerate_weight_high = 1;
 	      for (unsigned int iValue=0; iValue<tauIDvalues.size(); ++iValue) {
 	        int iPass = -1;
@@ -847,7 +850,6 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 		  iPass = 1;
 	        }
 	      
-	        final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight;
 	        //fake rate method
 	        if (isFakesphase) {
 	      	  TString dm = "", eta = "";
@@ -871,13 +873,11 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 		  fakerate_weight_low = 2*fakerate_weight - fakerate_weight_high;
 	      	  
 	      	  bool special = false;
-	      	  for (unsigned int s=0; s<specialValues.size(); ++s) {
-	      	    if (iValue == specialValues[s]) {
-	      	      special = true;
-	      	      latestloosestID = iValue;
-	      	      break;
-	      	    }
-	      	  }
+		  if (iValue == specialValues[s_counter]) {
+		    special = true;
+		    latestloosestID = iValue;
+		    ++s_counter;
+		  }
 	      	  
 	      	  if (!special) {
 	      	    if (tauIDvalues[latestloosestID] < 0.5) continue;
@@ -885,17 +885,21 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 		}
 
 		final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight;
+		h_reweight->Fill(final_weight);
+		if (final_weight != final_weight) continue;
 	      
-	        if (Mt_accept && iMES == 0) htau[iPass][iBkgOrSig][iValue][19]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept && iMES == 1) htau[iPass][iBkgOrSig][iValue][20]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept && iMES == 0) htau[iPass][iBkgOrSig][iValue][21]->Fill(tau_p4.Pt(), final_weight);
-	        if (Mt_accept && iMES == 1) htau[iPass][iBkgOrSig][iValue][22]->Fill(tau_p4.Pt(), final_weight);
+		if (iTES == 2) {
+		  if (Mt_accept && (iMES == 0 || !fakemu_match)) htau[iPass][iBkgOrSig][iValue][19]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept && (iMES == 1 || !fakemu_match)) htau[iPass][iBkgOrSig][iValue][20]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept && (iMES == 0 || !fakemu_match)) htau[iPass][iBkgOrSig][iValue][21]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept && (iMES == 1 || !fakemu_match)) htau[iPass][iBkgOrSig][iValue][22]->Fill(tau_p4.Pt(), final_weight);
+		}
 		if (iMES !=2) continue;
 	      
-	        if (Mt_accept && iTES == 0) htau[iPass][iBkgOrSig][iValue][13]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept && iTES == 1) htau[iPass][iBkgOrSig][iValue][14]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept && iTES == 0) htau[iPass][iBkgOrSig][iValue][15]->Fill(tau_p4.Pt(), final_weight);
-	        if (Mt_accept && iTES == 1) htau[iPass][iBkgOrSig][iValue][16]->Fill(tau_p4.Pt(), final_weight);
+	        if (Mt_accept && (iTES == 0 || !realtau)) htau[iPass][iBkgOrSig][iValue][13]->Fill(vis_p4.M(), final_weight);
+	        if (Mt_accept && (iTES == 1 || !realtau)) htau[iPass][iBkgOrSig][iValue][14]->Fill(vis_p4.M(), final_weight);
+	        if (Mt_accept && (iTES == 0 || !realtau)) htau[iPass][iBkgOrSig][iValue][15]->Fill(tau_p4.Pt(), final_weight);
+	        if (Mt_accept && (iTES == 1 || !realtau)) htau[iPass][iBkgOrSig][iValue][16]->Fill(tau_p4.Pt(), final_weight);
 		if (iTES !=2) continue;
 
 	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][0]->Fill(Mt, final_weight);
@@ -912,7 +916,6 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][8]->Fill(mu_gt_phi->at(iMu), final_weight);
 	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][17]->Fill(vis_p4.Pt(), final_weight);
 	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][18]->Fill(tau_decayMode->at(iTau), final_weight);
-	        htau[iPass][iBkgOrSig][iValue][9]->Fill(metmu_p4.M(), final_weight);
 	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][10]->Fill(met_p4.Pt(), final_weight);
 	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][11]->Fill(met_p4.Phi(), final_weight);
 	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][12]->Fill(pv_n, final_weight);
@@ -924,6 +927,51 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 		final_weight = pu_weight_high*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight;
 	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][24]->Fill(vis_p4.M(), final_weight);
 	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][26]->Fill(pv_n, final_weight);
+
+
+		//anti-isolation SFs, which could be different from one
+		//tau is anti-iso in Fakes phase, tau could be either matched to a gen muon or a gen tau, or to some other object (mostly jets)
+		double antiisomu_weight_low = 0.75;
+		double antiisomu_weight_high = 1.25;
+		if (fakemu_match) {
+		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight*antiisomu_weight_low;
+		}
+		else {
+		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight*1.0;
+		}		  
+	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][39]->Fill(vis_p4.M(), final_weight);
+	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][41]->Fill(pv_n, final_weight);
+
+		if (fakemu_match) {
+		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight*antiisomu_weight_high;
+		}
+		else {
+		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight*1.0;
+		}		  
+	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][40]->Fill(vis_p4.M(), final_weight);
+	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][42]->Fill(pv_n, final_weight);
+
+
+		double antiisotau_weight_low = 0.9;
+		double antiisotau_weight_high = 1.1;
+		if (realtau) {
+		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight*antiisotau_weight_low;
+		}
+		else {
+		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight*1.0;
+		}		  
+	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][43]->Fill(vis_p4.M(), final_weight);
+	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][45]->Fill(pv_n, final_weight);
+
+		if (realtau) {
+		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight*antiisotau_weight_high;
+		}
+		else {
+		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight*1.0;
+		}		  
+	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][44]->Fill(vis_p4.M(), final_weight);
+	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][46]->Fill(pv_n, final_weight);
+
 
 
 		if (!isFakesphase) continue;
@@ -995,50 +1043,6 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][30]->Fill(tau_p4.Pt(), final_weight);
 		}
 
-
-		//anti-isolation SFs, which could be different from one
-		//tau is anti-iso in Fakes phase, tau could be either matched to a gen muon or a gen tau, or to some other object (mostly jets)
-		double antiisomu_weight_low = 0.75;
-		double antiisomu_weight_high = 1.25;
-		if (fakemu_match) {
-		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight*antiisomu_weight_low;
-		}
-		else {
-		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight*1.0;
-		}		  
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][39]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][41]->Fill(pv_n, final_weight);
-
-		if (fakemu_match) {
-		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight*antiisomu_weight_high;
-		}
-		else {
-		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight*1.0;
-		}		  
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][40]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][42]->Fill(pv_n, final_weight);
-
-
-		double antiisotau_weight_low = 0.9;
-		double antiisotau_weight_high = 1.1;
-		if (realtau) {
-		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight*antiisotau_weight_low;
-		}
-		else {
-		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight*1.0;
-		}		  
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][43]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][45]->Fill(pv_n, final_weight);
-
-		if (realtau) {
-		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight*antiisotau_weight_high;
-		}
-		else {
-		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight*1.0;
-		}		  
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][44]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][46]->Fill(pv_n, final_weight);
-
 	      }//loop over tau IDs
 	    }//loop over MES
 	  }//loop over TES
@@ -1047,8 +1051,6 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
    }//loop over events
 
    file_out->cd();
-   //hCounter->Write();
-   //hCounter2->Write();
    h_reweight->Write();
    h_weight_afterallsel->Write();
    h_debug->Write();

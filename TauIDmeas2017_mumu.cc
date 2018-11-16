@@ -22,8 +22,6 @@ int main(int argc, char** argv) {
   string type_in = *(argv + 5);
   string type= type_in;
   TFile *fIn = TFile::Open(inname.c_str());
-  TH1F* hCounter = (TH1F*) fIn->Get("h1");
-  TH1F* hCounter2 = (TH1F*) fIn->Get("h2");
   TTree* tree = (TTree*) fIn->Get("IIHEAnalysis");
 
   IIHEAnalysis* a = new IIHEAnalysis(tree);
@@ -31,7 +29,7 @@ int main(int argc, char** argv) {
   return 0;
 }
 
-void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, string mc_nickname, TH1F* hCounter, TH1F* hCounter2) {
+void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, string mc_nickname) {
    if (fChain == 0) return;
 
    bool DY, data;
@@ -300,8 +298,6 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
    }//loop over events
 
    file_out->cd();
-   //hCounter->Write();
-   //hCounter2->Write();
    h_reweight->Write();
    h_events->Write();
    for (unsigned int i = 0; i<histo_names.size(); ++i) for (unsigned int k = 0; k<two; ++k) h[k][i]->Write();

@@ -112,6 +112,7 @@ int main(/*int argc, char** argv*/) {
   TH1F* denominator_MC_total[HPS_WP.size()][dms.size()];
   for (unsigned int i=0; i<h_MC_pass.size(); ++i) {
     int k = ( i/(eta.size()*dms.size()) ) % HPS_WP.size(), l = (i/eta.size()) % dms.size(), m = i % eta.size();
+    //cout << k << " " << l << " " << m << endl;
     ptratio_MC.push_back( new TH1F("FakeRate_byTauPt_MC_"+HPS_WP[k]+"_"+dms[l]+"_"+eta[m], "FakeRate_byTauPt_MC_"+HPS_WP[k]+"_"+dms[l]+"_"+eta[m], len_x-1, x) );
     denominator_MC.push_back( new TH1F("den_"+dms[l]+"_"+HPS_WP[k]+"_"+eta[m], "den_"+HPS_WP[k]+"_"+dms[l]+"_"+eta[m], len_x-1, x) );
     for (unsigned int j=2; j<names.size(); ++j) {

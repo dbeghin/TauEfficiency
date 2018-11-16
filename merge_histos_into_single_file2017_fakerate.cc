@@ -21,7 +21,7 @@ TH1F* MC_histo(TString var, TFile* file_in, double xs, long Nevents, int rebin) 
 
   cout << file_in->GetName() << endl;
 
-  double lumi = 41525.735; //luminosity in pb^-1
+  double lumi = 38936; //luminosity in pb^-1
 
   double e_Nevents = pow(Nevents,0.5);
   double e_xs = 0.01*xs;
@@ -131,7 +131,7 @@ int main(int argc, char** argv) {
   eta.push_back("endcap");
 
   //cross-sections
-  double xs_DY = 5675.4;
+  double xs_DY = 6225.42;//5675.4;
   double xs_WJets = 61526.7;
   double xs_TT = 87.31;//831.76;
   double xs_WW = 64.3;
@@ -152,12 +152,12 @@ int main(int argc, char** argv) {
   double xs_QCD_1000toInf = 10.4305*0.15544;    xs_QCD.push_back(xs_QCD_1000toInf);
 
   //Nevents
-  long N_DY = 144230225;
-  long N_WJets = 23133163;//25950745;
-  long N_TT = 8615776;
-  long N_WW = 7528052;
-  long N_WZ = 3928630;
-  long N_ZZ = 1949768;
+  long N_DY = 142161151;//144230225;
+  long N_WJets = 23133163;
+  long N_TT = 8705576;//8615776;
+  long N_WW = 3928630;//7528052;
+  long N_WZ = 7791498;//3928630;
+  long N_ZZ = 1949768;//1949768;
 
   vector<long> N_QCD;
   long N_QCD_20to30 = 24545944+3460458;      N_QCD.push_back(N_QCD_20to30);
