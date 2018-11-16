@@ -113,7 +113,8 @@ int main(int argc, char** argv) {
 
 
   //cross-sections
-  double xs_DY = 5675.4;//6233.55;
+  double xs_DY = 6225.42;
+  //double xs_DY = 5675.4;
   double xs_WJets = 61526.7;
   double xs_TT = 87.31;//831.76;
   double xs_WW = 64.3;

@@ -9,9 +9,9 @@
 using namespace std;
 
 int main(int argc, char** argv) {
-  float firstbin = 40;
+  float firstbin = 50;
   float lastbin = 150;
-  int Nbins = 11;
+  int Nbins = 10;
   int rebin = 10;//144-40=13*8
 
   TFile* file_in_mutau = new TFile("Figures/allhistos.root", "R");
@@ -46,6 +46,7 @@ int main(int argc, char** argv) {
   tauID.push_back("MVA_2017v2vtight");
   tauID.push_back("MVA_2017v2vvtight");
 
+
   vector<TString> in_names,                       out_names;
   in_names.push_back("faketau_ev_Mvis");	  out_names.push_back("faketau");
   in_names.push_back("DYS_ev_Mvis");              out_names.push_back("DYS");  
@@ -56,10 +57,24 @@ int main(int argc, char** argv) {
   in_names.push_back("TTB_ev_Mvis");   		  out_names.push_back("TTB");   
   in_names.push_back("data_ev_Mvis"); 		  out_names.push_back("data_obs");
 
-  vector<TString> in_TES,      out_TES;
-  in_TES.push_back("");        out_TES.push_back("");
-  in_TES.push_back("TESup_");  out_TES.push_back("_tesUp");
-  in_TES.push_back("TESdown_");out_TES.push_back("_tesDown");
+  vector<TString> in_sys,      out_sys;
+  in_sys.push_back("");        out_sys.push_back("");
+  in_sys.push_back("TESup_");  out_sys.push_back("_tesUp");
+  in_sys.push_back("TESdown_");out_sys.push_back("_tesDown");
+  in_sys.push_back("MESup_");  out_sys.push_back("_mesUp");
+  in_sys.push_back("MESdown_");out_sys.push_back("_mesDown");
+  in_sys.push_back("MinBiasup_");  out_sys.push_back("_minbiasUp");
+  in_sys.push_back("MinBiasdown_");out_sys.push_back("_minbiasDown");
+  in_sys.push_back("FRS_DM0_up_");  out_sys.push_back("_frsdm0Up");
+  in_sys.push_back("FRS_DM0_down_");out_sys.push_back("_frsdm0Down");
+  in_sys.push_back("FRS_DM1_up_");  out_sys.push_back("_frsdm1Up");
+  in_sys.push_back("FRS_DM1_down_");out_sys.push_back("_frsdm1Down");
+  in_sys.push_back("FRS_DM10_up_");  out_sys.push_back("_frsdm10Up");
+  in_sys.push_back("FRS_DM10_down_");out_sys.push_back("_frsdm10Down");
+  in_sys.push_back("antiisomu_up_");  out_sys.push_back("_antiisomuUp");
+  in_sys.push_back("antiisomu_down_");out_sys.push_back("_antiisomuDown");
+  in_sys.push_back("antiisotau_up_");  out_sys.push_back("_antiisotauUp");
+  in_sys.push_back("antiisotau_down_");out_sys.push_back("_antiisotauDown");
 
 
   for (unsigned int i=0; i<tauID.size(); ++i) {
@@ -70,8 +85,8 @@ int main(int argc, char** argv) {
     TDirectory* pass_dir = file_out->mkdir("pass");
     pass_dir->cd();
     for (unsigned int j=0; j<in_names.size(); ++j) {
-      for (unsigned int k=0; k<in_TES.size(); ++k) {
-	TH1F* h = (TH1F*) file_in_mutau->Get(in_names[j]+"_"+in_TES[k]+tauID[i]+"_pass");
+      for (unsigned int k=0; k<in_sys.size(); ++k) {
+	TH1F* h = (TH1F*) file_in_mutau->Get(in_names[j]+"_"+in_sys[k]+tauID[i]+"_pass");
 	h->Rebin(rebin);
 	TH1F* h2 = new TH1F(h->GetName(), h->GetTitle(), Nbins, firstbin, lastbin);
 	int ll=0;
@@ -88,7 +103,7 @@ int main(int argc, char** argv) {
 	  float bin_error = h->GetBinError(l);
 	  h2->SetBinError(ll, bin_error);
 	}
-	h2->SetName(out_names[j]+out_TES[k]);
+	h2->SetName(out_names[j]+out_sys[k]);
 	if (out_names[j] == "data_obs" && k >0) continue;
 	h2->Write();
       }
@@ -100,8 +115,8 @@ int main(int argc, char** argv) {
     /*TDirectory* fail_dir = file_out->mkdir("fail");
     fail_dir->cd();
     for (unsigned int j=0; j<in_names.size(); ++j) {
-      for (unsigned int k=0; k<in_TES.size(); ++k) {
-	TH1F* h = (TH1F*) file_in_mutau->Get(in_names[j]+"_"+in_TES[k]+tauID[i]+"_fail");
+      for (unsigned int k=0; k<in_sys.size(); ++k) {
+	TH1F* h = (TH1F*) file_in_mutau->Get(in_names[j]+"_"+in_sys[k]+tauID[i]+"_fail");
 	h->Rebin(rebin);
 	TH1F* h2 = new TH1F(h->GetName(), h->GetTitle(), Nbins, firstbin, lastbin);
 	int ll=0;
@@ -126,7 +141,7 @@ int main(int argc, char** argv) {
 	  //if (bin_error = 10) cout << bin_error << endl;
 	  h2->SetBinError(ll, bin_error);
 	}
-	h2->SetName(out_names[j]+out_TES[k]);
+	h2->SetName(out_names[j]+out_sys[k]);
 	if (out_names[j] == "data_obs" && k >0) continue;
 	h2->Write();
       }

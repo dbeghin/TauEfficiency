@@ -102,16 +102,17 @@ int main(/*int argc, char** argv*/) {
   }
 
   //rebin
-  float x[] = {20, 30, 40, 60, 100, 500};
+  float x[] = {20, 30, 40, 60, 100, 150};
   int len_x = 6;
 
   //MC
   vector<TH1F*> ptratio_MC;
   vector<TH1F*> denominator_MC;
-  TH1F* ptratio_MC_total[HPS_WP.size()];
-  TH1F* denominator_MC_total[HPS_WP.size()];
+  TH1F* ptratio_MC_total[HPS_WP.size()][dms.size()];
+  TH1F* denominator_MC_total[HPS_WP.size()][dms.size()];
   for (unsigned int i=0; i<h_MC_pass.size(); ++i) {
     int k = ( i/(eta.size()*dms.size()) ) % HPS_WP.size(), l = (i/eta.size()) % dms.size(), m = i % eta.size();
+    //cout << k << " " << l << " " << m << endl;
     ptratio_MC.push_back( new TH1F("FakeRate_byTauPt_MC_"+HPS_WP[k]+"_"+dms[l]+"_"+eta[m], "FakeRate_byTauPt_MC_"+HPS_WP[k]+"_"+dms[l]+"_"+eta[m], len_x-1, x) );
     denominator_MC.push_back( new TH1F("den_"+dms[l]+"_"+HPS_WP[k]+"_"+eta[m], "den_"+HPS_WP[k]+"_"+dms[l]+"_"+eta[m], len_x-1, x) );
     for (unsigned int j=2; j<names.size(); ++j) {
@@ -142,24 +143,29 @@ int main(/*int argc, char** argv*/) {
       }
     }
     denominator_MC[i]->Add(ptratio_MC[i]);
-    if (l==0 && m==0) {
-      denominator_MC_total[k] = (TH1F*) denominator_MC[i]->Clone("den_"+HPS_WP[k]+"_total");
-      ptratio_MC_total[k] = (TH1F*) ptratio_MC[i]->Clone("ptratio_MC_"+HPS_WP[k]+"_total");
+    if (m==0) {
+      denominator_MC_total[k][l] = (TH1F*) denominator_MC[i]->Clone("den_"+HPS_WP[k]+"_"+dms[l]+"_total");
+      ptratio_MC_total[k][l] = (TH1F*) ptratio_MC[i]->Clone("ptratio_MC_"+HPS_WP[k]+"_"+dms[l]+"_total");
     }
     else {
-      denominator_MC_total[k]->Add(denominator_MC[i]);
-      ptratio_MC_total[k]->Add(ptratio_MC[i]);
+      denominator_MC_total[k][l]->Add(denominator_MC[i]);
+      ptratio_MC_total[k][l]->Add(ptratio_MC[i]);
     }
     ptratio_MC[i]->Divide(denominator_MC[i]);
   }
-  for (unsigned k=0; k<HPS_WP.size(); ++k) ptratio_MC_total[k]->Divide(denominator_MC_total[k]);
-
+  for (unsigned k=0; k<HPS_WP.size(); ++k) {
+    for (unsigned l=0; l<dms.size(); ++l) {
+      ptratio_MC_total[k][l]->Rebin(len_x-1);
+      denominator_MC_total[k][l]->Rebin(len_x-1);
+      ptratio_MC_total[k][l]->Divide(denominator_MC_total[k][l]);
+    }
+  }
 
   //data
   vector<TH1F*> ptratio_data;
   vector<TH1F*> denominator_data;
-  TH1F* ptratio_data_total[HPS_WP.size()];
-  TH1F* denominator_data_total[HPS_WP.size()];
+  TH1F* ptratio_data_total[HPS_WP.size()][dms.size()];
+  TH1F* denominator_data_total[HPS_WP.size()][dms.size()];
   for (unsigned int i=0; i<h_data_pass.size(); ++i) {
     int k = ( i/(eta.size()*dms.size()) ) % HPS_WP.size(), l = (i/eta.size()) % dms.size(), m = i % eta.size();
     ptratio_data.push_back( new TH1F("FakeRate_byTauPt_data_"+HPS_WP[k]+"_"+dms[l]+"_"+eta[m], "FakeRate_byTauPt_data_"+HPS_WP[k]+"_"+dms[l]+"_"+eta[m], len_x-1, x) );
@@ -188,23 +194,31 @@ int main(/*int argc, char** argv*/) {
       }
     }
     denominator_data[i]->Add(ptratio_data[i]);
-    if (l==0 && m==0) {
-      denominator_data_total[k] = (TH1F*) denominator_data[i]->Clone("den2_"+HPS_WP[k]+"_total");
-      ptratio_data_total[k] = (TH1F*) ptratio_data[i]->Clone("ptratio_data_"+HPS_WP[k]+"_total");
+    if (m==0) {
+      denominator_data_total[k][l] = (TH1F*) denominator_data[i]->Clone("den2_"+HPS_WP[k]+"_"+dms[l]+"_total");
+      ptratio_data_total[k][l] = (TH1F*) ptratio_data[i]->Clone("ptratio_data_"+HPS_WP[k]+"_"+dms[l]+"_total");
     }
     else {
-      denominator_data_total[k]->Add(denominator_data[i]);
-      ptratio_data_total[k]->Add(ptratio_data[i]);
+      denominator_data_total[k][l]->Add(denominator_data[i]);
+      ptratio_data_total[k][l]->Add(ptratio_data[i]);
     }
     ptratio_data[i]->Divide(denominator_data[i]);
   }
-  for (unsigned k=0; k<HPS_WP.size(); ++k) ptratio_data_total[k]->Divide(denominator_data_total[k]);
 
+  for (unsigned k=0; k<HPS_WP.size(); ++k) {
+    for (unsigned l=0; l<dms.size(); ++l) {
+      ptratio_data_total[k][l]->Rebin(len_x-1);
+      denominator_data_total[k][l]->Rebin(len_x-1);
+      ptratio_data_total[k][l]->Divide(denominator_data_total[k][l]);
+    }
+  }
 
   file_out->cd();
   for (unsigned k=0; k<HPS_WP.size(); ++k) {
-    ptratio_MC_total[k]->Write();
-    ptratio_data_total[k]->Write();
+    for (unsigned l=0; l<dms.size(); ++l) {
+      ptratio_MC_total[k][l]->Write();
+      ptratio_data_total[k][l]->Write();
+    }
   }
   for (unsigned int i=0; i<h_data_pass.size(); ++i) {
     ptratio_MC[i]->Write();

@@ -21,7 +21,7 @@ TH1F* MC_histo(TString prestring, TString var, TFile* file_in, double xs, long N
 
   cout << file_in->GetName() << endl;
 
-  double lumi = 41525.735; //luminosity in pb^-1
+  double lumi = 38936; //luminosity in pb^-1
 
   double e_Nevents = pow(Nevents,0.5);
   double e_xs = 0.01*xs;
@@ -161,14 +161,41 @@ int main(int argc, char** argv) {
   vars.push_back("mu_pt");
   vars.push_back("mu_eta");
   vars.push_back("mu_phi");
-  //vars.push_back("ev_METmumass");
-  //vars.push_back("ev_MET");
-  //vars.push_back("ev_METphi");
   vars.push_back("ev_Nvertex");
-  if (option_name != "Wjets_pre" && option_name != "WJets_pre" && option_name != "Wjets_post" && option_name != "WJets_post" && option_name != "AntiMu") {
-    vars.push_back("ev_Mvis_TESdown");
-    vars.push_back("ev_Mvis_TESup");
-  }
+  vars.push_back("ev_Mvis_TESdown");
+  vars.push_back("ev_Mvis_TESup");
+  vars.push_back("tau_pt_TESdown");          
+  vars.push_back("tau_pt_TESup");            
+  vars.push_back("Z_pt");                    
+  vars.push_back("tau_DM");                  
+  vars.push_back("ev_Mvis_MESdown");         
+  vars.push_back("ev_Mvis_MESup");           
+  vars.push_back("tau_pt_MESdown");          
+  vars.push_back("tau_pt_MESup");            
+  vars.push_back("ev_Mvis_MinBiasdown");     
+  vars.push_back("ev_Mvis_MinBiasup");       
+  vars.push_back("ev_Nvertex_MinBiasdown");  
+  vars.push_back("ev_Nvertex_Minbiasup");    
+  vars.push_back("ev_Mvis_FRS_DM0_down");    
+  vars.push_back("ev_Mvis_FRS_DM0_up");      
+  vars.push_back("tau_pt_FRS_DM0_down");     
+  vars.push_back("tau_pt_FRS_DM0_up");       
+  vars.push_back("ev_Mvis_FRS_DM1_down");    
+  vars.push_back("ev_Mvis_FRS_DM1_up");      
+  vars.push_back("tau_pt_FRS_DM1_down");     
+  vars.push_back("tau_pt_FRS_DM1_up");       
+  vars.push_back("ev_Mvis_FRS_DM10_down");   
+  vars.push_back("ev_Mvis_FRS_DM10_up");     
+  vars.push_back("tau_pt_FRS_DM10_down");    
+  vars.push_back("tau_pt_FRS_DM10_up");
+  vars.push_back("ev_Mvis_antiisomu_down");  
+  vars.push_back("ev_Mvis_antiisomu_up");    
+  vars.push_back("tau_pt_antiisomu_down");   
+  vars.push_back("tau_pt_antiisomu_up");     
+  vars.push_back("ev_Mvis_antiisotau_down"); 
+  vars.push_back("ev_Mvis_antiisotau_up");   
+  vars.push_back("tau_pt_antiisotau_down");  
+  vars.push_back("tau_pt_antiisotau_up");
   if (antimu) {
     vars.push_back("ev_Mvis_SS");
     vars.push_back("tau_pt_SS");
@@ -208,7 +235,8 @@ int main(int argc, char** argv) {
   categ.push_back("fail");
 
   //cross-sections
-  double xs_DY = 5675.4; 
+  double xs_DY = 6225.42;//5675.4; 
+  //double xs_DY = 5675.4; 
   double xs_WJets = 61526.7;
 
   double xs_QCD_muenriched = 720648000*0.00042;//0.0003739 //Mu-enriched sample, this includes filter efficiency
@@ -253,7 +281,7 @@ int main(int argc, char** argv) {
   double xs_ZZ = 10.16;
 
   //Nevents
-  long N_DY = 96844363; //144230225;
+  long N_DY = 142161151;
   long N_WJets = 23219762;//25950745;
 
   long N_QCD_muenriched = 7373309;
@@ -288,10 +316,10 @@ int main(int argc, char** argv) {
     long N_QCD_1000toInf = 11464778;           N_QCD.push_back(N_QCD_1000toInf);
   }    
                   
-  long N_TT_2l2nu = 8615776;
-  long N_TT_semilep = 109715126;
-  long N_TT_had = 127935682;
-  long N_WW = 3928630;
+  long N_TT_2l2nu = 8705576;
+  long N_TT_semilep = 41221873;
+  long N_TT_had = 42357944;
+  long N_WW = 7791498;
   long N_WZ = 3928630;
   long N_ZZ = 1949768;
 

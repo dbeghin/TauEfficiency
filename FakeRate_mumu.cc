@@ -21,16 +21,14 @@ int main(int argc, char** argv) {
   string type_in = *(argv + 5);
   string type= type_in;
   TFile *fIn = TFile::Open(inname.c_str());
-  TH1F* hCounter = (TH1F*) fIn->Get("h1");
-  TH1F* hCounter2 = (TH1F*) fIn->Get("h2");
   TTree* tree = (TTree*) fIn->Get("IIHEAnalysis");
 
   IIHEAnalysis* a = new IIHEAnalysis(tree);
-  a->Loop(phase, type, out_name, mc_nickname, hCounter, hCounter2);
+  a->Loop(phase, type, out_name, mc_nickname);
   return 0;
 }
 
-void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, string mc_nick, TH1F* hCounter, TH1F* hCounter2) {
+void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, string mc_nick) {
    if (fChain == 0) return;
 
    bool DY, data;
@@ -153,7 +151,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 
       float pu_weight = 1;
       if (!data) {
-        pu_weight = PU_2017_Rereco::MC_pileup_weight(mc_trueNumInteractions, mc_nick, "Data_2017BtoF");
+        pu_weight = PU_2017_Rereco::MC_pileup_weight(mc_trueNumInteractions, mc_nick, "Data_METcorr_2017BtoF");
       }
       
 
@@ -335,8 +333,6 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
    }//loop over events
 
    file_out->cd();
-   //hCounter->Write();
-   //hCounter2->Write();
    h_reweight->Write();
    for (unsigned int i = 0; i<histo_names.size(); ++i) h[i]->Write();
    for (unsigned int i1=0; i1<HPS_WP.size(); ++i1) for (unsigned int i2=0; i2<passfail.size(); ++i2) for (unsigned int j=0; j<dms.size(); ++j) for (unsigned int k=0; k<eta.size(); ++k) htau[i1][i2][j][k]->Write();
