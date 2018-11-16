@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
   TTree* tree = (TTree*) fIn->Get("IIHEAnalysis");
 
   IIHEAnalysis* a = new IIHEAnalysis(tree);
-  a->Loop(phase, type, out_name, mc_nickname, hCounter, hCounter2);
+  a->Loop(phase, type, out_name, mc_nickname);
   return 0;
 }
 
@@ -129,12 +129,12 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
       if (Nmu > 2) continue; //3rd muon veto
 
       //electron veto
-      bool electron = false;
-      for (unsigned int iEle = 0; iEle < gsf_pt->size(); ++iEle) {
-        if (gsf_VIDLoose->at(iEle) && gsf_pt->at(iEle) > 10 && fabs(gsf_eta->at(iEle)) < 2.5 && fabs(gsf_dxy_firstPVtx->at(iEle)) < 0.045 && fabs(gsf_dz_firstPVtx->at(iEle)) < 0.2 && gsf_passConversionVeto->at(iEle) && gsf_nLostInnerHits->at(iEle) <= 1 && gsf_relIso->at(iEle) < 0.3) electron = true;
-        if (electron) break;
-      }
-      if (electron) continue; //FIXME
+      //bool electron = false;
+      //for (unsigned int iEle = 0; iEle < gsf_pt->size(); ++iEle) {
+      //  if (gsf_VIDLoose->at(iEle) && gsf_pt->at(iEle) > 10 && fabs(gsf_eta->at(iEle)) < 2.5 && fabs(gsf_dxy_firstPVtx->at(iEle)) < 0.045 && fabs(gsf_dz_firstPVtx->at(iEle)) < 0.2 /*&& gsf_passConversionVeto->at(iEle)*/ && gsf_nLostInnerHits->at(iEle) <= 1 && gsf_relIso->at(iEle) < 0.3) electron = true;//FIXME
+      //  if (electron) break;
+      //}
+      //if (electron) continue; //FIXME
 
       //bjet veto (medium WP for the bjet)                                                                                                                           
       /*bool bjet = false;
