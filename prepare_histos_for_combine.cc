@@ -153,7 +153,7 @@ int main(int argc, char** argv) {
     Zmumu_dir->cd();
     for (unsigned int j=0; j<in_names.size(); ++j) {
       TString inn = in_names[j];
-      if (j==0) inn = "WJets_ev_Mvis";
+      if (j==0) inn = in_names[1];
       TH1F* h = (TH1F*) file_in_mumu->Get(inn);
       TH1F* h2 = new TH1F(h->GetName(), h->GetTitle(), 1, 60, 120);
       int ll=0;
@@ -161,6 +161,7 @@ int main(int argc, char** argv) {
 	//if (h->GetXaxis()->GetBinCenter(l) < 35) continue;
 	ll += 1;
 	float bin_content = h->GetBinContent(l);
+	if (j==0) bin_content = 0;
 	if (bin_content <= 0) {
 	  h2->SetBinContent(ll, 0);
 	}

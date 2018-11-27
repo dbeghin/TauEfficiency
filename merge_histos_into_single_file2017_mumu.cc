@@ -21,7 +21,8 @@ TH1F* MC_histo(bool DYSig, TString var, TFile* file_in, double xs, long Nevents,
 
   cout << file_in->GetName() << endl;
 
-  double lumi = 41525.735; //luminosity in pb^-1
+  //double lumi = 41525.735; //luminosity in pb^-1
+  double lumi = 38936;; //luminosity in pb^-1
   //double lumi = 4794; //luminosity 2017B in pb^-1
   //double lumi = 9631; //luminosity 2017C in pb^-1
   //double lumi = 4248; //luminosity 2017D in pb^-1
@@ -135,8 +136,7 @@ int main(int argc, char** argv) {
   double xs_QCD_1000toInf = 10.4305*0.15544;    xs_QCD.push_back(xs_QCD_1000toInf);
 
   //Nevents
-  long N_DY =  96844363;
-  //long N_DY =  144230225;
+  long N_DY =  142161151;
   long N_WJets = 23133163;//25950745;
   long N_TT = 8634992;
   long N_WW = 7547722;
@@ -172,9 +172,9 @@ int main(int argc, char** argv) {
     h_DYBkg -> SetName("DYS_"+var_in);
     h_DYBkg->Write();
     
-    TH1F* h_WJets = MC_histo(true, var_in, file_in_WJets, xs_WJets, N_WJets, rebin);
-    h_WJets -> SetName("WJets_"+var_in);
-    h_WJets->Write();
+    //TH1F* h_WJets = MC_histo(true, var_in, file_in_WJets, xs_WJets, N_WJets, rebin);
+    //h_WJets -> SetName("WJets_"+var_in);
+    //h_WJets->Write();
       
     TH1F* h_TT = MC_histo(true, var_in, file_in_TT, xs_TT, N_TT, rebin);
     h_TT -> SetName("TTB_"+var_in);

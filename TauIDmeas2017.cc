@@ -826,10 +826,9 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	      
 	      
 	      
-	      if(Mt_accept && iTES == 2 && iMES == 2) {
+	      if(Mt_accept && iTES == 2 && iMES == 2 && tau_byTightIsolationMVArun2017v2DBoldDMwLT2017->at(iTau) > 0.5) {
 	        found_mutau_pair = true;
-	      }
-	      
+	      }//FIXME
 
 	      
 	      //mu histos
