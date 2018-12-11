@@ -24,12 +24,14 @@ int main(int argc, char** argv) {
   TTree* tree = (TTree*) fIn->Get("IIHEAnalysis");
 
   IIHEAnalysis* a = new IIHEAnalysis(tree);
-  a->Loop(phase, type, out_name, mc_nickname);
+  a->Loop(phase, type, inname, out_name, mc_nickname);
   return 0;
 }
 
-void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, string mc_nick) {
+void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, string out_name, string mc_nick) {
    if (fChain == 0) return;
+   
+   cout << type_of_data << endl;
 
    bool DY, data;
    if (type_of_data == "DYinc" || type_of_data == "DYhighM" || type_of_data == "DY") {
@@ -81,13 +83,6 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
    HPS_WP.push_back("cutbased_medium");
    HPS_WP.push_back("cutbased_tight");
 
-   HPS_WP.push_back("MVA_2016vloose");
-   HPS_WP.push_back("MVA_2016loose");
-   HPS_WP.push_back("MVA_2016medium");
-   HPS_WP.push_back("MVA_2016tight");
-   HPS_WP.push_back("MVA_2016vtight");
-   HPS_WP.push_back("MVA_2016vvtight");
-
    HPS_WP.push_back("MVA_2017v1vvloose");
    HPS_WP.push_back("MVA_2017v1vloose");
    HPS_WP.push_back("MVA_2017v1loose");
@@ -103,6 +98,20 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
    HPS_WP.push_back("MVA_2017v2tight");
    HPS_WP.push_back("MVA_2017v2vtight");
    HPS_WP.push_back("MVA_2017v2vvtight");
+
+   HPS_WP.push_back("MVA_DBdR03vloose");
+   HPS_WP.push_back("MVA_DBdR03loose");
+   HPS_WP.push_back("MVA_DBdR03medium");
+   HPS_WP.push_back("MVA_DBdR03tight");
+   HPS_WP.push_back("MVA_DBdR03vtight");
+   HPS_WP.push_back("MVA_DBdR03vvtight");
+
+   HPS_WP.push_back("MVA_PWdR03vloose");
+   HPS_WP.push_back("MVA_PWdR03loose");
+   HPS_WP.push_back("MVA_PWdR03medium");
+   HPS_WP.push_back("MVA_PWdR03tight");
+   HPS_WP.push_back("MVA_PWdR03vtight");
+   HPS_WP.push_back("MVA_PWdR03vvtight");
 
 
    vector<TString> passfail;
@@ -143,6 +152,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
       Long64_t iEntry = LoadTree(jEntry);
       if (iEntry < 0) break;
       if (jEntry % 1000 == 0) fprintf(stdout, "\r  Processed events: %8d of %8d ", jEntry, nEntries);
+      //if (jEntry % 10 == 0) cout << endl << jEntry;
 
       nb = fChain->GetEntry(jEntry);
       nbytes += nb;
@@ -193,10 +203,11 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 
 	  if (total_p4.M() < 60 || total_p4.M() > 120) continue;
 
+	  final_weight = 1;
 	  if (!data) {
             final_weight = mc_w_sign*GetReweight_mumu(mu1_p4.Pt(), mu1_p4.Eta(), mu2_p4.Pt(), mu2_p4.Eta())*pu_weight;
 	  }
-	  
+
 	  met_p4.SetPtEtaPhiM(MET_nominal_Pt, 0, MET_nominal_phi, 0);
 	  metmu_p4 = met_p4 + mu1_p4;
 
@@ -207,7 +218,6 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	  h[9]->Fill(dR, final_weight);
 	  if (dR < 0.5) continue;
 
-	  h_reweight->Fill(final_weight);
 
 
 	  for (unsigned int iTau = 0; iTau < tau_pt->size(); ++iTau) {
@@ -223,6 +233,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	    if (tau_p4.DeltaR(mu2_p4) < 0.5) continue;
 
 	    //mu histos
+	    h_reweight->Fill(final_weight);
 	    h[0]->Fill(mu_gt_pt->at(iMu1), final_weight);
 	    h[0]->Fill(mu_gt_pt->at(iMu2), final_weight);
 
@@ -273,13 +284,6 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	    tauIDvalues.push_back(tau_byMediumCombinedIsolationDeltaBetaCorr3Hits->at(iTau));
 	    tauIDvalues.push_back(tau_byTightCombinedIsolationDeltaBetaCorr3Hits->at(iTau));
 
-	    tauIDvalues.push_back(tau_byVLooseIsolationMVArun2v1DBoldDMwLT->at(iTau));              specialValues.push_back(tauIDvalues.size()-1);
-	    tauIDvalues.push_back(tau_byLooseIsolationMVArun2v1DBoldDMwLT->at(iTau));
-	    tauIDvalues.push_back(tau_byMediumIsolationMVArun2v1DBoldDMwLT->at(iTau));
-	    tauIDvalues.push_back(tau_byTightIsolationMVArun2v1DBoldDMwLT->at(iTau));
-	    tauIDvalues.push_back(tau_byVTightIsolationMVArun2v1DBoldDMwLT->at(iTau));
-	    tauIDvalues.push_back(tau_byVVTightIsolationMVArun2v1DBoldDMwLT->at(iTau));
-
 	    tauIDvalues.push_back(tau_byVVLooseIsolationMVArun2017v1DBoldDMwLT2017->at(iTau));      specialValues.push_back(tauIDvalues.size()-1);
 	    tauIDvalues.push_back(tau_byVLooseIsolationMVArun2017v1DBoldDMwLT2017->at(iTau));
 	    tauIDvalues.push_back(tau_byLooseIsolationMVArun2017v1DBoldDMwLT2017->at(iTau));
@@ -295,6 +299,21 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	    tauIDvalues.push_back(tau_byTightIsolationMVArun2017v2DBoldDMwLT2017->at(iTau));
 	    tauIDvalues.push_back(tau_byVTightIsolationMVArun2017v2DBoldDMwLT2017->at(iTau));
 	    tauIDvalues.push_back(tau_byVVTightIsolationMVArun2017v2DBoldDMwLT2017->at(iTau));
+
+	    tauIDvalues.push_back(tau_byVLooseIsolationMVArun2v1DBdR03oldDMwLT->at(iTau));          specialValues.push_back(tauIDvalues.size()-1);
+	    tauIDvalues.push_back(tau_byLooseIsolationMVArun2v1DBdR03oldDMwLT->at(iTau));
+	    tauIDvalues.push_back(tau_byMediumIsolationMVArun2v1DBdR03oldDMwLT->at(iTau));
+	    tauIDvalues.push_back(tau_byTightIsolationMVArun2v1DBdR03oldDMwLT->at(iTau));
+	    tauIDvalues.push_back(tau_byVTightIsolationMVArun2v1DBdR03oldDMwLT->at(iTau));
+	    tauIDvalues.push_back(tau_byVVTightIsolationMVArun2v1DBdR03oldDMwLT->at(iTau));
+
+	    tauIDvalues.push_back(tau_byVLooseIsolationMVArun2v1PWdR03oldDMwLT->at(iTau));          specialValues.push_back(tauIDvalues.size()-1);
+	    tauIDvalues.push_back(tau_byLooseIsolationMVArun2v1PWdR03oldDMwLT->at(iTau));
+	    tauIDvalues.push_back(tau_byMediumIsolationMVArun2v1PWdR03oldDMwLT->at(iTau));
+	    tauIDvalues.push_back(tau_byTightIsolationMVArun2v1PWdR03oldDMwLT->at(iTau));
+	    tauIDvalues.push_back(tau_byVTightIsolationMVArun2v1PWdR03oldDMwLT->at(iTau));
+	    tauIDvalues.push_back(tau_byVVTightIsolationMVArun2v1PWdR03oldDMwLT->at(iTau));
+
 
 	    //Tau histos
 	    int latestloosestID = -1;

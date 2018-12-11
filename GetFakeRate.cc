@@ -31,13 +31,6 @@ int main(/*int argc, char** argv*/) {
   HPS_WP.push_back("cutbased_medium");
   HPS_WP.push_back("cutbased_tight");
 
-  HPS_WP.push_back("MVA_2016vloose");
-  HPS_WP.push_back("MVA_2016loose");
-  HPS_WP.push_back("MVA_2016medium");
-  HPS_WP.push_back("MVA_2016tight");
-  HPS_WP.push_back("MVA_2016vtight");
-  HPS_WP.push_back("MVA_2016vvtight");
-
   HPS_WP.push_back("MVA_2017v1vvloose");
   HPS_WP.push_back("MVA_2017v1vloose");
   HPS_WP.push_back("MVA_2017v1loose");
@@ -53,6 +46,20 @@ int main(/*int argc, char** argv*/) {
   HPS_WP.push_back("MVA_2017v2tight");
   HPS_WP.push_back("MVA_2017v2vtight");
   HPS_WP.push_back("MVA_2017v2vvtight");
+
+  HPS_WP.push_back("MVA_DBdR03vloose");
+  HPS_WP.push_back("MVA_DBdR03loose");
+  HPS_WP.push_back("MVA_DBdR03medium");
+  HPS_WP.push_back("MVA_DBdR03tight");
+  HPS_WP.push_back("MVA_DBdR03vtight");
+  HPS_WP.push_back("MVA_DBdR03vvtight");
+
+  HPS_WP.push_back("MVA_PWdR03vloose");
+  HPS_WP.push_back("MVA_PWdR03loose");
+  HPS_WP.push_back("MVA_PWdR03medium");
+  HPS_WP.push_back("MVA_PWdR03tight");
+  HPS_WP.push_back("MVA_PWdR03vtight");
+  HPS_WP.push_back("MVA_PWdR03vvtight");
 
   vector<TString> passfail;
   passfail.push_back("pass");

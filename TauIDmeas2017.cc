@@ -7,6 +7,7 @@
 #include "TString.h"
 //#include "MC_pileup_weight2017.cc"
 #include <iostream>
+#include <fstream>
 #include <vector>
 
 using namespace std;
@@ -27,12 +28,32 @@ int main(int argc, char** argv) {
 
 
   IIHEAnalysis* a = new IIHEAnalysis(tree);
-  a->Loop(phase, type, out_name, mc_nickname);
+  a->Loop(phase, type, inname, out_name, mc_nickname);
   return 0;
 }
 
-void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, string mc_nickname) {
+void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, string out_name, string mc_nickname) {
    if (fChain == 0) return;
+
+
+   fstream event_file; //object of fstream class
+    
+   string out_event = out_name;
+   int point_position = -1;
+   if (out_event.find('.') != string::npos) {
+     point_position = out_event.find('.');
+   }
+   else {
+     cout << "output name error!!!" << endl;
+   }
+   out_event.erase(point_position);
+   out_event += ".txt";
+   cout << out_event << endl;
+
+   //opening file in out(write) mode
+   event_file.open(out_event,ios::out);
+   event_file << "root file: " <<  in_name << endl;
+   event_file << "run, LS, event" << endl;
 
 
    bool DY, data;
@@ -58,12 +79,13 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
    bool TT=false;
    if (type_of_data == "TT" || type_of_data == "TTinc") TT=true;
 
-   bool isWJetsphase, isQCDphase, isfinalphase, isAntiMuphase, isFakesphase;
+   bool isWJetsphase, isQCDphase, isfinalphase, isAntiMuphase, isFakesphase, isWJetsFakephase;
    cout << phase << endl;
    cout << DY << endl;
    if (phase == "QCD") {
      isQCDphase = true;
      isWJetsphase = false;
+     isWJetsFakephase = false;
      isfinalphase = false;
      isAntiMuphase = false;
      isFakesphase = false;
@@ -71,6 +93,15 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
    else if (phase == "WJets") {
      isQCDphase = false;
      isWJetsphase = true;
+     isWJetsFakephase = false;
+     isfinalphase = false;
+     isAntiMuphase = false;
+     isFakesphase = false;
+   }
+   else if (phase == "WJetsFake") {
+     isQCDphase = false;
+     isWJetsphase = false;
+     isWJetsFakephase = true;
      isfinalphase = false;
      isAntiMuphase = false;
      isFakesphase = false;
@@ -78,6 +109,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
    else if (phase == "final") {
      isQCDphase = false;
      isWJetsphase = false;
+     isWJetsFakephase = false;
      isfinalphase = true;
      isAntiMuphase = false;
      isFakesphase = false;
@@ -85,6 +117,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
    else if (phase == "AntiMu") {
      isQCDphase = false;
      isWJetsphase = false;
+     isWJetsFakephase = false;
      isfinalphase = false;
      isAntiMuphase = true;
      isFakesphase = false;
@@ -92,6 +125,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
    else if (phase == "Fakes") {
      isQCDphase = false;
      isWJetsphase = false;
+     isWJetsFakephase = false;
      isfinalphase = false;
      isAntiMuphase = false;
      isFakesphase = true;
@@ -132,7 +166,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
    vector<TString> bkg_or_sig;
    bkg_or_sig.push_back("Sig");
    bkg_or_sig.push_back("Bkg");
-   bkg_or_sig.push_back("Jet");
+   //bkg_or_sig.push_back("Jet");
    int taun = bkg_or_sig.size();
 
 
@@ -144,115 +178,139 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
      }
    }
 
+   vector<TString> htau_names;                     vector<int> nBins_tau;     vector<float> x_min_tau,   x_max_tau;
+   htau_names.push_back("ev_Mt");                  nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("ev_Mvis");                nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("ev_Mtot");                nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("tau_pt");                 nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("tau_eta");                nBins_tau.push_back(50);   x_min_tau.push_back(-2.5); x_max_tau.push_back(2.5);
+   htau_names.push_back("tau_phi");                nBins_tau.push_back(64);   x_min_tau.push_back(-3.2); x_max_tau.push_back(3.2);
+   htau_names.push_back("tau_DM");                 nBins_tau.push_back(11);   x_min_tau.push_back(0);    x_max_tau.push_back(11);
+   htau_names.push_back("mu_pt");                  nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("mu_eta");                 nBins_tau.push_back(50);   x_min_tau.push_back(-2.5); x_max_tau.push_back(2.5);
+   htau_names.push_back("mu_phi");                 nBins_tau.push_back(64);   x_min_tau.push_back(-3.2); x_max_tau.push_back(3.2);
+   htau_names.push_back("ev_METmumass");           nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("ev_MET");                 nBins_tau.push_back(100);  x_min_tau.push_back(0);    x_max_tau.push_back(100);
+   htau_names.push_back("ev_METphi");              nBins_tau.push_back(64);   x_min_tau.push_back(-3.2); x_max_tau.push_back(3.2);
+   htau_names.push_back("ev_Nvertex");             nBins_tau.push_back(120);  x_min_tau.push_back(0);    x_max_tau.push_back(120);
+   htau_names.push_back("Z_pt");                   nBins_tau.push_back(300);  x_min_tau.push_back(0);    x_max_tau.push_back(300);
+						   
+   htau_names.push_back("ev_Mvis_TESdown");        nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("ev_Mvis_TESup");          nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("tau_pt_TESdown");         nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("tau_pt_TESup");           nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+						   
+   htau_names.push_back("ev_Mvis_MESdown");        nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("ev_Mvis_MESup");          nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("tau_pt_MESdown");         nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("tau_pt_MESup");           nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
 
-   vector<TString> histo_taudependent_names;                      vector<int> nBins_tau;     vector<float> x_min_tau,   x_max_tau;
-   histo_taudependent_names.push_back("ev_Mt");                   nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("ev_Mvis");                 nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("ev_Mtot");                 nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("tau_pt");                  nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("tau_eta");                 nBins_tau.push_back(50);   x_min_tau.push_back(-2.5); x_max_tau.push_back(2.5);
-   histo_taudependent_names.push_back("tau_phi");                 nBins_tau.push_back(64);   x_min_tau.push_back(-3.2); x_max_tau.push_back(3.2);
-   histo_taudependent_names.push_back("mu_pt");                   nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("mu_eta");                  nBins_tau.push_back(50);   x_min_tau.push_back(-2.5); x_max_tau.push_back(2.5);
-   histo_taudependent_names.push_back("mu_phi");                  nBins_tau.push_back(64);   x_min_tau.push_back(-3.2); x_max_tau.push_back(3.2);
-   histo_taudependent_names.push_back("ev_METmumass");            nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("ev_MET");                  nBins_tau.push_back(100);  x_min_tau.push_back(0);    x_max_tau.push_back(100);
-   histo_taudependent_names.push_back("ev_METphi");               nBins_tau.push_back(64);   x_min_tau.push_back(-3.2); x_max_tau.push_back(3.2);
-   histo_taudependent_names.push_back("ev_Nvertex");              nBins_tau.push_back(120);  x_min_tau.push_back(0);    x_max_tau.push_back(120);
+   htau_names.push_back("ev_Mvis_MinBiasdown");    nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("ev_Mvis_MinBiasup");      nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("ev_Nvertex_MinBiasdown"); nBins_tau.push_back(120);  x_min_tau.push_back(0);    x_max_tau.push_back(120);
+   htau_names.push_back("ev_Nvertex_MinBiasup");   nBins_tau.push_back(120);  x_min_tau.push_back(0);    x_max_tau.push_back(120);
 
-   histo_taudependent_names.push_back("ev_Mvis_TESdown");         nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("ev_Mvis_TESup");           nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("tau_pt_TESdown");          nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("tau_pt_TESup");            nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("ev_Mvis_FRS_DM0_down");   nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("ev_Mvis_FRS_DM0_up");     nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("tau_pt_FRS_DM0_down");    nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("tau_pt_FRS_DM0_up");      nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("ev_Mvis_FRS_DM1_down");   nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("ev_Mvis_FRS_DM1_up");     nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("tau_pt_FRS_DM1_down");    nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("tau_pt_FRS_DM1_up");      nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("ev_Mvis_FRS_DM10_down");  nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("ev_Mvis_FRS_DM10_up");    nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("tau_pt_FRS_DM10_down");   nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("tau_pt_FRS_DM10_up");     nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
 
-   histo_taudependent_names.push_back("Z_pt");                    nBins_tau.push_back(300);  x_min_tau.push_back(0);    x_max_tau.push_back(300);
-   histo_taudependent_names.push_back("tau_DM");                  nBins_tau.push_back(11);   x_min_tau.push_back(0);    x_max_tau.push_back(11);
+   htau_names.push_back("ev_Mvis_antiisomu_down"); nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("ev_Mvis_antiisomu_up");   nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("tau_pt_antiisomu_down");  nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("tau_pt_antiisomu_up");    nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
 
-   histo_taudependent_names.push_back("ev_Mvis_MESdown");         nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("ev_Mvis_MESup");           nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("tau_pt_MESdown");          nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("tau_pt_MESup");            nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("ev_Mvis_antiisotau_down");nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("ev_Mvis_antiisotau_up");  nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("tau_pt_antiisotau_down"); nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("tau_pt_antiisotau_up");   nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
 
-   histo_taudependent_names.push_back("ev_Mvis_MinBiasdown");     nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("ev_Mvis_MinBiasup");       nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("ev_Nvertex_MinBiasdown");  nBins_tau.push_back(120);  x_min_tau.push_back(0);    x_max_tau.push_back(120);
-   histo_taudependent_names.push_back("ev_Nvertex_Minbiasup");    nBins_tau.push_back(120);  x_min_tau.push_back(0);    x_max_tau.push_back(120);
+   htau_names.push_back("tau_pt_SS");              nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("ev_Mvis_SS");             nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("mu_pt_SS");               nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
 
-   histo_taudependent_names.push_back("ev_Mvis_FRS_DM0_down");    nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("ev_Mvis_FRS_DM0_up");      nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("tau_pt_FRS_DM0_down");     nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("tau_pt_FRS_DM0_up");       nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("ev_Mvis_FRS_DM1_down");    nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("ev_Mvis_FRS_DM1_up");      nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("tau_pt_FRS_DM1_down");     nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("tau_pt_FRS_DM1_up");       nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("ev_Mvis_FRS_DM10_down");   nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("ev_Mvis_FRS_DM10_up");     nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("tau_pt_FRS_DM10_down");    nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("tau_pt_FRS_DM10_up");      nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   //Make the map relating the histo name to its position on the histo name list
+   map<TString, int> htau_map;
+   for (unsigned int iName=0; iName<htau_names.size(); ++iName) htau_map[htau_names[iName]] = iName;
 
-   histo_taudependent_names.push_back("ev_Mvis_antiisomu_down");  nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("ev_Mvis_antiisomu_up");    nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("tau_pt_antiisomu_down");   nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("tau_pt_antiisomu_up");     nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
 
-   histo_taudependent_names.push_back("ev_Mvis_antiisotau_down"); nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("ev_Mvis_antiisotau_up");   nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("tau_pt_antiisotau_down");  nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   histo_taudependent_names.push_back("tau_pt_antiisotau_up");    nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-
-   if (isAntiMuphase) {
-     histo_taudependent_names.push_back("tau_pt_SS");             nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-     histo_taudependent_names.push_back("ev_Mvis_SS");            nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-     histo_taudependent_names.push_back("mu_pt_SS");              nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   }
-
-   vector<TString> HPS_WP;
-   HPS_WP.push_back("cutbased_loose");
-   HPS_WP.push_back("cutbased_medium");
-   HPS_WP.push_back("cutbased_tight");
-
-   HPS_WP.push_back("MVA_2016vloose");
-   HPS_WP.push_back("MVA_2016loose");
-   HPS_WP.push_back("MVA_2016medium");
-   HPS_WP.push_back("MVA_2016tight");
-   HPS_WP.push_back("MVA_2016vtight");
-   HPS_WP.push_back("MVA_2016vvtight");
-
-   HPS_WP.push_back("MVA_2017v1vvloose");
-   HPS_WP.push_back("MVA_2017v1vloose");
-   HPS_WP.push_back("MVA_2017v1loose");
-   HPS_WP.push_back("MVA_2017v1medium");
-   HPS_WP.push_back("MVA_2017v1tight");
-   HPS_WP.push_back("MVA_2017v1vtight");
-   HPS_WP.push_back("MVA_2017v1vvtight");
-
-   HPS_WP.push_back("MVA_2017v2vvloose");
-   HPS_WP.push_back("MVA_2017v2vloose");
-   HPS_WP.push_back("MVA_2017v2loose");
-   HPS_WP.push_back("MVA_2017v2medium");
-   HPS_WP.push_back("MVA_2017v2tight");
-   HPS_WP.push_back("MVA_2017v2vtight");
-   HPS_WP.push_back("MVA_2017v2vvtight");
+   vector<TString> HPS_WP;                  vector<int> specialValues;		     
+   HPS_WP.push_back("cutbased_loose");	    specialValues.push_back(HPS_WP.size()-1);
+   HPS_WP.push_back("cutbased_medium");	                                                  
+   HPS_WP.push_back("cutbased_tight");	                                                  
+		                      	                                                  
+   HPS_WP.push_back("MVA_2017v1vvloose");   specialValues.push_back(HPS_WP.size()-1);
+   HPS_WP.push_back("MVA_2017v1vloose");                                                  
+   HPS_WP.push_back("MVA_2017v1loose");	                                                  
+   HPS_WP.push_back("MVA_2017v1medium");                                                  
+   HPS_WP.push_back("MVA_2017v1tight");	                                                  
+   HPS_WP.push_back("MVA_2017v1vtight");                                                  
+   HPS_WP.push_back("MVA_2017v1vvtight");                                                 
+		                      	                                                  
+   HPS_WP.push_back("MVA_2017v2vvloose");   specialValues.push_back(HPS_WP.size()-1);
+   HPS_WP.push_back("MVA_2017v2vloose");                                                  
+   HPS_WP.push_back("MVA_2017v2loose");	                                                  
+   HPS_WP.push_back("MVA_2017v2medium");                                                  
+   HPS_WP.push_back("MVA_2017v2tight");	                                                  
+   HPS_WP.push_back("MVA_2017v2vtight");                                                  
+   HPS_WP.push_back("MVA_2017v2vvtight");                                                 
+		                      	                                                  
+   HPS_WP.push_back("MVA_DBdR03vloose");    specialValues.push_back(HPS_WP.size()-1);
+   HPS_WP.push_back("MVA_DBdR03loose");	                                                  
+   HPS_WP.push_back("MVA_DBdR03medium");                                                  
+   HPS_WP.push_back("MVA_DBdR03tight");	                                                  
+   HPS_WP.push_back("MVA_DBdR03vtight");                                                  
+   HPS_WP.push_back("MVA_DBdR03vvtight");                                                 
+		                      	                                                  
+   HPS_WP.push_back("MVA_PWdR03vloose");    specialValues.push_back(HPS_WP.size()-1);
+   HPS_WP.push_back("MVA_PWdR03loose");
+   HPS_WP.push_back("MVA_PWdR03medium");
+   HPS_WP.push_back("MVA_PWdR03tight");
+   HPS_WP.push_back("MVA_PWdR03vtight");
+   HPS_WP.push_back("MVA_PWdR03vvtight");
    int nTauIDs = HPS_WP.size();
 
-
    vector<TString> passfail;
-   passfail.push_back("pass");
-   passfail.push_back("fail");
+   passfail.push_back("pass"); int l_pass=passfail.size()-1;
+   passfail.push_back("fail"); int l_fail=passfail.size()-1;
+
+   vector<TString> dms;
+   dms.push_back("allDMs");
+   //dms.push_back("DM0");    int m_DM0=dms.size()-1;
+   //dms.push_back("DM1");    int m_DM1=dms.size()-1;
+   //dms.push_back("DM10");   int m_DM10=dms.size()-1;
+
+   vector<TString> eta;
+   eta.push_back("fulletarange");
+   //eta.push_back("barrel"); int n_barrel=eta.size()-1;
+   //eta.push_back("endcap"); int n_endcap=eta.size()-1;
 
 
-   vector<TH1F*> htau[passfail.size()][taun][nTauIDs];
-   for (unsigned int i = 0; i<histo_taudependent_names.size(); ++i) {
+   vector<TH1F*> htau[eta.size()][dms.size()][passfail.size()][taun][nTauIDs];
+   for (unsigned int i = 0; i<htau_names.size(); ++i) {
      for (unsigned int j = 0; j<nTauIDs ; ++j) {
        for (unsigned int k = 0; k<taun; ++k) {
 	 for (unsigned int l = 0; l<passfail.size(); ++l) {
-	   htau[l][k][j].push_back( new TH1F(bkg_or_sig[k]+"_"+histo_taudependent_names[i]+"_"+HPS_WP[j]+"_"+passfail[l], bkg_or_sig[k]+"_"+histo_taudependent_names[i]+"_"+HPS_WP[j]+"_"+passfail[l], nBins_tau[i], x_min_tau[i], x_max_tau[i]) ); 
-	   htau[l][k][j][i]->Sumw2();
+	   for (unsigned int m = 0; m<dms.size(); ++m) {
+	     for (unsigned int n = 0; n<eta.size(); ++n) {
+	       TString nname_h = bkg_or_sig[k]+"_"+htau_names[i]+"_"+dms[m]+"_"+eta[n]+"_"+HPS_WP[j]+"_"+passfail[l];
+	       htau[n][m][l][k][j].push_back( new TH1F(nname_h, nname_h, nBins_tau[i], x_min_tau[i], x_max_tau[i]) ); 
+	       htau[n][m][l][k][j][i]->Sumw2();
+	     }
+	   }
 	 }
        }
      }
    }
+
 
    TH1F* h_reweight = new TH1F("h_reweight", "h_reweight", 100, 0, 2.5);
    TH1F* h_weight_afterallsel = new TH1F("h_weight_afterallsel", "h_weight_afterallsel", 100, -2, 2);
@@ -269,9 +327,9 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
       if (jEntry % 1000 == 0) fprintf(stdout, "\r  Processed events: %8d of %8d ", jEntry, nEntries);
       //if (jEntry % 10 == 0) cout << endl << "Processed events:" << jEntry << " of " <<  nEntries;
       
-
       nb = fChain->GetEntry(jEntry);
       nbytes += nb;
+
 
       float pu_weight = 1, pu_weight_high = 1, pu_weight_low = 1;
       if (!data) {
@@ -454,12 +512,12 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
       if (dimuon) continue;
 
       //electron veto
-      //bool electron = false;
-      //for (unsigned int iEle = 0; iEle < gsf_pt->size(); ++iEle) {
-      //if (gsf_VIDMVAMedium->at(iEle) && gsf_pt->at(iEle) > 10 && fabs(gsf_eta->at(iEle)) < 2.5 && fabs(gsf_dxy_firstPVtx->at(iEle)) < 0.045 && fabs(gsf_dz_firstPVtx->at(iEle)) < 0.2 && /*gsf_passConversionVeto->at(iEle) &&*/ gsf_nLostInnerHits->at(iEle) <= 1 && gsf_relIso->at(iEle) < 0.3) electron = true;
-      //if (electron) break;
-      //}
-      //if (electron) continue;//FIXME
+      bool electron = false;
+      for (unsigned int iEle = 0; iEle < gsf_pt->size(); ++iEle) {
+      if (gsf_VIDMVAMedium->at(iEle) && gsf_pt->at(iEle) > 10 && fabs(gsf_eta->at(iEle)) < 2.5 && fabs(gsf_dxy_firstPVtx->at(iEle)) < 0.045 && fabs(gsf_dz_firstPVtx->at(iEle)) < 0.2 && gsf_passConversionVeto->at(iEle) && gsf_nLostInnerHits->at(iEle) <= 1 && gsf_relIso->at(iEle) < 0.3) electron = true;
+      if (electron) break;
+      }
+      if (electron) continue;//FIXME
 
       //bjet veto (medium WP for the bjet)                                                                                                                           
       /*bool bjet = false;
@@ -562,6 +620,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	  if (reliso > 0.15) continue;
 	}
 
+
 	TLorentzVector mu_p4;
 	mu_p4.SetPtEtaPhiM(mu_gt_pt->at(iMu), mu_gt_eta->at(iMu), mu_gt_phi->at(iMu), mu_mass);
 	//start loop over reconstructed taus
@@ -575,18 +634,19 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	  if (tau_decayModeFinding->at(iTau) < 0.5) continue;
 	  if (tau_againstMuonTight3->at(iTau) < 0.5) continue;
 	  if (tau_againstElectronVLooseMVA6->at(iTau) < 0.5) continue;
-	  if (!isAntiMuphase) {
-	    if (fabs(tau_lead_dz->at(iTau)) > 0.2) continue;
-	  }
+	  if (fabs(tau_lead_dz->at(iTau)) > 0.2) continue;
 	  if (fabs(tau_charge->at(iTau)) != 1) continue;
 
+	
 	  //misc. cuts
 	  bool SS = false;
-	  if (isfinalphase || isWJetsphase || isFakesphase) {
+	  if (isfinalphase || isWJetsphase || isWJetsFakephase || isFakesphase) {
 	    if (tau_charge->at(iTau) * mu_gt_charge->at(iMu) > 0) continue; //SS veto (opposite for QCD estimation)
+	    SS = false;
 	  }
 	  else if (isQCDphase) {
 	    if (tau_charge->at(iTau) * mu_gt_charge->at(iMu) < 0) continue; //OS veto
+	    SS = true;
 	  }
 	  else {
 	    if (isAntiMuphase) {
@@ -600,34 +660,43 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	  }
 
 
+	  //Make the map relating the HPS WP name to its value (true/false)
+	  map<TString, int> tauIDvalues_map;
+	                                                                                                       
+	  tauIDvalues_map["cutbased_loose"] = tau_byLooseCombinedIsolationDeltaBetaCorr3Hits->at(iTau);        
+	  tauIDvalues_map["cutbased_medium"] = tau_byMediumCombinedIsolationDeltaBetaCorr3Hits->at(iTau);
+	  tauIDvalues_map["cutbased_tight"] = tau_byTightCombinedIsolationDeltaBetaCorr3Hits->at(iTau);
+			                    
+	  tauIDvalues_map["MVA_2017v1vvloose"] = tau_byVVLooseIsolationMVArun2017v1DBoldDMwLT2017->at(iTau);   
+	  tauIDvalues_map["MVA_2017v1vloose"] = tau_byVLooseIsolationMVArun2017v1DBoldDMwLT2017->at(iTau);
+	  tauIDvalues_map["MVA_2017v1loose"] = tau_byLooseIsolationMVArun2017v1DBoldDMwLT2017->at(iTau);
+	  tauIDvalues_map["MVA_2017v1medium"] = tau_byMediumIsolationMVArun2017v1DBoldDMwLT2017->at(iTau);
+	  tauIDvalues_map["MVA_2017v1tight"] = tau_byTightIsolationMVArun2017v1DBoldDMwLT2017->at(iTau);
+	  tauIDvalues_map["MVA_2017v1vtight"] = tau_byVTightIsolationMVArun2017v1DBoldDMwLT2017->at(iTau);
+	  tauIDvalues_map["MVA_2017v1vvtight"] = tau_byVVTightIsolationMVArun2017v1DBoldDMwLT2017->at(iTau);
+			                    
+	  tauIDvalues_map["MVA_2017v2vvloose"] = tau_byVVLooseIsolationMVArun2017v2DBoldDMwLT2017->at(iTau);   
+	  tauIDvalues_map["MVA_2017v2vloose"] = tau_byVLooseIsolationMVArun2017v2DBoldDMwLT2017->at(iTau);
+	  tauIDvalues_map["MVA_2017v2loose"] = tau_byLooseIsolationMVArun2017v2DBoldDMwLT2017->at(iTau);
+	  tauIDvalues_map["MVA_2017v2medium"] = tau_byMediumIsolationMVArun2017v2DBoldDMwLT2017->at(iTau);
+	  tauIDvalues_map["MVA_2017v2tight"] = tau_byTightIsolationMVArun2017v2DBoldDMwLT2017->at(iTau);
+	  tauIDvalues_map["MVA_2017v2vtight"] = tau_byVTightIsolationMVArun2017v2DBoldDMwLT2017->at(iTau);
+	  tauIDvalues_map["MVA_2017v2vvtight"] = tau_byVVTightIsolationMVArun2017v2DBoldDMwLT2017->at(iTau);
+			                    
+	  tauIDvalues_map["MVA_DBdR03vloose"] = tau_byVLooseIsolationMVArun2v1DBdR03oldDMwLT->at(iTau);        
+	  tauIDvalues_map["MVA_DBdR03loose"] = tau_byLooseIsolationMVArun2v1DBdR03oldDMwLT->at(iTau);
+	  tauIDvalues_map["MVA_DBdR03medium"] = tau_byMediumIsolationMVArun2v1DBdR03oldDMwLT->at(iTau);
+	  tauIDvalues_map["MVA_DBdR03tight"] = tau_byTightIsolationMVArun2v1DBdR03oldDMwLT->at(iTau);
+	  tauIDvalues_map["MVA_DBdR03vtight"] = tau_byVTightIsolationMVArun2v1DBdR03oldDMwLT->at(iTau);
+	  tauIDvalues_map["MVA_DBdR03vvtight"] = tau_byVVTightIsolationMVArun2v1DBdR03oldDMwLT->at(iTau);
+			                    
+	  tauIDvalues_map["MVA_PWdR03vloose"] = tau_byVLooseIsolationMVArun2v1PWdR03oldDMwLT->at(iTau);        
+	  tauIDvalues_map["MVA_PWdR03loose"] = tau_byLooseIsolationMVArun2v1PWdR03oldDMwLT->at(iTau);
+	  tauIDvalues_map["MVA_PWdR03medium"] = tau_byMediumIsolationMVArun2v1PWdR03oldDMwLT->at(iTau);
+	  tauIDvalues_map["MVA_PWdR03tight"] = tau_byTightIsolationMVArun2v1PWdR03oldDMwLT->at(iTau);
+	  tauIDvalues_map["MVA_PWdR03vtight"] = tau_byVTightIsolationMVArun2v1PWdR03oldDMwLT->at(iTau);
+	  tauIDvalues_map["MVA_PWdR03vvtight"] = tau_byVVTightIsolationMVArun2v1PWdR03oldDMwLT->at(iTau);
 
-	  vector<float> tauIDvalues;                                                              vector<int> specialValues;
-	  tauIDvalues.push_back(tau_byLooseCombinedIsolationDeltaBetaCorr3Hits->at(iTau));        specialValues.push_back(tauIDvalues.size()-1);
-	  tauIDvalues.push_back(tau_byMediumCombinedIsolationDeltaBetaCorr3Hits->at(iTau));
-	  tauIDvalues.push_back(tau_byTightCombinedIsolationDeltaBetaCorr3Hits->at(iTau));
-
-	  tauIDvalues.push_back(tau_byVLooseIsolationMVArun2v1DBoldDMwLT->at(iTau));              specialValues.push_back(tauIDvalues.size()-1);
-	  tauIDvalues.push_back(tau_byLooseIsolationMVArun2v1DBoldDMwLT->at(iTau));
-	  tauIDvalues.push_back(tau_byMediumIsolationMVArun2v1DBoldDMwLT->at(iTau));
-	  tauIDvalues.push_back(tau_byTightIsolationMVArun2v1DBoldDMwLT->at(iTau));
-	  tauIDvalues.push_back(tau_byVTightIsolationMVArun2v1DBoldDMwLT->at(iTau));
-	  tauIDvalues.push_back(tau_byVVTightIsolationMVArun2v1DBoldDMwLT->at(iTau));
-
-	  tauIDvalues.push_back(tau_byVVLooseIsolationMVArun2017v1DBoldDMwLT2017->at(iTau));      specialValues.push_back(tauIDvalues.size()-1);
-	  tauIDvalues.push_back(tau_byVLooseIsolationMVArun2017v1DBoldDMwLT2017->at(iTau));
-	  tauIDvalues.push_back(tau_byLooseIsolationMVArun2017v1DBoldDMwLT2017->at(iTau));
-	  tauIDvalues.push_back(tau_byMediumIsolationMVArun2017v1DBoldDMwLT2017->at(iTau));
-	  tauIDvalues.push_back(tau_byTightIsolationMVArun2017v1DBoldDMwLT2017->at(iTau));
-	  tauIDvalues.push_back(tau_byVTightIsolationMVArun2017v1DBoldDMwLT2017->at(iTau));
-	  tauIDvalues.push_back(tau_byVVTightIsolationMVArun2017v1DBoldDMwLT2017->at(iTau));
-
-	  tauIDvalues.push_back(tau_byVVLooseIsolationMVArun2017v2DBoldDMwLT2017->at(iTau));      specialValues.push_back(tauIDvalues.size()-1);
-	  tauIDvalues.push_back(tau_byVLooseIsolationMVArun2017v2DBoldDMwLT2017->at(iTau));
-	  tauIDvalues.push_back(tau_byLooseIsolationMVArun2017v2DBoldDMwLT2017->at(iTau));
-	  tauIDvalues.push_back(tau_byMediumIsolationMVArun2017v2DBoldDMwLT2017->at(iTau));
-	  tauIDvalues.push_back(tau_byTightIsolationMVArun2017v2DBoldDMwLT2017->at(iTau));
-	  tauIDvalues.push_back(tau_byVTightIsolationMVArun2017v2DBoldDMwLT2017->at(iTau));
-	  tauIDvalues.push_back(tau_byVVTightIsolationMVArun2017v2DBoldDMwLT2017->at(iTau));
 
 
 	  //check if if it's DY bkg or signal
@@ -699,6 +768,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	  else {
 	    if (jetmatch) {
 	      iBkgOrSig = 2;
+	      continue;
 	    }
 	    else {
 	      iBkgOrSig = 1;
@@ -706,55 +776,96 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	  }
 	  
 	  for (int iTES = 0; iTES < 3; ++iTES) {
-	    //0 : TES down
-	    //1 : TES up
-	    //2 : no TES
+	    int iTES_down = 0; //0 : TES down
+	    int iTES_up = 1; //1 : TES up
+	    int iTES_nope = 2; //2 : no TES
 	    //only vary the tau energy scale if it's a real tau
-	    if (!realtau && iTES != 2) continue;
+	    if (!realtau && iTES != iTES_nope) continue;
+	    
+	    map <TString, float> map_tau_TES;  map <TString, float> map_tau_TES_error;
+	    map_tau_TES["DM0"] = 1.007;	       map_tau_TES_error["DM0"] = 0.008;	     
+	    map_tau_TES["DM1"] = 0.998;	       map_tau_TES_error["DM1"] = 0.008;	     
+	    map_tau_TES["DM10"] = 1.001;       map_tau_TES_error["DM10"] = 0.009;     
 
 	    TLorentzVector tau_TES_p4, tau_MES_p4, vis_p4, total_p4;
 	    //met_p4.SetPxPyPzE(MET_Px, MET_eefix_Py, 0, MET_eefix_Pt);
 
 
 	    for (int iMES = 0; iMES < 3; ++iMES) {
-	      if (iTES !=2 && iMES !=2) continue;
-	      if (!fakemu_match && iMES != 2) continue;
-	      //0 : MES down
-	      //1 : MES up
-	      //2 : no MES
+	      int iMES_down = 0; //0 : MES down
+	      int iMES_up = 1; //1 : MES up
+	      int iMES_nope = 2; //2 : no MES
+	      if (iTES !=iTES_nope && iMES !=iMES_nope) continue;
+	      if (!fakemu_match && iMES != iMES_nope) continue;
 
 	      
+
+	      //determine decay mode and eta
+	      TString str_dm = "", str_eta = "";
+	      int m_dm = -1, n_eta = -1;
+	      if (tau_decayMode->at(iTau) == 0) {
+		//m_dm = m_DM0;
+		str_dm = "DM0";
+	      }
+	      else if (tau_decayMode->at(iTau) == 1) {
+		//m_dm = m_DM1;
+		str_dm = "DM1";
+	      }
+	      else if (tau_decayMode->at(iTau) == 10) {
+		//m_dm = m_DM10;
+		str_dm = "DM10";
+	      }
+	      else {
+		continue;
+	      }
+	      if (fabs(tau_eta->at(iTau)) < 1.5) {
+		//n_eta = n_barrel;
+		str_eta = "barrel";
+	      }
+	      else {
+		//n_eta = n_endcap;
+		str_eta = "endcap";
+	      }
+	      n_eta = 0;
+	      m_dm = 0;//FIXME
+
+
+
 	      tau_p4.SetPtEtaPhiE(tau_pt->at(iTau), tau_eta->at(iTau), tau_phi->at(iTau), tau_energy->at(iTau));
-	      if (iTES == 0) {
-	        if (realtau) {
-		  //TES down by 3%
-		  tau_TES_p4.SetPtEtaPhiE(tau_pt->at(iTau)*0.97, tau_eta->at(iTau), tau_phi->at(iTau), tau_energy->at(iTau)*0.97);
+	      if (realtau) {
+		//correct tau energy scale central value
+		tau_TES_p4.SetPtEtaPhiE(tau_pt->at(iTau)*map_tau_TES[str_dm], tau_eta->at(iTau), tau_phi->at(iTau), tau_energy->at(iTau)*map_tau_TES[str_dm]);
+		met_p4 = met_p4 + tau_p4 - tau_TES_p4;
+		tau_p4 = tau_TES_p4;
+
+		//now vary tau energy scale down and up according to the uncertainty
+		if (iTES == iTES_down) {
+		  //TES down
+		  tau_TES_p4.SetPtEtaPhiE(tau_pt->at(iTau)*(1-map_tau_TES_error[str_dm]), tau_eta->at(iTau), tau_phi->at(iTau), tau_energy->at(iTau)*(1-map_tau_TES_error[str_dm]));
 		  met_p4 = met_p4 + tau_p4 - tau_TES_p4;
 		  tau_p4 = tau_TES_p4;
 	        }
-	      }
-	      else if (iTES == 1) {
-	        if (realtau) {
-		  //TES up by 3%
-		  tau_TES_p4.SetPtEtaPhiE(tau_pt->at(iTau)*1.03, tau_eta->at(iTau), tau_phi->at(iTau), tau_energy->at(iTau)*1.03);
+		else if (iTES == iTES_up) {
+		  //TES up
+		  tau_TES_p4.SetPtEtaPhiE(tau_pt->at(iTau)*(1+map_tau_TES_error[str_dm]), tau_eta->at(iTau), tau_phi->at(iTau), tau_energy->at(iTau)*(1+map_tau_TES_error[str_dm]));
 		  met_p4 = met_p4 + tau_p4 - tau_TES_p4;
 		  tau_p4 = tau_TES_p4;
 	        }
 	      }
 
 
-	      if (iMES == 0) {
+	      if (iMES == iMES_down) {
 	        if (fakemu_match) {
-		  //MES down by 10%
-		  tau_MES_p4.SetPtEtaPhiE(tau_pt->at(iTau)*0.9, tau_eta->at(iTau), tau_phi->at(iTau), tau_energy->at(iTau)*0.9);
+		  //MES down by 3%
+		  tau_MES_p4.SetPtEtaPhiE(tau_pt->at(iTau)*0.97, tau_eta->at(iTau), tau_phi->at(iTau), tau_energy->at(iTau)*0.97);
 		  met_p4 = met_p4 + tau_p4 - tau_MES_p4;
 		  tau_p4 = tau_MES_p4;
 	        }
 	      }
-	      else if (iMES == 1) {
+	      else if (iMES == iMES_up) {
 	        if (fakemu_match) {
-		  //MES up by 10%
-		  tau_MES_p4.SetPtEtaPhiE(tau_pt->at(iTau)*1.1, tau_eta->at(iTau), tau_phi->at(iTau), tau_energy->at(iTau)*1.1);
+		  //MES up by 3%
+		  tau_MES_p4.SetPtEtaPhiE(tau_pt->at(iTau)*1.03, tau_eta->at(iTau), tau_phi->at(iTau), tau_energy->at(iTau)*1.03);
 		  met_p4 = met_p4 + tau_p4 - tau_MES_p4;
 		  tau_p4 = tau_MES_p4;
 	        }
@@ -794,7 +905,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	      if (isfinalphase || isQCDphase || isAntiMuphase || isFakesphase) {
 	        if (Mt > 50) Mt_accept = false;  //Mt cut, against Wjets (for Wjets CR, Mt>80)
 	      }
-	      else if (isWJetsphase) {
+	      else if (isWJetsphase || isWJetsFakephase) {
 	        if (Mt < 80) Mt_accept = false;  //Mt cut, against Wjets (for Wjets CR, Mt>80)
 	      }	      
 	      else {
@@ -803,7 +914,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	      	break;
 	        }
 	      }	      
-	      if (iTES==2 && Mt_accept) h_debug->Fill(2);
+	      if (iTES==iTES_nope && Mt_accept) h_debug->Fill(2);
 	      
 	      float dR = tau_p4.DeltaR(mu_p4);
 	      
@@ -816,33 +927,36 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	      float final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight;
 	      
 	      
-	      if (Mt_accept && iTES == 2) hnotauID[iBkgOrSig][1]->Fill(dR, final_weight);
-	      if (Mt_accept && iTES == 2) hnotauID[iBkgOrSig][3]->Fill(p_zeta_mis-0.85*pzeta_vis, final_weight);
+
+	      if (Mt_accept && iTES == iTES_nope) hnotauID[iBkgOrSig][1]->Fill(dR, final_weight);
+	      if (Mt_accept && iTES == iTES_nope) hnotauID[iBkgOrSig][3]->Fill(p_zeta_mis-0.85*pzeta_vis, final_weight);
 	      //if (Mt_accept && iTES == 2) hnotauID[0][6]->Fill(x_zeta*x_zeta + y_zeta*y_zeta, final_weight);
 	      
 	      if (tau_p4.DeltaR(mu_p4) < 0.5) continue;
-	      if (iTES==2 && Mt_accept) h_debug->Fill(3);
+	      if (iTES==iTES_nope && Mt_accept) h_debug->Fill(3);
 	      if (!cut_zeta) continue;
 	      
 	      
 	      
-	      if(Mt_accept && iTES == 2 && iMES == 2 && tau_byTightIsolationMVArun2017v2DBoldDMwLT2017->at(iTau) > 0.5) {
+	      if(Mt_accept && iTES == iTES_nope && iMES == iMES_nope) {
 	        found_mutau_pair = true;
-	      }//FIXME
+	      }
 
 	      
 	      //mu histos
-	      if (iTES == 2) hnotauID[iBkgOrSig][2]->Fill(Mt, final_weight);
+	      if (iTES == iTES_nope) hnotauID[iBkgOrSig][2]->Fill(Mt, final_weight);
 	      
-	      //tau MVA histo
-	      if (Mt_accept && iTES == 2) hnotauID[iBkgOrSig][0]->Fill(tau_byIsolationMVArun2v1DBoldDMwLTraw->at(iTau), final_weight);
+	      if (Mt_accept && iTES == iTES_nope) {
+		//tau MVA histo
+		hnotauID[iBkgOrSig][0]->Fill(tau_byIsolationMVArun2v1DBoldDMwLTraw->at(iTau), final_weight);
+	      }
 	      
 	      int latestloosestID = -1, s_counter = 0;
 	      float fakerate_weight = 1, fakerate_weight_low = 1, fakerate_weight_high = 1;
-	      for (unsigned int iValue=0; iValue<tauIDvalues.size(); ++iValue) {
+	      for (unsigned int iValue=0; iValue<HPS_WP.size(); ++iValue) {
 	        int iPass = -1;
-	      
-	        if (tauIDvalues[iValue] > 0.5) {
+
+	        if (tauIDvalues_map[HPS_WP[iValue]] > 0.5) {
 		  iPass = 0;
 	        }
 	        else {
@@ -850,25 +964,9 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	        }
 	      
 	        //fake rate method
-	        if (isFakesphase) {
-	      	  TString dm = "", eta = "";
-	      	  if (tau_decayMode->at(iTau) == 0) {
-	      	    dm = "DM0";
-	      	  }
-	      	  else if (tau_decayMode->at(iTau) == 1) {
-	      	    dm = "DM1";
-	      	  }
-	      	  else if (tau_decayMode->at(iTau) == 10) {
-	      	    dm = "DM10";
-	      	  }
-	      	  if (fabs(tau_eta->at(iTau)) < 1.5) {
-	      	    eta = "barrel";
-	      	  }
-	      	  else {
-	      	    eta = "endcap";
-	      	  }
-	      	  fakerate_weight = FakeRate(tau_p4.Pt(), HPS_WP[iValue], dm, eta);
-	      	  fakerate_weight_high = FakeRateFlat(HPS_WP[iValue], dm);
+	        if (isFakesphase || isWJetsFakephase) {
+	      	  fakerate_weight = FakeRate(tau_p4.Pt(), HPS_WP[iValue], str_dm, str_eta);
+	      	  fakerate_weight_high = FakeRateFlat(HPS_WP[iValue], str_dm);
 		  fakerate_weight_low = 2*fakerate_weight - fakerate_weight_high;
 	      	  
 	      	  bool special = false;
@@ -877,9 +975,9 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 		    latestloosestID = iValue;
 		    ++s_counter;
 		  }
-	      	  
+		  
 	      	  if (!special) {
-	      	    if (tauIDvalues[latestloosestID] < 0.5) continue;
+	      	    if (tauIDvalues_map[HPS_WP[latestloosestID]] < 0.5) continue;
 	      	  }
 		}
 
@@ -887,45 +985,49 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 		h_reweight->Fill(final_weight);
 		if (final_weight != final_weight) continue;
 	      
-		if (iTES == 2) {
-		  if (Mt_accept && (iMES == 0 || !fakemu_match)) htau[iPass][iBkgOrSig][iValue][19]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept && (iMES == 1 || !fakemu_match)) htau[iPass][iBkgOrSig][iValue][20]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept && (iMES == 0 || !fakemu_match)) htau[iPass][iBkgOrSig][iValue][21]->Fill(tau_p4.Pt(), final_weight);
-		  if (Mt_accept && (iMES == 1 || !fakemu_match)) htau[iPass][iBkgOrSig][iValue][22]->Fill(tau_p4.Pt(), final_weight);
+		if (iTES == iTES_nope) {
+		  if (Mt_accept && (iMES == iMES_down || !fakemu_match)) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_MESdown"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept && (iMES == iMES_up || !fakemu_match))   htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_MESup"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept && (iMES == iMES_down || !fakemu_match)) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_MESdown"]]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept && (iMES == iMES_up || !fakemu_match))   htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_MESup"]]->Fill(tau_p4.Pt(), final_weight);
 		}
-		if (iMES !=2) continue;
+		if (iMES != iMES_nope) continue;
 	      
-	        if (Mt_accept && (iTES == 0 || !realtau)) htau[iPass][iBkgOrSig][iValue][13]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept && (iTES == 1 || !realtau)) htau[iPass][iBkgOrSig][iValue][14]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept && (iTES == 0 || !realtau)) htau[iPass][iBkgOrSig][iValue][15]->Fill(tau_p4.Pt(), final_weight);
-	        if (Mt_accept && (iTES == 1 || !realtau)) htau[iPass][iBkgOrSig][iValue][16]->Fill(tau_p4.Pt(), final_weight);
-		if (iTES !=2) continue;
+	        if (Mt_accept && (iTES == iTES_down || !realtau)) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_TESdown"]]->Fill(vis_p4.M(), final_weight);
+	        if (Mt_accept && (iTES == iTES_up || !realtau))   htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_TESup"]]->Fill(vis_p4.M(), final_weight);
+	        if (Mt_accept && (iTES == iTES_down || !realtau)) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_TESdown"]]->Fill(tau_p4.Pt(), final_weight);
+	        if (Mt_accept && (iTES == iTES_up || !realtau))   htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_TESup"]]->Fill(tau_p4.Pt(), final_weight);
+		if (iTES != iTES_nope) continue;
 
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][0]->Fill(Mt, final_weight);
-	        if (!SS) if (Mt_accept) htau[iPass][iBkgOrSig][iValue][1]->Fill(vis_p4.M(), final_weight);
-	        if (SS) if (Mt_accept) htau[iPass][iBkgOrSig][iValue][48]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][2]->Fill(total_p4.M(), final_weight);
-	        if (!SS) if (Mt_accept) htau[iPass][iBkgOrSig][iValue][3]->Fill(tau_p4.Pt(), final_weight);
-	        if (SS) if (Mt_accept) htau[iPass][iBkgOrSig][iValue][47]->Fill(tau_p4.Pt(), final_weight);
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][4]->Fill(tau_p4.Eta(), final_weight);
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][5]->Fill(tau_p4.Phi(), final_weight);
-	        if (!SS) if (Mt_accept) htau[iPass][iBkgOrSig][iValue][6]->Fill(mu_gt_pt->at(iMu), final_weight);
-	        if (SS) if (Mt_accept) htau[iPass][iBkgOrSig][iValue][49]->Fill(mu_gt_pt->at(iMu), final_weight);
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][7]->Fill(mu_gt_eta->at(iMu), final_weight);
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][8]->Fill(mu_gt_phi->at(iMu), final_weight);
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][17]->Fill(vis_p4.Pt(), final_weight);
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][18]->Fill(tau_decayMode->at(iTau), final_weight);
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][10]->Fill(met_p4.Pt(), final_weight);
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][11]->Fill(met_p4.Phi(), final_weight);
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][12]->Fill(pv_n, final_weight);
+		//fill text file with the run number etc.
+		if (Mt_accept && iValue==0) event_file << ev_run << ", " << ev_luminosityBlock << ", " << ev_event << endl; 
+		
+		//normal histos
+	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mt"]]->Fill(Mt, final_weight);
+	        if (!SS) if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis"]]->Fill(vis_p4.M(), final_weight);
+	        if (SS) if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_SS"]]->Fill(vis_p4.M(), final_weight);
+	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mtot"]]->Fill(total_p4.M(), final_weight);
+	        if (!SS) if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt"]]->Fill(tau_p4.Pt(), final_weight);
+	        if (SS) if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_SS"]]->Fill(tau_p4.Pt(), final_weight);
+	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_eta"]]->Fill(tau_p4.Eta(), final_weight);
+	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_phi"]]->Fill(tau_p4.Phi(), final_weight);
+	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_DM"]]->Fill(tau_decayMode->at(iTau), final_weight);
+	        if (!SS) if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["mu_pt"]]->Fill(mu_gt_pt->at(iMu), final_weight);
+	        if (SS) if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["mu_pt_SS"]]->Fill(mu_gt_pt->at(iMu), final_weight);
+	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["mu_eta"]]->Fill(mu_gt_eta->at(iMu), final_weight);
+	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["mu_phi"]]->Fill(mu_gt_phi->at(iMu), final_weight);
+	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["Z_pt"]]->Fill(total_p4.Pt(), final_weight);
+	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_MET"]]->Fill(met_p4.Pt(), final_weight);
+	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_METphi"]]->Fill(met_p4.Phi(), final_weight);
+	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Nvertex"]]->Fill(pv_n, final_weight);
 
 		//Min Bias variations, change pu weight
 		final_weight = pu_weight_low*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight;
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][23]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][25]->Fill(pv_n, final_weight);
+	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_MinBiasdown"]]->Fill(vis_p4.M(), final_weight);
+	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Nvertex_MinBiasdown"]]->Fill(pv_n, final_weight);
 		final_weight = pu_weight_high*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight;
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][24]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][26]->Fill(pv_n, final_weight);
+	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_MinBiasup"]]->Fill(vis_p4.M(), final_weight);
+	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Nvertex_MinBiasup"]]->Fill(pv_n, final_weight);
 
 
 		//anti-isolation SFs, which could be different from one
@@ -938,8 +1040,8 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 		else {
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight*1.0;
 		}		  
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][39]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][41]->Fill(pv_n, final_weight);
+	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_antiisomu_down"]]->Fill(vis_p4.M(), final_weight);
+	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_antiisomu_down"]]->Fill(tau_p4.Pt(), final_weight);
 
 		if (fakemu_match) {
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight*antiisomu_weight_high;
@@ -947,8 +1049,8 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 		else {
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight*1.0;
 		}		  
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][40]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][42]->Fill(pv_n, final_weight);
+	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_antiisomu_up"]]->Fill(vis_p4.M(), final_weight);
+	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_antiisomu_up"]]->Fill(tau_p4.Pt(), final_weight);
 
 
 		double antiisotau_weight_low = 0.9;
@@ -959,8 +1061,8 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 		else {
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight*1.0;
 		}		  
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][43]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][45]->Fill(pv_n, final_weight);
+	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_antiisotau_down"]]->Fill(vis_p4.M(), final_weight);
+	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_antiisotau_down"]]->Fill(tau_p4.Pt(), final_weight);
 
 		if (realtau) {
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight*antiisotau_weight_high;
@@ -968,8 +1070,9 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 		else {
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight*1.0;
 		}		  
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][44]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept) htau[iPass][iBkgOrSig][iValue][46]->Fill(pv_n, final_weight);
+	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_antiisotau_up"]]->Fill(vis_p4.M(), final_weight);
+	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_antiisotau_up"]]->Fill(tau_p4.Pt(), final_weight);
+
 
 
 
@@ -978,68 +1081,68 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 		if (tau_decayMode->at(iTau) == 0) {
 		  //for the histos dedicated to DM0 variation, fill with a different weight
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight_low;
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][27]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][29]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM0_down"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM0_down"]]->Fill(tau_p4.Pt(), final_weight);
 
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight_high;
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][28]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][30]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM0_up"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM0_up"]]->Fill(tau_p4.Pt(), final_weight);
 
 		  //other histos should be filled with the "normal" weight
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight;
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][31]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][33]->Fill(tau_p4.Pt(), final_weight);
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][32]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][34]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM1_down"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM1_down"]]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM1_up"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM1_up"]]->Fill(tau_p4.Pt(), final_weight);
 
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][35]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][37]->Fill(tau_p4.Pt(), final_weight);
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][36]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][38]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM10_down"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM10_down"]]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM10_up"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM10_up"]]->Fill(tau_p4.Pt(), final_weight);
 		}
 		else if (tau_decayMode->at(iTau) == 1) {
 		  //for the histos dedicated to DM1 variation, fill with a different weight
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight_low;
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][31]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][33]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM1_down"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM1_down"]]->Fill(tau_p4.Pt(), final_weight);
 
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight_high;
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][32]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][34]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM1_up"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM1_up"]]->Fill(tau_p4.Pt(), final_weight);
 
 		  //other histos should be filled with the "normal" weight
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight;
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][27]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][29]->Fill(tau_p4.Pt(), final_weight);
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][28]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][30]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM0_down"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM0_down"]]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM0_up"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM0_up"]]->Fill(tau_p4.Pt(), final_weight);
 
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][35]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][37]->Fill(tau_p4.Pt(), final_weight);
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][36]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][38]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM10_down"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM10_down"]]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM10_up"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM10_up"]]->Fill(tau_p4.Pt(), final_weight);
 		}
 		else if (tau_decayMode->at(iTau) == 10) {
 		  //for the histos dedicated to DM10 variation, fill with a different weight
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight_low;
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][35]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][37]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM10_down"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM10_down"]]->Fill(tau_p4.Pt(), final_weight);
 
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight_high;
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][36]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][38]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM10_up"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM10_up"]]->Fill(tau_p4.Pt(), final_weight);
 
 		  //other histos should be filled with the "normal" weight
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight;
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][31]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][33]->Fill(tau_p4.Pt(), final_weight);
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][32]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][34]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM0_down"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM0_down"]]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM0_up"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM0_up"]]->Fill(tau_p4.Pt(), final_weight);
 
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][27]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][29]->Fill(tau_p4.Pt(), final_weight);
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][28]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[iPass][iBkgOrSig][iValue][30]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM10_down"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM10_down"]]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM10_up"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM10_up"]]->Fill(tau_p4.Pt(), final_weight);
 		}
 
 	      }//loop over tau IDs
@@ -1049,12 +1152,15 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
       }//loop over muons
    }//loop over events
 
+   event_file << endl << endl << endl;
+   event_file.close();
+
    file_out->cd();
    h_reweight->Write();
    h_weight_afterallsel->Write();
    h_debug->Write();
    for (unsigned int i = 0; i<histo_notauID_names.size(); ++i) for (unsigned int k = 0; k<taun; ++k) hnotauID[k][i]->Write();
-   for (unsigned int i = 0; i<histo_taudependent_names.size(); ++i) for (unsigned int j = 0; j<nTauIDs; ++j) for (unsigned int k = 0; k<taun; ++k) for (unsigned int l = 0; l<passfail.size(); ++l) htau[l][k][j][i]->Write();
+   for (unsigned int i = 0; i<htau_names.size(); ++i) for (unsigned int j = 0; j<nTauIDs; ++j) for (unsigned int k = 0; k<taun; ++k) for (unsigned int l = 0; l<passfail.size(); ++l) for (unsigned int m = 0; m<dms.size(); ++m) for (unsigned int n = 0; n<eta.size(); ++n) htau[n][m][l][k][j][i]->Write();
    if (DY) for (unsigned int i = 0; i<hgen.size(); ++i) hgen[i]->Write();
    file_out->Close();
 }

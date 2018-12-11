@@ -15,20 +15,29 @@
 
 using namespace std;
 int main(int argc, char** argv) {
-  //string nature = *(argv + 1);
+  string nature = *(argv + 1);
 
   TFile* file_out;
   TFile* file_in;
 
-  file_out = new TFile("TauID2017/Faketaus.root", "RECREATE");
-  file_in = new TFile("Figures/TauFakes.root", "R");
+  bool final = false;
+
+  if (nature == "final" || nature == "Final") {
+    file_out = new TFile("TauID2017/Faketaus.root", "RECREATE");
+    file_in = new TFile("Figures/TauFakes.root", "R");
+    final = true;
+  }
+  else if (nature == "WJets" || nature == "Wjets" || nature == "wjets") {
+    file_out = new TFile("TauID2017/wjetsfake.root", "RECREATE");
+    file_in = new TFile("Figures/WJetsFake.root", "R");
+  }
   
 
   vector<TString> names;
   names.push_back("data_");//0
   //names.push_back("WJets_");//1
   names.push_back("DYB_");
-  names.push_back("DYS_");
+  if (final) names.push_back("DYS_");
   names.push_back("TTB_");
   names.push_back("VV_");
 
@@ -83,13 +92,6 @@ int main(int argc, char** argv) {
   HPS_WP.push_back("cutbased_medium");
   HPS_WP.push_back("cutbased_tight");
 
-  HPS_WP.push_back("MVA_2016vloose");
-  HPS_WP.push_back("MVA_2016loose");
-  HPS_WP.push_back("MVA_2016medium");
-  HPS_WP.push_back("MVA_2016tight");
-  HPS_WP.push_back("MVA_2016vtight");
-  HPS_WP.push_back("MVA_2016vvtight");
-
   HPS_WP.push_back("MVA_2017v1vvloose");
   HPS_WP.push_back("MVA_2017v1vloose");
   HPS_WP.push_back("MVA_2017v1loose");
@@ -106,29 +108,64 @@ int main(int argc, char** argv) {
   HPS_WP.push_back("MVA_2017v2vtight");
   HPS_WP.push_back("MVA_2017v2vvtight");
 
+  HPS_WP.push_back("MVA_DBdR03vloose"); 
+  HPS_WP.push_back("MVA_DBdR03loose");
+  HPS_WP.push_back("MVA_DBdR03medium");
+  HPS_WP.push_back("MVA_DBdR03tight");
+  HPS_WP.push_back("MVA_DBdR03vtight");
+  HPS_WP.push_back("MVA_DBdR03vvtight");
+
+  HPS_WP.push_back("MVA_PWdR03vloose"); 
+  HPS_WP.push_back("MVA_PWdR03loose");
+  HPS_WP.push_back("MVA_PWdR03medium");
+  HPS_WP.push_back("MVA_PWdR03tight");
+  HPS_WP.push_back("MVA_PWdR03vtight");
+  HPS_WP.push_back("MVA_PWdR03vvtight");
+
+  vector<TString> dms;
+  dms.push_back("allDMs");
+  //dms.push_back("DM0");
+  //dms.push_back("DM1");
+  //dms.push_back("DM10");
+
+  vector<TString> eta;
+  eta.push_back("fulletarange");
+  //eta.push_back("barrel");
+  //eta.push_back("endcap");
+
+
+
   //retrieve histograms from all control regions
   //only for CR4 (1) do we care to have all histos
-  vector<TH1F*> h[names.size()][vars.size()];
-  for (unsigned int j=0; j<names.size(); ++j) {
-    for (unsigned int k=0; k<vars.size(); ++k) {
-      for (unsigned int l=0; l<HPS_WP.size(); ++l) {
-	h[j][k].push_back( (TH1F*) file_in->Get(names[j]+vars[k]+"_"+HPS_WP[l]+"_fail") );
-	h[j][k][l]->SetName(names[j]+vars[k]);
+  vector<TH1F*> h[names.size()][vars.size()][dms.size()][eta.size()];
+  for (unsigned int i=0; i<names.size(); ++i) {
+    for (unsigned int j=0; j<vars.size(); ++j) {
+      for (unsigned int k=0; k<dms.size(); ++k) {
+	for (unsigned int l=0; l<eta.size(); ++l) {
+	  for (unsigned int m=0; m<HPS_WP.size(); ++m) {
+	    h[i][j][k][l].push_back( (TH1F*) file_in->Get(names[i]+vars[j]+"_"+dms[k]+"_"+eta[l]+"_"+HPS_WP[m]+"_fail") );
+	    h[i][j][k][l][m]->SetName(names[i]+vars[j]+"_"+dms[k]+"_"+eta[l]+"_"+HPS_WP[m]);
+	  }
+	}
       }
     }
   }
 
 
   file_out->cd();
-  for (unsigned int l=0; l<HPS_WP.size(); ++l) {
-    for (unsigned int k=0; k<vars.size(); ++k) {
-      TH1F* h_faketau = (TH1F*) h[0][k][l]->Clone("faketau_"+vars[k]+"_"+HPS_WP[l]+"_pass");
-      for (unsigned int j=1; j<names.size(); ++j) h_faketau->Add(h[j][k][l], -1);//subtract all real tau bg
+  for (unsigned int m=0; m<HPS_WP.size(); ++m) {
+    for (unsigned int l=0; l<eta.size(); ++l) {
+      for (unsigned int k=0; k<dms.size(); ++k) {
+	for (unsigned int j=0; j<vars.size(); ++j) {
+	  TH1F* h_faketau = (TH1F*) h[0][j][k][l][m]->Clone("faketau_"+vars[j]+"_"+dms[k]+"_"+eta[l]+"_"+HPS_WP[m]+"_pass");
+	  for (unsigned int i=1; i<names.size(); ++i) h_faketau->Add(h[i][j][k][l][m], -1);//subtract all real tau bg
 
-      for (unsigned int iBin = 0; iBin<h_faketau->GetNbinsX(); ++iBin) {
-	if (h_faketau->GetBinContent(iBin) < 0) h_faketau->SetBinContent(iBin,0);
+	  for (unsigned int iBin = 0; iBin<h_faketau->GetNbinsX(); ++iBin) {
+	    if (h_faketau->GetBinContent(iBin) < 0) h_faketau->SetBinContent(iBin,0);
+	  }
+	  h_faketau->Write();
+	}
       }
-      h_faketau->Write();
     }
   }
   file_out->Close();

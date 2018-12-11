@@ -122,6 +122,19 @@ int main(int argc, char** argv) {
   oldtree->SetBranchStatus("tau_byTightIsolationMVArun2017v2DBoldDMwLT2017",1);
   oldtree->SetBranchStatus("tau_byVTightIsolationMVArun2017v2DBoldDMwLT2017",1);
   oldtree->SetBranchStatus("tau_byVVTightIsolationMVArun2017v2DBoldDMwLT2017",1);
+  oldtree->SetBranchStatus("tau_byVLooseIsolationMVArun2v1DBdR03oldDMwLT",1);
+  oldtree->SetBranchStatus("tau_byLooseIsolationMVArun2v1DBdR03oldDMwLT",1);
+  oldtree->SetBranchStatus("tau_byMediumIsolationMVArun2v1DBdR03oldDMwLT",1);
+  oldtree->SetBranchStatus("tau_byTightIsolationMVArun2v1DBdR03oldDMwLT",1);
+  oldtree->SetBranchStatus("tau_byVTightIsolationMVArun2v1DBdR03oldDMwLT",1);
+  oldtree->SetBranchStatus("tau_byVVTightIsolationMVArun2v1DBdR03oldDMwLT",1);
+  oldtree->SetBranchStatus("tau_byVLooseIsolationMVArun2v1PWdR03oldDMwLT",1);
+  oldtree->SetBranchStatus("tau_byLooseIsolationMVArun2v1PWdR03oldDMwLT",1);
+  oldtree->SetBranchStatus("tau_byMediumIsolationMVArun2v1PWdR03oldDMwLT",1);
+  oldtree->SetBranchStatus("tau_byTightIsolationMVArun2v1PWdR03oldDMwLT",1);
+  oldtree->SetBranchStatus("tau_byVTightIsolationMVArun2v1PWdR03oldDMwLT",1);
+  oldtree->SetBranchStatus("tau_byVVTightIsolationMVArun2v1PWdR03oldDMwLT",1);
+
   oldtree->SetBranchStatus("MET_eefix_Px",1);
   oldtree->SetBranchStatus("MET_eefix_Py",1);
   oldtree->SetBranchStatus("MET_eefix_Pt",1);
