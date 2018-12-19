@@ -13,7 +13,8 @@ def add_lumi():
     lumi.SetTextColor(    1 )
     lumi.SetTextSize(0.06)
     lumi.SetTextFont (   42 )
-    lumi.AddText("2017, 41.9 fb^{-1} (13 TeV)")
+    #lumi.AddText("2017, 41.5 fb^{-1} (13 TeV)")
+    lumi.AddText("2017, 38.9 fb^{-1} (13 TeV)")
     return lumi
 
 def add_CMS():
@@ -124,8 +125,8 @@ tauIDs=[
 #"cutbased_tight",   
 #"MVA_veryloose",   
 #"MVA_loose",        
-"MVA_medium",      
-#"MVA_tight",       
+#"MVA_medium",      
+"MVA_2017v2tight",       
 #"MVA_verytight",   
 #"MVA_veryverytight",
 #"MVAnew_veryloose",   
@@ -143,7 +144,7 @@ photogenic_tauIDs={
 "MVA_veryloose" :    "MVA very loose",
 "MVA_loose" :         "MVA loose",
 "MVA_medium" :       "MVA medium",
-"MVA_tight" :        "MVA tight",
+"MVA_2017v2tight" :    "MVA 2017 v2 tight",
 "MVA_verytight" :    "MVA very tight",
 "MVA_veryverytight" : "MVA very very tight",
 "MVAnew_veryloose" :    "MVA very loose",
@@ -155,8 +156,10 @@ photogenic_tauIDs={
 }
 
 ntauID=len(tauIDs)
-categories=["pass","fail","zmumu"]#"pass_postfit","fail_postfit","zmm_prefit","zmm_postfit"]
-ncat=len(categories) #6
+categories=["pass",
+#"fail",
+"zmumu"]
+ncat=len(categories)
 
 prepost=["prefit", "postfit"]
 
@@ -178,9 +181,7 @@ for j in range (0,ntauID):
                 folder_in = "error"
             #print var_in
             Data=file.Get(folder_in+"/data_obs")
-            QCD=file.Get(folder_in+"/QCD")
-            W=file.Get(folder_in+"/WJets")
-            TTS=file.Get(folder_in+"/TTS")
+            Faketau=file.Get(folder_in+"/faketau")
             TTB=file.Get(folder_in+"/TTB")
             VV=file.Get(folder_in+"/VV")
             DYB=file.Get(folder_in+"/DYB")
@@ -189,7 +190,6 @@ for j in range (0,ntauID):
             #DYB.Add(DYJ)
             DYS=file.Get(folder_in+"/DYS")
 
-            W.Add(VV)
 
 
             Data.GetXaxis().SetTitle("")
@@ -203,23 +203,20 @@ for j in range (0,ntauID):
             Data.SetTitle("")
             Data.GetYaxis().SetTitle("Events/bin")
         
-            if i<4:
-                QCD.SetFillColor(ROOT.TColor.GetColor("#ffccff"))
-            W.SetFillColor(ROOT.TColor.GetColor("#de5a6a"))
-            if i<2: TTS.SetFillColor(ROOT.TColor.GetColor("#9999cc"))
-            TTB.SetFillColor(ROOT.TColor.GetColor("#99992c"))
+
+            VV.SetFillColor(ROOT.TColor.GetColor("#d89a6a"))
+            TTB.SetFillColor(ROOT.TColor.GetColor("#9999cc"))
             DYB.SetFillColor(ROOT.TColor.GetColor("#4496c8"))
-            if i<2:
-                DYS.SetFillColor(ROOT.TColor.GetColor("#ffcc66"))
+            if i<1: DYS.SetFillColor(ROOT.TColor.GetColor("#ffcc66"))
+            if i<1: Faketau.SetFillColor(ROOT.TColor.GetColor("#de5a6a"))
 
             Data.SetMarkerStyle(20)
             Data.SetMarkerSize(1)
-            if i<4:
-                QCD.SetLineColor(1)
-            W.SetLineColor(1)
-            if i<2: TTS.SetLineColor(1)
+            if i<1:
+                Faketau.SetLineColor(1)
+            VV.SetLineColor(1)
             TTB.SetLineColor(1)
-            if i<2:
+            if i<1:
                 DYS.SetLineColor(1)
             DYB.SetLineColor(1)
             Data.SetLineColor(1)
@@ -228,22 +225,20 @@ for j in range (0,ntauID):
         #DYS.Scale(0.84) #FIXME
 
             stack=ROOT.THStack("stack","stack")
-            if i<4:
-                stack.Add(QCD)
-            stack.Add(W)
-            if i<2: stack.Add(TTS)
+            if i<1:
+                stack.Add(Faketau)
+            stack.Add(VV)
             stack.Add(TTB)
             stack.Add(DYB)
-            if i<2:
+            if i<1:
                 stack.Add(DYS)
             
-            errorBand = W.Clone()
-            if i<4:
-                errorBand.Add(QCD)
-            if i<2: errorBand.Add(TTS)
+            errorBand = VV.Clone()
+            if i<1:
+                errorBand.Add(Faketau)
             errorBand.Add(TTB)
             errorBand.Add(DYB)
-            if i<2:
+            if i<1:
                 errorBand.Add(DYS)
             errorBand.SetMarkerSize(0)
             print new_idx
@@ -280,14 +275,13 @@ for j in range (0,ntauID):
 
             legende=make_legend()
             legende.AddEntry(Data,"Observed","elp")
-            if i<2: 
+            if i<1: 
                 legende.AddEntry(DYS,"Z#rightarrow#tau_{#mu}#tau_{h}","f")
             legende.AddEntry(DYB,"DY others","f")
-            if i<2: legende.AddEntry(TTS,"t#bar{t}+jets (real #tau)","f")
             legende.AddEntry(TTB,"t#bar{t}+jets (fake #tau)","f")
-            legende.AddEntry(W,"Electroweak","f")
-            if i<4:
-                legende.AddEntry(QCD,"QCD multijet","f")
+            legende.AddEntry(VV,"Diboson","f")
+            if i<1:
+                legende.AddEntry(Faketau,"Fake #tau bg","f")
             legende.AddEntry(errorBand,"Uncertainty","f")
             legende.Draw()
 

@@ -5,6 +5,7 @@
 #include <string>
 #include "TH1.h"
 #include "TFile.h"
+#include "TDirectory.h"
 #include "TMath.h"
 #include "TSystem.h"
 #include "TCanvas.h"
@@ -12,16 +13,17 @@
 #include "TLegend.h"
 #include "THStack.h"
 #include "TStyle.h"
+#include "TStyle.h"
 
 
 using namespace std;
 
 
-TH1F* MC_histo(TString prestring, TString var, TFile* file_in, double xs, long Nevents, int rebin) {
+TH1F* MC_histo(TString prestring, TString dir_in, TString var, TFile* file_in, double xs, long Nevents, int rebin) {
 
   cout << file_in->GetName() << endl;
 
-  double lumi = 38936; //luminosity in pb^-1
+  double lumi = 40.76*pow(10,3); //luminosity in pb^-1
 
   double e_Nevents = pow(Nevents,0.5);
   double e_xs = 0.01*xs;
@@ -30,14 +32,18 @@ TH1F* MC_histo(TString prestring, TString var, TFile* file_in, double xs, long N
   double w = xs*lumi/Nevents;
   cout << "Events in data/events in MC " << xs*lumi/Nevents << endl;
   
-  var = prestring+var;
+  var = dir_in+prestring+var;
+  cout << var << endl;
   TH1F* h = (TH1F*) file_in -> Get(var);
+  TH1F* h1 = (TH1F*) h->Clone("tempname");
+  h1->SetDirectory(0);
+  //file_in->Close();
 
-  h -> Sumw2();
-  h -> Scale(w);
-  h -> Rebin(rebin);
+  h1 -> Sumw2();
+  h1 -> Scale(w);
+  h1 -> Rebin(rebin);
 
-  return h;
+  return h1;
 
 }
 
@@ -100,7 +106,6 @@ int main(int argc, char** argv) {
     name_out = "TauFakes";
   }
 
-  TFile* file_out = new TFile("Figures/"+name_out+".root", "RECREATE");
   TFile* file_in_DY = new TFile(folder_in+"/Arranged_DY/DY.root", "R");
   TFile* file_in_WJets = new TFile(folder_in+"/Arranged_WJets/WJets.root", "R");
   TFile* file_in_QCD = new TFile(folder_in+"/Arranged_QCD/QCD.root", "R");
@@ -184,8 +189,8 @@ int main(int argc, char** argv) {
   vars.push_back("tau_pt_MESup");            
   vars.push_back("ev_Mvis_MinBiasdown");     
   vars.push_back("ev_Mvis_MinBiasup");       
-  vars.push_back("ev_Nvertex_MinBiasdown");  
-  vars.push_back("ev_Nvertex_Minbiasup");    
+  //vars.push_back("ev_Nvertex_MinBiasdown");  
+  //vars.push_back("ev_Nvertex_Minbiasup");    
   vars.push_back("ev_Mvis_FRS_DM0_down");    
   vars.push_back("ev_Mvis_FRS_DM0_up");      
   vars.push_back("tau_pt_FRS_DM0_down");     
@@ -213,60 +218,63 @@ int main(int argc, char** argv) {
   }
 
   vector<TString> HPS_WP;
-  HPS_WP.push_back("cutbased_loose");
-  HPS_WP.push_back("cutbased_medium");
-  HPS_WP.push_back("cutbased_tight");
-
-  HPS_WP.push_back("MVA_2017v1vvloose");
-  HPS_WP.push_back("MVA_2017v1vloose");
-  HPS_WP.push_back("MVA_2017v1loose");
-  HPS_WP.push_back("MVA_2017v1medium");
-  HPS_WP.push_back("MVA_2017v1tight");
-  HPS_WP.push_back("MVA_2017v1vtight");
-  HPS_WP.push_back("MVA_2017v1vvtight");
-
-  HPS_WP.push_back("MVA_2017v2vvloose");
-  HPS_WP.push_back("MVA_2017v2vloose");
-  HPS_WP.push_back("MVA_2017v2loose");
-  HPS_WP.push_back("MVA_2017v2medium");
+  //HPS_WP.push_back("cutbased_loose");
+  //HPS_WP.push_back("cutbased_medium");
+  //HPS_WP.push_back("cutbased_tight");
+  //
+  //HPS_WP.push_back("MVA_2017v1vvloose");
+  //HPS_WP.push_back("MVA_2017v1vloose");
+  //HPS_WP.push_back("MVA_2017v1loose");
+  //HPS_WP.push_back("MVA_2017v1medium");
+  //HPS_WP.push_back("MVA_2017v1tight");
+  //HPS_WP.push_back("MVA_2017v1vtight");
+  //HPS_WP.push_back("MVA_2017v1vvtight");
+  //
+  //HPS_WP.push_back("MVA_2017v2vvloose");
+  //HPS_WP.push_back("MVA_2017v2vloose");
+  //HPS_WP.push_back("MVA_2017v2loose");
+  //HPS_WP.push_back("MVA_2017v2medium");
   HPS_WP.push_back("MVA_2017v2tight");
-  HPS_WP.push_back("MVA_2017v2vtight");
-  HPS_WP.push_back("MVA_2017v2vvtight");
-
-  HPS_WP.push_back("MVA_DBdR03vloose"); 
-  HPS_WP.push_back("MVA_DBdR03loose");
-  HPS_WP.push_back("MVA_DBdR03medium");
-  HPS_WP.push_back("MVA_DBdR03tight");
-  HPS_WP.push_back("MVA_DBdR03vtight");
-  HPS_WP.push_back("MVA_DBdR03vvtight");
-
-  HPS_WP.push_back("MVA_PWdR03vloose"); 
-  HPS_WP.push_back("MVA_PWdR03loose");
-  HPS_WP.push_back("MVA_PWdR03medium");
-  HPS_WP.push_back("MVA_PWdR03tight");
-  HPS_WP.push_back("MVA_PWdR03vtight");
-  HPS_WP.push_back("MVA_PWdR03vvtight");
+  //HPS_WP.push_back("MVA_2017v2vtight");
+  //HPS_WP.push_back("MVA_2017v2vvtight");
+  //
+  //HPS_WP.push_back("MVA_DBdR03vloose"); 
+  //HPS_WP.push_back("MVA_DBdR03loose");
+  //HPS_WP.push_back("MVA_DBdR03medium");
+  //HPS_WP.push_back("MVA_DBdR03tight");
+  //HPS_WP.push_back("MVA_DBdR03vtight");
+  //HPS_WP.push_back("MVA_DBdR03vvtight");
+  //
+  //HPS_WP.push_back("MVA_PWdR03vloose"); 
+  //HPS_WP.push_back("MVA_PWdR03loose");
+  //HPS_WP.push_back("MVA_PWdR03medium");
+  //HPS_WP.push_back("MVA_PWdR03tight");
+  //HPS_WP.push_back("MVA_PWdR03vtight");
+  //HPS_WP.push_back("MVA_PWdR03vvtight");
 
   vector<TString> categ;
   categ.push_back("pass");
   categ.push_back("fail");
 
   vector<TString> dms;
-  dms.push_back("allDMs");
-  //dms.push_back("DM0");
-  //dms.push_back("DM1");
-  //dms.push_back("DM10");
+  //dms.push_back("allDMs");
+  dms.push_back("DM0");
+  dms.push_back("DM1");
+  dms.push_back("DM10");
 
   vector<TString> eta;
-  eta.push_back("fulletarange");
-  //eta.push_back("barrel");
-  //eta.push_back("endcap");
+  //eta.push_back("fulletarange");
+  eta.push_back("barrel");
+  eta.push_back("endcap");
+
+  vector<TString> ptrange;
+  ptrange.push_back("pt_20_40");
+  ptrange.push_back("pt_40_150");
   
 
 
   //cross-sections
   double xs_DY = 6225.42;//5675.4; 
-  //double xs_DY = 5675.4; 
   double xs_WJets = 61526.7;
 
   double xs_QCD_muenriched = 720648000*0.00042;//0.0003739 //Mu-enriched sample, this includes filter efficiency
@@ -306,8 +314,6 @@ int main(int argc, char** argv) {
   double xs_TT_2l2nu = 831.76*0.105;//831.76;                 
   double xs_WW = 64.3;
   double xs_WZ = 23.4;
-  //double xs_WZTo3LNu = 1;
-  //double xs_ZZTo2L2Nu = 1;
   double xs_ZZ = 10.16;
 
   //Nevents
@@ -354,103 +360,195 @@ int main(int argc, char** argv) {
   long N_ZZ = 1949768;
 
 
+  vector<TString> process;
+  process.push_back("DYS");
+  process.push_back("DYB");
+  process.push_back("TTB");
+  process.push_back("VV"); 
+  process.push_back("data");
+  if (final || wjets_pre) process.push_back("faketau");
+
+
   TString var_in;
+  TString dir_in;
 
+  TFile* file_out = new TFile("Figures/"+name_out+".root", "RECREATE");
   file_out->cd();
-  //options = is it the DY Sig?, variable name, which file to get the histo from, process cross-section
-  for (unsigned int i = 0; i<vars.size(); ++i) {
-    for (unsigned int j = 0; j<dms.size(); ++j) {
-      if ((i<tau_dependent_cutoff) && (j>0)) break; 
-      for (unsigned int k = 0; k<eta.size(); ++k) {
-	if ((i<tau_dependent_cutoff) && (k>0)) break; 
-	for (unsigned int l = 0; l<HPS_WP.size(); ++l) {
-	  if ((i<tau_dependent_cutoff) && (l>0)) break; 
-	  for (unsigned int m = 0; m<categ.size(); ++m) {
-	    if (i<tau_dependent_cutoff) {
-	      var_in = vars[i];
-	      if (m>0) break;
-	    }
-	    else {
-	      var_in = vars[i] + "_" + dms[j] + "_" + eta[k] + "_" + HPS_WP[l] + "_" + categ[m];
-	    }
-	    cout << var_in << endl;
 
-	    if (final || option_name == "quick_test" || option_name == "Fakes") {
-	      TH1F* h_DYSig = MC_histo("Sig_", var_in, file_in_DY, xs_DY, N_DY, rebin);
-	      h_DYSig->SetName("DYS_"+var_in);
-	      h_DYSig->Write();
-	    
-	      //TH1F* h_TTSig = MC_histo("Sig_", var_in, file_in_TT, xs_TT, N_TT, rebin);
-	      //h_TTSig->SetName("TTS_"+var_in);
-	      //h_TTSig->Write();
-	    }
-	    
-	    
-	    TH1F* h_DYBkg = MC_histo("Bkg_", var_in, file_in_DY, xs_DY, N_DY, rebin);
-	    /*TH1F* h_DY1Bkg = MC_histo("Bkg_", var_in, file_in_DY1, xs_DY1, N_DY1, rebin);
-	    TH1F* h_DY2Bkg = MC_histo("Bkg_", var_in, file_in_DY2, xs_DY2, N_DY2, rebin);
-	    TH1F* h_DY3Bkg = MC_histo("Bkg_", var_in, file_in_DY3, xs_DY3, N_DY3, rebin);
-	    TH1F* h_DY4Bkg = MC_histo("Bkg_", var_in, file_in_DY4, xs_DY4, N_DY4, rebin);*/
-	    
-	    /*TH1F* h_DYBkg = (TH1F*) h_DY0Bkg->Clone("DYB_"+var_in);
-	    h_DYBkg->Add(h_DY1Bkg);
-	    h_DYBkg->Add(h_DY2Bkg);
-	    h_DYBkg->Add(h_DY3Bkg);
-	    h_DYBkg->Add(h_DY4Bkg);*/
-	    h_DYBkg->SetName("DYB_"+var_in);
-	    h_DYBkg->Write();
-	    
-	    
-	    //TH1F* h_WJets = (TH1F*) file_in_WJets -> Get("Bkg_"+var_in); //already normed
-	    //h_WJets->Rebin(rebin);
-	    //if (option_name != "Wjets_pre" && option_name != "WJets_pre") h_WJets->Scale(Wjets_scale_factor[k][j]);
-	    //h_WJets -> SetName("WJets_"+var_in);
-	    //h_WJets->Write();
-      	    
-	    /*if (option_name == "Wjets_pre" || option_name == "Wjets_post" || option_name == "WJets_pre" || option_name == "WJets_post" || option_name == "quick_test" || option_name == "QCD_control" || antimu) {
-	      vector<TH1F*> h_QCD_vector;
-	      for (unsigned int iBin = 0; iBin<QCD_files.size(); ++iBin) {
-	        h_QCD_vector.push_back( MC_histo("Bkg_", var_in, QCD_files[iBin], xs_QCD[iBin], N_QCD[iBin], rebin) );
+
+  //options = is it the DY Sig?, variable name, which file to get the histo from, process cross-section
+  for (unsigned int l = 0; l<HPS_WP.size(); ++l) {
+    TDirectory* work_dir =  file_out->mkdir(HPS_WP[l]);
+    work_dir->cd();
+
+    for (unsigned int i = 0; i<vars.size(); ++i) {
+      map<TString, TH1F*> h_cons;
+      map<TString, TH1F*> h_cons_bypt[ptrange.size()];
+      map<TString, TH1F*> h_cons_byDMeta[dms.size()][eta.size()];
+
+      for (unsigned int j = 0; j<dms.size(); ++j) {
+	if ((i<tau_dependent_cutoff) && (j>0)) break; 
+	for (unsigned int k = 0; k<eta.size(); ++k) {
+	  if ((i<tau_dependent_cutoff) && (k>0)) break; 
+	  for (unsigned int m = 0; m<categ.size(); ++m) {
+	    if ((i<tau_dependent_cutoff) && (m>0)) break;
+	    for (unsigned int p = 0; p<ptrange.size(); ++p) {
+	      if (i<tau_dependent_cutoff) {
+	        var_in = vars[i];
+		dir_in = "NoTauID/";
+	        if (p>0) break;
 	      }
-	      TH1F* h_QCD = (TH1F*) h_QCD_vector[0]->Clone("QCD_"+var_in);
-	      for (unsigned int iBin = 1; iBin<QCD_files.size(); ++iBin) {
-	        h_QCD->Add(h_QCD_vector[iBin]);
+	      else {
+	        var_in = vars[i] + "_" + dms[j] + "_" + eta[k] + "_" + ptrange[p] + "_" + HPS_WP[l] + "_" + categ[m];
+		dir_in = HPS_WP[l] + "/";
 	      }
-	      h_QCD->Write();
-	      }*/
-	    
-	    TH1F* h_TT_had = MC_histo("Bkg_", var_in, file_in_TT_had, xs_TT_had, N_TT_had, rebin);
-	    TH1F* h_TT_semilep = MC_histo("Bkg_", var_in, file_in_TT_semilep, xs_TT_semilep, N_TT_semilep, rebin);
-	    TH1F* h_TT_2l2nu = MC_histo("Bkg_", var_in, file_in_TT_2l2nu, xs_TT_2l2nu, N_TT_2l2nu, rebin);
-	    TH1F* h_TTBkg = (TH1F*) h_TT_had->Clone("TTB_"+var_in);
-	    h_TTBkg->Add(h_TT_semilep);
-	    h_TTBkg->Add(h_TT_2l2nu);
-	    h_TTBkg->Write();
-	    
-	    TH1F* h_WW = MC_histo("Bkg_", var_in, file_in_WW, xs_WW, N_WW, rebin);
-	    TH1F* h_WZ = MC_histo("Bkg_", var_in, file_in_WZ, xs_WZ, N_WZ, rebin);
-	    TH1F* h_ZZ = MC_histo("Bkg_", var_in, file_in_ZZ, xs_ZZ, N_ZZ, rebin);
-	    TH1F* h_VV = (TH1F*) h_WW->Clone("VV_"+var_in);
-	    h_VV->Add(h_WZ);
-	    h_VV->Add(h_ZZ);
-	    //h_VV -> SetName("VV_"+var_in);
-	    h_VV->Write();
-	    
-	    TH1F* h_data = (TH1F*) file_in_data -> Get("Bkg_"+var_in);
-	    h_data->Rebin(rebin);
-	    h_data -> SetName("data_"+var_in);
-	    h_data->Write();
-	    
-	    if ((final || wjets_pre) && categ[m] == "pass") {
-	      cout << file_in_fakes->GetName() << " " << "faketau_"+var_in <<  endl;
-	      TH1F* h_fakes = (TH1F*) file_in_fakes -> Get("faketau_"+var_in);
-	      h_fakes->Rebin(rebin);
-	      h_fakes->Write();
-	    }
-	  }
-	}
+	      cout << var_in << endl;
+	      
+	      if (final || option_name == "quick_test" || option_name == "Fakes") {
+	        TH1F* h_DYSig = MC_histo("Sig_", dir_in, var_in, file_in_DY, xs_DY, N_DY, rebin);
+		h_DYSig->SetName("DYS_"+var_in);
+		h_DYSig->SetTitle("DYS_"+var_in);
+		
+	        h_DYSig->Write();
+
+		if (m==0) {
+		  if (j==0 && k==0 && p==0) h_cons["DYS"] = (TH1F*) h_DYSig->Clone("DYS_"+vars[i]+"_allDMs_alleta_allpt_"+ HPS_WP[l]+"_"+categ[m]);
+		  else h_cons["DYS"]->Add(h_DYSig);
+
+		  if (j==0 && k==0) h_cons_bypt[p]["DYS"] = (TH1F*) h_DYSig->Clone("DYS_"+vars[i]+"_allDMs_alleta_"+ptrange[p]+"_"+ HPS_WP[l]+"_"+categ[m]);
+		  else h_cons_bypt[p]["DYS"]->Add(h_DYSig);
+
+		  if (p==0) h_cons_byDMeta[j][k]["DYS"] = (TH1F*) h_DYSig->Clone("DYS_"+vars[i]+"_"+dms[j]+"_"+eta[k]+"_allpt_"+ HPS_WP[l]+"_"+categ[m]);
+		  else h_cons_byDMeta[j][k]["DYS"]->Add(h_DYSig);
+		}
+	      }
+	      
+	      
+	      TH1F* h_DYBkg = MC_histo("Bkg_", dir_in, var_in, file_in_DY, xs_DY, N_DY, rebin);
+	      h_DYBkg->SetName("DYB_"+var_in);
+	      
+	      h_DYBkg->Write();
+
+	      if (m==0) {
+		if (j==0 && k==0 && p==0) h_cons["DYB"] = (TH1F*) h_DYBkg->Clone("DYB_"+vars[i]+"_allDMs_alleta_allpt_"+ HPS_WP[l]+"_"+categ[m]);
+		else h_cons["DYB"]->Add(h_DYBkg);
+		
+		if (j==0 && k==0) h_cons_bypt[p]["DYB"] = (TH1F*) h_DYBkg->Clone("DYB_"+vars[i]+"_allDMs_alleta_"+ptrange[p]+"_"+ HPS_WP[l]+"_"+categ[m]);
+		else h_cons_bypt[p]["DYB"]->Add(h_DYBkg);
+		
+		if (p==0) h_cons_byDMeta[j][k]["DYB"] = (TH1F*) h_DYBkg->Clone("DYB_"+vars[i]+"_"+dms[j]+"_"+eta[k]+"_allpt_"+ HPS_WP[l]+"_"+categ[m]);
+		else h_cons_byDMeta[j][k]["DYB"]->Add(h_DYBkg);
+	      }
+	      
+
+	      //TH1F* h_WJets = (TH1F*) file_in_WJets -> Get("Bkg_"+var_in); //already normed
+	      //h_WJets->Rebin(rebin);
+	      //if (option_name != "Wjets_pre" && option_name != "WJets_pre") h_WJets->Scale(Wjets_scale_factor[k][j]);
+	      //h_WJets -> SetName("WJets_"+var_in);
+	      //h_WJets->Write();
+      	      
+	      /*if (option_name == "Wjets_pre" || option_name == "Wjets_post" || option_name == "WJets_pre" || option_name == "WJets_post" || option_name == "quick_test" || option_name == "QCD_control" || antimu) {
+	        vector<TH1F*> h_QCD_vector;
+	        for (unsigned int iBin = 0; iBin<QCD_files.size(); ++iBin) {
+	          h_QCD_vector.push_back( MC_histo("Bkg_", dir_in, var_in, QCD_files[iBin], xs_QCD[iBin], N_QCD[iBin], rebin) );
+	        }
+	        TH1F* h_QCD = (TH1F*) h_QCD_vector[0]->Clone("QCD_"+var_in);
+	        for (unsigned int iBin = 1; iBin<QCD_files.size(); ++iBin) {
+	          h_QCD->Add(h_QCD_vector[iBin]);
+	        }
+	        h_QCD->Write();
+	        }*/
+	      
+	      TH1F* h_TT_had = MC_histo("Bkg_", dir_in, var_in, file_in_TT_had, xs_TT_had, N_TT_had, rebin);
+	      TH1F* h_TT_semilep = MC_histo("Bkg_", dir_in, var_in, file_in_TT_semilep, xs_TT_semilep, N_TT_semilep, rebin);
+	      TH1F* h_TT_2l2nu = MC_histo("Bkg_", dir_in, var_in, file_in_TT_2l2nu, xs_TT_2l2nu, N_TT_2l2nu, rebin);
+	      TH1F* h_TTBkg = (TH1F*) h_TT_had->Clone("TTB_"+var_in);
+	      h_TTBkg->Add(h_TT_semilep);
+	      h_TTBkg->Add(h_TT_2l2nu);
+
+	      h_TTBkg->Write();
+	      
+	      if (m==0) {
+		if (j==0 && k==0 && p==0) h_cons["TTB"] = (TH1F*) h_TTBkg->Clone("TTB_"+vars[i]+"_allDMs_alleta_allpt_"+ HPS_WP[l]+"_"+categ[m]);
+		else h_cons["TTB"]->Add(h_TTBkg);
+		
+		if (j==0 && k==0) h_cons_bypt[p]["TTB"] = (TH1F*) h_TTBkg->Clone("TTB_"+vars[i]+"_allDMs_alleta_"+ptrange[p]+"_"+ HPS_WP[l]+"_"+categ[m]);
+		else h_cons_bypt[p]["TTB"]->Add(h_TTBkg);
+		
+		if (p==0) h_cons_byDMeta[j][k]["TTB"] = (TH1F*) h_TTBkg->Clone("TTB_"+vars[i]+"_"+dms[j]+"_"+eta[k]+"_allpt_"+ HPS_WP[l]+"_"+categ[m]);
+		else h_cons_byDMeta[j][k]["TTB"]->Add(h_TTBkg);
+	      }
+
+
+	      TH1F* h_WW = MC_histo("Bkg_", dir_in, var_in, file_in_WW, xs_WW, N_WW, rebin);
+	      TH1F* h_WZ = MC_histo("Bkg_", dir_in, var_in, file_in_WZ, xs_WZ, N_WZ, rebin);
+	      TH1F* h_ZZ = MC_histo("Bkg_", dir_in, var_in, file_in_ZZ, xs_ZZ, N_ZZ, rebin);
+	      TH1F* h_VV = (TH1F*) h_WW->Clone("VV_"+var_in);
+	      h_VV->Add(h_WZ);
+	      h_VV->Add(h_ZZ);
+	      //h_VV -> SetName("VV_"+var_in);
+
+	      h_VV->Write();
+	      
+	      if (m==0) {
+		if (j==0 && k==0 && p==0) h_cons["VV"] = (TH1F*) h_VV->Clone("VV_"+vars[i]+"_allDMs_alleta_allpt_"+ HPS_WP[l]+"_"+categ[m]);
+		else h_cons["VV"]->Add(h_VV);
+		
+		if (j==0 && k==0) h_cons_bypt[p]["VV"] = (TH1F*) h_VV->Clone("VV_"+vars[i]+"_allDMs_alleta_"+ptrange[p]+"_"+ HPS_WP[l]+"_"+categ[m]);
+		else h_cons_bypt[p]["VV"]->Add(h_VV);
+		
+		if (p==0) h_cons_byDMeta[j][k]["VV"] = (TH1F*) h_VV->Clone("VV_"+vars[i]+"_"+dms[j]+"_"+eta[k]+"_allpt_"+ HPS_WP[l]+"_"+categ[m]);
+		else h_cons_byDMeta[j][k]["VV"]->Add(h_VV);
+	      }
+
+
+	      TH1F* h_data = (TH1F*) file_in_data -> Get(HPS_WP[l]+"/Bkg_"+var_in);
+	      h_data->Rebin(rebin);
+	      h_data -> SetName("data_"+var_in);
+
+	      h_data->Write();
+	      
+	      if (m==0) {
+		if (j==0 && k==0 && p==0) h_cons["data"] = (TH1F*) h_data->Clone("data_"+vars[i]+"_allDMs_alleta_allpt_"+ HPS_WP[l]+"_"+categ[m]);
+		else h_cons["data"]->Add(h_data);
+		
+		if (j==0 && k==0) h_cons_bypt[p]["data"] = (TH1F*) h_data->Clone("data_"+vars[i]+"_allDMs_alleta_"+ptrange[p]+"_"+ HPS_WP[l]+"_"+categ[m]);
+		else h_cons_bypt[p]["data"]->Add(h_data);
+		
+		if (p==0) h_cons_byDMeta[j][k]["data"] = (TH1F*) h_data->Clone("data_"+vars[i]+"_"+dms[j]+"_"+eta[k]+"_allpt_"+ HPS_WP[l]+"_"+categ[m]);
+		else h_cons_byDMeta[j][k]["data"]->Add(h_data);
+	      }
+
+
+	      if ((final || wjets_pre) && categ[m] == "pass") {
+	        cout << file_in_fakes->GetName() << " " << "faketau_"+var_in <<  endl;
+	        TH1F* h_fakes = (TH1F*) file_in_fakes -> Get(HPS_WP[l]+"/faketau_"+var_in);
+	        h_fakes->Rebin(rebin);
+
+	        h_fakes->Write();
+
+		if (m==0) {
+		  if (j==0 && k==0 && p==0) h_cons["faketau"] = (TH1F*) h_fakes->Clone("faketau_"+vars[i]+"_allDMs_alleta_allpt_"+ HPS_WP[l]+"_"+categ[m]);
+		  else h_cons["faketau"]->Add(h_fakes);
+		  
+		  if (j==0 && k==0) h_cons_bypt[p]["faketau"] = (TH1F*) h_fakes->Clone("faketau_"+vars[i]+"_allDMs_alleta_"+ptrange[p]+"_"+ HPS_WP[l]+"_"+categ[m]);
+		  else h_cons_bypt[p]["faketau"]->Add(h_fakes);
+		  
+		  if (p==0) h_cons_byDMeta[j][k]["faketau"] = (TH1F*) h_fakes->Clone("faketau_"+vars[i]+"_"+dms[j]+"_"+eta[k]+"_allpt_"+ HPS_WP[l]+"_"+categ[m]);
+		  else h_cons_byDMeta[j][k]["faketau"]->Add(h_fakes);
+		}
+	      }
+	    }//p
+	  }//m
+	  for (unsigned int dd=0; dd<process.size(); ++dd) h_cons_byDMeta[j][k][process[dd]]->Write();
+	}//k
+      }//j
+      for (unsigned int dd=0; dd<process.size(); ++dd) {
+	h_cons[process[dd]]->Write();
+	for (unsigned int p=0; p<ptrange.size(); ++p) h_cons_bypt[p][process[dd]]->Write();
       }
-    }
+    }//i
+    work_dir->Close();
   }
   file_out->Close();
 

@@ -53,8 +53,11 @@ void SyncTree::Loop(string in_name, string out_name) {
       Long64_t ientry = LoadTree(jentry);
       if (ientry < 0) break;
       if (jentry % 1000 == 0) fprintf(stdout, "\r  Processed events: %8d of %8d ", jentry, nentries);
+      nb = fChain->GetEntry(jentry);
+      nbytes += nb;
 
-      event_file << run << ", " << lumi << ", " << evt << endl;
+
+      event_file << jentry << ", "  << lumi << ", " << evt << endl;
 
    }
 }

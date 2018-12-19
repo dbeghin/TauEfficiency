@@ -13,7 +13,8 @@ def add_lumi():
     lumi.SetTextColor(    1 )
     lumi.SetTextSize(0.06)
     lumi.SetTextFont (   42 )
-    lumi.AddText("2017, 40.08 fb^{-1} (13 TeV)")
+    #lumi.AddText("2017, 41.5 fb^{-1} (13 TeV)") #FIXME
+    lumi.AddText("2017, 38.93 fb^{-1} (13 TeV)")
     return lumi
 
 def add_CMS():
@@ -94,21 +95,21 @@ eta.append("endcap")
 
 for k in range (0,nvar):
     for l in range (0,len(dms)):
-        if k<len_tau and l>0: break
         for m in range (0,len(eta)):
             var_in_MC = ""
             var_in_data = ""
             var_in = ""
             if k<len_tau:
-                var_in_MC = var[k]+"_MC_total"
-                var_in_data = var[k]+"_data_total"
-                var_in = var[k]+"_total"
+                var_in_MC = var[k]+"_MC_MVA_2017v2tight_"+dms[l]+"_total"
+                var_in_data = var[k]+"_data_MVA_2017v2tight_"+dms[l]+"_total"
+                var_in = var[k]+"_MVA_2017v2tight_"+dms[l]+"_total"
                 if m>0: break
             else:
-                var_in_MC = var[k]+"_MC_"+dms[l]+"_"+eta[m]
-                var_in_data = var[k]+"_data_"+dms[l]+"_"+eta[m]
-                var_in = var[k]+"_"+dms[l]+"_"+eta[m]
+                var_in_MC = var[k]+"_MC_MVA_2017v2tight_"+dms[l]+"_"+eta[m]
+                var_in_data = var[k]+"_data_MVA_2017v2tight_"+dms[l]+"_"+eta[m]
+                var_in = var[k]+"_MVA_2017v2tight_"+dms[l]+"_"+eta[m]
             print var_in
+            print var_in_data
             Data=file.Get(var_in_data)
             MC=file.Get(var_in_MC)
             
@@ -159,8 +160,8 @@ for k in range (0,nvar):
             pad1.SetFrameBorderSize(10)
             
             Data.GetXaxis().SetLabelSize(0)
-            Data.SetMaximum(Data.GetMaximum()*1.2)#2.5)#FIXME
-            Data.SetMinimum(0.1)
+            Data.SetMaximum(1)#2.5)#FIXME
+            Data.SetMinimum(0.01)
             Data.Draw("e")
             MC.Draw("esame")
             #errorBand.Draw("e2same")

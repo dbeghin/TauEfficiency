@@ -23,13 +23,6 @@ int main(int argc, char** argv) {
   tauID.push_back("cutbased_medium");
   tauID.push_back("cutbased_tight");
 
-  tauID.push_back("MVA_2016vloose");
-  tauID.push_back("MVA_2016loose");
-  tauID.push_back("MVA_2016medium");
-  tauID.push_back("MVA_2016tight");
-  tauID.push_back("MVA_2016vtight");
-  tauID.push_back("MVA_2016vvtight");
-
   tauID.push_back("MVA_2017v1vvloose");
   tauID.push_back("MVA_2017v1vloose");
   tauID.push_back("MVA_2017v1loose");
@@ -46,14 +39,43 @@ int main(int argc, char** argv) {
   tauID.push_back("MVA_2017v2vtight");
   tauID.push_back("MVA_2017v2vvtight");
 
+  tauID.push_back("MVA_DBdR03vloose");
+  tauID.push_back("MVA_DBdR03loose");                                                  
+  tauID.push_back("MVA_DBdR03medium");                                                  
+  tauID.push_back("MVA_DBdR03tight");                                                  
+  tauID.push_back("MVA_DBdR03vtight");                                                  
+  tauID.push_back("MVA_DBdR03vvtight");                                                 
+
+  tauID.push_back("MVA_PWdR03vloose");
+  tauID.push_back("MVA_PWdR03loose");
+  tauID.push_back("MVA_PWdR03medium");
+  tauID.push_back("MVA_PWdR03tight");
+  tauID.push_back("MVA_PWdR03vtight");
+  tauID.push_back("MVA_PWdR03vvtight");
+
+
+  vector<TString> dms;
+  dms.push_back("allDMs");
+  dms.push_back("DM0");
+  dms.push_back("DM1");
+  dms.push_back("DM10");
+
+  vector<TString> eta;
+  eta.push_back("alleta");
+  eta.push_back("barrel");
+  eta.push_back("endcap");
+
+  vector<TString> ptrange;
+  ptrange.push_back("allpt");
+  ptrange.push_back("pt_20_40");
+  ptrange.push_back("pt_40_150");
+
 
   vector<TString> in_names,                       out_names;
   in_names.push_back("faketau_ev_Mvis");	  out_names.push_back("faketau");
   in_names.push_back("DYS_ev_Mvis");              out_names.push_back("DYS");  
   in_names.push_back("DYB_ev_Mvis");  		  out_names.push_back("DYB");  
-  //in_names.push_back("QCD_ev_Mvis");  		  out_names.push_back("QCD");  
   in_names.push_back("VV_ev_Mvis");   		  out_names.push_back("VV");   
-  //in_names.push_back("TTS_ev_Mvis");   		  out_names.push_back("TTS");   
   in_names.push_back("TTB_ev_Mvis");   		  out_names.push_back("TTB");   
   in_names.push_back("data_ev_Mvis"); 		  out_names.push_back("data_obs");
 
@@ -78,106 +100,80 @@ int main(int argc, char** argv) {
 
 
   for (unsigned int i=0; i<tauID.size(); ++i) {
-    TFile* file_out = new TFile("prefit_histos_"+tauID[i]+".root", "RECREATE");
-    file_out->cd();
+    for (unsigned int l=0; l<dms.size(); ++l) {
+      for (unsigned int m=0; m<eta.size(); ++m) {
+	for (unsigned int p=0; p<ptrange.size(); ++p) {
+	  TString fileID = dms[l]+"_"+eta[m]+"_"+ptrange[p]+"_"+tauID[i];
+	  TH1F* h0 = (TH1F*) file_in_mutau->Get(tauID[i]+"/data_ev_Mvis_"+fileID+"_pass");
+	  cout << tauID[i]+"/data_ev_Mvis_"+fileID+"_pass" << endl;
+	  if (h0 == 0) continue;
+	  TFile* file_out = new TFile("HistosForCombine/prefit_histos_"+fileID+".root", "RECREATE");
+	  file_out->cd();
 
 
-    TDirectory* pass_dir = file_out->mkdir("pass");
-    pass_dir->cd();
-    for (unsigned int j=0; j<in_names.size(); ++j) {
-      for (unsigned int k=0; k<in_sys.size(); ++k) {
-	TH1F* h = (TH1F*) file_in_mutau->Get(in_names[j]+"_"+in_sys[k]+tauID[i]+"_pass");
-	h->Rebin(rebin);
-	TH1F* h2 = new TH1F(h->GetName(), h->GetTitle(), Nbins, firstbin, lastbin);
-	int ll=0;
-	for (unsigned int l=1; l<h->GetNbinsX()+1; ++l) {
-	  if (h->GetXaxis()->GetBinCenter(l) < firstbin) continue;
-	  ll += 1;
-	  float bin_content = h->GetBinContent(l);
-	  if (bin_content <= 0) {
-	    h2->SetBinContent(ll, 0);
+	  TDirectory* pass_dir = file_out->mkdir("pass");
+	  pass_dir->cd();
+	  for (unsigned int j=0; j<in_names.size(); ++j) {
+	    for (unsigned int k=0; k<in_sys.size(); ++k) {
+	      cout << in_names[j]+"_"+in_sys[k]+fileID+"_pass" << endl;
+	      TH1F* h = (TH1F*) file_in_mutau->Get(tauID[i]+"/"+in_names[j]+"_"+in_sys[k]+fileID+"_pass");
+	      h->Rebin(rebin);
+	      TH1F* h2 = new TH1F(h->GetName(), h->GetTitle(), Nbins, firstbin, lastbin);
+	      int ll=0;
+	      for (unsigned int l=1; l<h->GetNbinsX()+1; ++l) {
+		if (h->GetXaxis()->GetBinCenter(l) < firstbin) continue;
+		ll += 1;
+		float bin_content = h->GetBinContent(l);
+		if (bin_content <= 0) {
+		  h2->SetBinContent(ll, 0);
+		}
+		else {
+		  h2->SetBinContent(ll, bin_content);
+		}
+		float bin_error = h->GetBinError(l);
+		h2->SetBinError(ll, bin_error);
+	      }
+	      h2->SetName(out_names[j]+out_sys[k]);
+	      if (out_names[j] == "data_obs" && k >0) continue;
+	      h2->Write();
+	    }
 	  }
-	  else {
-	    h2->SetBinContent(ll, bin_content);
+	  pass_dir->Close();
+
+
+
+	  TDirectory* Zmumu_dir = file_out->mkdir("zmumu");
+	  Zmumu_dir->cd();
+	  for (unsigned int j=0; j<in_names.size(); ++j) {
+	    TString inn = in_names[j];
+	    if (j==0) inn = in_names[1];
+	    TH1F* h = (TH1F*) file_in_mumu->Get(inn);
+	    TH1F* h2 = new TH1F(h->GetName(), h->GetTitle(), 1, 60, 120);
+	    int ll=0;
+	    for (unsigned int l=1; l<h->GetNbinsX()+1; ++l) {
+	      //if (h->GetXaxis()->GetBinCenter(l) < 35) continue;
+	      ll += 1;
+	      float bin_content = h->GetBinContent(l);
+	      if (j==0) bin_content = 0;
+	      if (bin_content <= 0) {
+		h2->SetBinContent(ll, 0);
+	      }
+	      else {
+		h2->SetBinContent(ll, bin_content);
+	      }
+	      float bin_error = h->GetBinError(l);
+	      h2->SetBinError(ll, bin_error);
+	    }
+	    h2->SetName(out_names[j]);
+	    h2->Write();
 	  }
-	  float bin_error = h->GetBinError(l);
-	  h2->SetBinError(ll, bin_error);
+	  Zmumu_dir->Close();
+
+
+	  file_out->Close();
 	}
-	h2->SetName(out_names[j]+out_sys[k]);
-	if (out_names[j] == "data_obs" && k >0) continue;
-	h2->Write();
       }
     }
-    pass_dir->Close();
-
-
-
-    /*TDirectory* fail_dir = file_out->mkdir("fail");
-    fail_dir->cd();
-    for (unsigned int j=0; j<in_names.size(); ++j) {
-      for (unsigned int k=0; k<in_sys.size(); ++k) {
-	TH1F* h = (TH1F*) file_in_mutau->Get(in_names[j]+"_"+in_sys[k]+tauID[i]+"_fail");
-	h->Rebin(rebin);
-	TH1F* h2 = new TH1F(h->GetName(), h->GetTitle(), Nbins, firstbin, lastbin);
-	int ll=0;
-	float last_bin_error = 10;
-	for (unsigned int l=1; l<h->GetNbinsX()+1; ++l) {
-	  if (h->GetXaxis()->GetBinCenter(l) < firstbin) continue;
-	  ll += 1;
-	  float bin_content = h->GetBinContent(l);
-	  if (bin_content <= 0) {
-	    h2->SetBinContent(ll, 0);
-	  }
-	  else {
-	    h2->SetBinContent(ll, bin_content);
-	  }
-	  float bin_error = h->GetBinError(l);
-	  if (bin_error == 0) {
-	    bin_error = last_bin_error;
-	  }
-	  else {
-	    last_bin_error = bin_error;
-	  }
-	  //if (bin_error = 10) cout << bin_error << endl;
-	  h2->SetBinError(ll, bin_error);
-	}
-	h2->SetName(out_names[j]+out_sys[k]);
-	if (out_names[j] == "data_obs" && k >0) continue;
-	h2->Write();
-      }
-    }
-    fail_dir->Close();*/
-
-
-    TDirectory* Zmumu_dir = file_out->mkdir("zmumu");
-    Zmumu_dir->cd();
-    for (unsigned int j=0; j<in_names.size(); ++j) {
-      TString inn = in_names[j];
-      if (j==0) inn = in_names[1];
-      TH1F* h = (TH1F*) file_in_mumu->Get(inn);
-      TH1F* h2 = new TH1F(h->GetName(), h->GetTitle(), 1, 60, 120);
-      int ll=0;
-      for (unsigned int l=1; l<h->GetNbinsX()+1; ++l) {
-	//if (h->GetXaxis()->GetBinCenter(l) < 35) continue;
-	ll += 1;
-	float bin_content = h->GetBinContent(l);
-	if (j==0) bin_content = 0;
-	if (bin_content <= 0) {
-	  h2->SetBinContent(ll, 0);
-	}
-	else {
-	  h2->SetBinContent(ll, bin_content);
-	}
-	float bin_error = h->GetBinError(l);
-	h2->SetBinError(ll, bin_error);
-      }
-      h2->SetName(out_names[j]);
-      h2->Write();
-    }
-    Zmumu_dir->Close();
-
-
-    file_out->Close();
   }
 
 

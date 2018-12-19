@@ -34,12 +34,13 @@ if __name__ == "__main__":
         #command1 = command1 + "export workdir=/user/dbeghin/Work/POGTau/ " + "\n"  #Set your working directory, where the code is located
         #command1 = command1 + "cd $workdir"
         outFile.write(command1)
-        command3 = "qsub -q localgrid@cream02 -o " + "../out_err/"+myname[jj] +".stdout -e " +"../out_err/"+myname[jj] +".stderr -l walltime=10:00:00    " + "../Jobs_to_submit/"+name_out + "\n"  #Command to submit one job to the localgrid
+        command3 = "qsub -q localgrid@cream02 -o " + "../out_err/"+myname[jj] +".stdout -e " +"../out_err/"+myname[jj] +".stderr -l walltime=05:00:00    " + "../Jobs_to_submit/"+name_out + "\n"  #Command to submit one job to the localgrid
         submit_File.write(command3)
         ligne=0
 
         #files_per_job = 50  #Set the number of root files per job
-        files_per_job = int(filesperjob[jj])
+        #files_per_job = int(filesperjob[jj])
+        files_per_job = 50
         con_number = 0
         con_name = ""
         scr_name = ""
