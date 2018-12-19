@@ -5,6 +5,7 @@
 #include <string>
 #include "TH1.h"
 #include "TFile.h"
+#include "TDirectory.h"
 #include "TMath.h"
 #include "TSystem.h"
 #include "TCanvas.h"
@@ -64,8 +65,8 @@ int main(int argc, char** argv) {
   vars.push_back("tau_pt_MESup");
   vars.push_back("ev_Mvis_MinBiasdown");
   vars.push_back("ev_Mvis_MinBiasup");
-  vars.push_back("ev_Nvertex_MinBiasdown");
-  vars.push_back("ev_Nvertex_Minbiasup");
+  //vars.push_back("ev_Nvertex_MinBiasdown");
+  //vars.push_back("ev_Nvertex_Minbiasup");
   vars.push_back("ev_Mvis_FRS_DM0_down");
   vars.push_back("ev_Mvis_FRS_DM0_up");
   vars.push_back("tau_pt_FRS_DM0_down");
@@ -123,28 +124,34 @@ int main(int argc, char** argv) {
   HPS_WP.push_back("MVA_PWdR03vvtight");
 
   vector<TString> dms;
-  dms.push_back("allDMs");
-  //dms.push_back("DM0");
-  //dms.push_back("DM1");
-  //dms.push_back("DM10");
+  //dms.push_back("allDMs");
+  dms.push_back("DM0");
+  dms.push_back("DM1");
+  dms.push_back("DM10");
 
   vector<TString> eta;
-  eta.push_back("fulletarange");
-  //eta.push_back("barrel");
-  //eta.push_back("endcap");
+  //eta.push_back("fulletarange");
+  eta.push_back("barrel");
+  eta.push_back("endcap");
+
+  vector<TString> ptrange;
+  ptrange.push_back("pt_20_40");
+  ptrange.push_back("pt_40_150");
 
 
 
   //retrieve histograms from all control regions
   //only for CR4 (1) do we care to have all histos
-  vector<TH1F*> h[names.size()][vars.size()][dms.size()][eta.size()];
+  vector<TH1F*> h[names.size()][vars.size()][dms.size()][eta.size()][HPS_WP.size()];
   for (unsigned int i=0; i<names.size(); ++i) {
     for (unsigned int j=0; j<vars.size(); ++j) {
       for (unsigned int k=0; k<dms.size(); ++k) {
 	for (unsigned int l=0; l<eta.size(); ++l) {
 	  for (unsigned int m=0; m<HPS_WP.size(); ++m) {
-	    h[i][j][k][l].push_back( (TH1F*) file_in->Get(names[i]+vars[j]+"_"+dms[k]+"_"+eta[l]+"_"+HPS_WP[m]+"_fail") );
-	    h[i][j][k][l][m]->SetName(names[i]+vars[j]+"_"+dms[k]+"_"+eta[l]+"_"+HPS_WP[m]);
+	    for (unsigned int p=0; p<ptrange.size(); ++p) {
+	      h[i][j][k][l][m].push_back( (TH1F*) file_in->Get(HPS_WP[m]+"/"+names[i]+vars[j]+"_"+dms[k]+"_"+eta[l]+"_"+ptrange[p]+"_"+HPS_WP[m]+"_fail") );
+	      h[i][j][k][l][m][p]->SetName(names[i]+vars[j]+"_"+dms[k]+"_"+eta[l]+"_"+ptrange[p]+"_"+HPS_WP[m]);
+	    }
 	  }
 	}
       }
@@ -154,19 +161,24 @@ int main(int argc, char** argv) {
 
   file_out->cd();
   for (unsigned int m=0; m<HPS_WP.size(); ++m) {
+    TDirectory* work_dir = file_out->mkdir(HPS_WP[m]);
+    work_dir->cd();
     for (unsigned int l=0; l<eta.size(); ++l) {
       for (unsigned int k=0; k<dms.size(); ++k) {
 	for (unsigned int j=0; j<vars.size(); ++j) {
-	  TH1F* h_faketau = (TH1F*) h[0][j][k][l][m]->Clone("faketau_"+vars[j]+"_"+dms[k]+"_"+eta[l]+"_"+HPS_WP[m]+"_pass");
-	  for (unsigned int i=1; i<names.size(); ++i) h_faketau->Add(h[i][j][k][l][m], -1);//subtract all real tau bg
+	  for (unsigned int p=0; p<ptrange.size(); ++p) {
+	    TH1F* h_faketau = (TH1F*) h[0][j][k][l][m][p]->Clone("faketau_"+vars[j]+"_"+dms[k]+"_"+eta[l]+"_"+ptrange[p]+"_"+HPS_WP[m]+"_pass");
+	    for (unsigned int i=1; i<names.size(); ++i) h_faketau->Add(h[i][j][k][l][m][p], -1);//subtract all real tau bg
 
-	  for (unsigned int iBin = 0; iBin<h_faketau->GetNbinsX(); ++iBin) {
-	    if (h_faketau->GetBinContent(iBin) < 0) h_faketau->SetBinContent(iBin,0);
+	    for (unsigned int iBin = 0; iBin<h_faketau->GetNbinsX(); ++iBin) {
+	      if (h_faketau->GetBinContent(iBin) < 0) h_faketau->SetBinContent(iBin,0);
+	    }
+	    h_faketau->Write();
 	  }
-	  h_faketau->Write();
 	}
       }
     }
+    work_dir->Close();
   }
   file_out->Close();
 

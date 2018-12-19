@@ -687,6 +687,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 	  if (!cut_zeta) continue;
 	  
 	  if(Mt_accept) {
+	    if (tau_byTightIsolationMVArun2017v2DBoldDMwLT2017->at(iTau) < 0.5) continue;
 	    found_mutau_pair = true;
 
 	    run = ev_run;	      

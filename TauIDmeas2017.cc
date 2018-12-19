@@ -5,6 +5,7 @@
 #include <TLorentzVector.h>
 //#include <TCanvas.h>
 #include "TString.h"
+#include "TDirectory.h"
 //#include "MC_pileup_weight2017.cc"
 #include <iostream>
 #include <fstream>
@@ -278,32 +279,44 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
    HPS_WP.push_back("MVA_PWdR03vvtight");
    int nTauIDs = HPS_WP.size();
 
-   vector<TString> passfail;
-   passfail.push_back("pass"); int l_pass=passfail.size()-1;
-   passfail.push_back("fail"); int l_fail=passfail.size()-1;
+   vector<TString> passfail;   
+   passfail.push_back("pass");
+   passfail.push_back("fail");
+   map<TString, int> pass_map;
+   for (unsigned int iPass=0; iPass<passfail.size(); ++iPass) pass_map[passfail[iPass]] = iPass;
 
    vector<TString> dms;
-   dms.push_back("allDMs");
-   //dms.push_back("DM0");    int m_DM0=dms.size()-1;
-   //dms.push_back("DM1");    int m_DM1=dms.size()-1;
-   //dms.push_back("DM10");   int m_DM10=dms.size()-1;
+   dms.push_back("DM0");
+   dms.push_back("DM1");
+   dms.push_back("DM10");
+   map<TString, int> dms_map;
+   for (unsigned int iDM=0; iDM<dms.size(); ++iDM) dms_map[dms[iDM]] = iDM;
 
    vector<TString> eta;
-   eta.push_back("fulletarange");
-   //eta.push_back("barrel"); int n_barrel=eta.size()-1;
-   //eta.push_back("endcap"); int n_endcap=eta.size()-1;
+   eta.push_back("barrel");
+   eta.push_back("endcap");
+   map<TString, int> eta_map;
+   for (unsigned int iEta=0; iEta<eta.size(); ++iEta) eta_map[eta[iEta]] = iEta;
+
+   vector<TString> ptrange;
+   ptrange.push_back("pt_20_40");
+   ptrange.push_back("pt_40_150");
+   map<TString, int> ptrange_map;
+   for (unsigned int iPt=0; iPt<ptrange.size(); ++iPt) ptrange_map[ptrange[iPt]] = iPt;
 
 
-   vector<TH1F*> htau[eta.size()][dms.size()][passfail.size()][taun][nTauIDs];
+   vector<TH1F*> htau[ptrange.size()][eta.size()][dms.size()][passfail.size()][taun][nTauIDs];
    for (unsigned int i = 0; i<htau_names.size(); ++i) {
      for (unsigned int j = 0; j<nTauIDs ; ++j) {
        for (unsigned int k = 0; k<taun; ++k) {
 	 for (unsigned int l = 0; l<passfail.size(); ++l) {
 	   for (unsigned int m = 0; m<dms.size(); ++m) {
 	     for (unsigned int n = 0; n<eta.size(); ++n) {
-	       TString nname_h = bkg_or_sig[k]+"_"+htau_names[i]+"_"+dms[m]+"_"+eta[n]+"_"+HPS_WP[j]+"_"+passfail[l];
-	       htau[n][m][l][k][j].push_back( new TH1F(nname_h, nname_h, nBins_tau[i], x_min_tau[i], x_max_tau[i]) ); 
-	       htau[n][m][l][k][j][i]->Sumw2();
+	       for (unsigned int p = 0; p<ptrange.size(); ++p) {
+		 TString nname_h = bkg_or_sig[k]+"_"+htau_names[i]+"_"+dms[m]+"_"+eta[n]+"_"+ptrange[p]+"_"+HPS_WP[j]+"_"+passfail[l];
+		 htau[p][n][m][l][k][j].push_back( new TH1F(nname_h, nname_h, nBins_tau[i], x_min_tau[i], x_max_tau[i]) ); 
+		 htau[p][n][m][l][k][j][i]->Sumw2();
+	       }
 	     }
 	   }
 	 }
@@ -804,31 +817,26 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 	      TString str_dm = "", str_eta = "";
 	      int m_dm = -1, n_eta = -1;
 	      if (tau_decayMode->at(iTau) == 0) {
-		//m_dm = m_DM0;
 		str_dm = "DM0";
 	      }
 	      else if (tau_decayMode->at(iTau) == 1) {
-		//m_dm = m_DM1;
 		str_dm = "DM1";
 	      }
 	      else if (tau_decayMode->at(iTau) == 10) {
-		//m_dm = m_DM10;
 		str_dm = "DM10";
 	      }
 	      else {
 		continue;
 	      }
+	      m_dm = dms_map[str_dm];
+
 	      if (fabs(tau_eta->at(iTau)) < 1.5) {
-		//n_eta = n_barrel;
 		str_eta = "barrel";
 	      }
 	      else {
-		//n_eta = n_endcap;
 		str_eta = "endcap";
 	      }
-	      n_eta = 0;
-	      m_dm = 0;//FIXME
-
+	      n_eta = eta_map[str_eta];
 
 
 	      tau_p4.SetPtEtaPhiE(tau_pt->at(iTau), tau_eta->at(iTau), tau_phi->at(iTau), tau_energy->at(iTau));
@@ -877,6 +885,14 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 	      
 	      if (tau_p4.Pt() < 20.0) continue;
 	      
+	      int p_pt = -1;
+	      if (tau_p4.Pt() >= 20 && tau_p4.Pt() < 40) {
+		p_pt = ptrange_map["pt_20_40"];
+	      }
+	      else if (tau_p4.Pt() >= 40) {
+		p_pt = ptrange_map["pt_40_150"];
+	      }
+
 	      
 	      //Pzeta calculation
 	      float norm_zeta= norm_F( tau_p4.Px()/tau_p4.Pt()+mu_p4.Px()/mu_p4.Pt(), tau_p4.Py()/tau_p4.Pt()+mu_p4.Py()/mu_p4.Pt() );
@@ -957,10 +973,10 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 	        int iPass = -1;
 
 	        if (tauIDvalues_map[HPS_WP[iValue]] > 0.5) {
-		  iPass = 0;
+		  iPass = pass_map["pass"];
 	        }
 	        else {
-		  iPass = 1;
+		  iPass = pass_map["fail"];
 	        }
 	      
 	        //fake rate method
@@ -986,48 +1002,48 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 		if (final_weight != final_weight) continue;
 	      
 		if (iTES == iTES_nope) {
-		  if (Mt_accept && (iMES == iMES_down || !fakemu_match)) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_MESdown"]]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept && (iMES == iMES_up || !fakemu_match))   htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_MESup"]]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept && (iMES == iMES_down || !fakemu_match)) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_MESdown"]]->Fill(tau_p4.Pt(), final_weight);
-		  if (Mt_accept && (iMES == iMES_up || !fakemu_match))   htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_MESup"]]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept && (iMES == iMES_down || !fakemu_match)) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_MESdown"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept && (iMES == iMES_up || !fakemu_match))   htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_MESup"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept && (iMES == iMES_down || !fakemu_match)) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_MESdown"]]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept && (iMES == iMES_up || !fakemu_match))   htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_MESup"]]->Fill(tau_p4.Pt(), final_weight);
 		}
 		if (iMES != iMES_nope) continue;
 	      
-	        if (Mt_accept && (iTES == iTES_down || !realtau)) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_TESdown"]]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept && (iTES == iTES_up || !realtau))   htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_TESup"]]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept && (iTES == iTES_down || !realtau)) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_TESdown"]]->Fill(tau_p4.Pt(), final_weight);
-	        if (Mt_accept && (iTES == iTES_up || !realtau))   htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_TESup"]]->Fill(tau_p4.Pt(), final_weight);
+	        if (Mt_accept && (iTES == iTES_down || !realtau)) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_TESdown"]]->Fill(vis_p4.M(), final_weight);
+	        if (Mt_accept && (iTES == iTES_up || !realtau))   htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_TESup"]]->Fill(vis_p4.M(), final_weight);
+	        if (Mt_accept && (iTES == iTES_down || !realtau)) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_TESdown"]]->Fill(tau_p4.Pt(), final_weight);
+	        if (Mt_accept && (iTES == iTES_up || !realtau))   htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_TESup"]]->Fill(tau_p4.Pt(), final_weight);
 		if (iTES != iTES_nope) continue;
 
 		//fill text file with the run number etc.
 		if (Mt_accept && iValue==0) event_file << ev_run << ", " << ev_luminosityBlock << ", " << ev_event << endl; 
 		
 		//normal histos
-	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mt"]]->Fill(Mt, final_weight);
-	        if (!SS) if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis"]]->Fill(vis_p4.M(), final_weight);
-	        if (SS) if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_SS"]]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mtot"]]->Fill(total_p4.M(), final_weight);
-	        if (!SS) if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt"]]->Fill(tau_p4.Pt(), final_weight);
-	        if (SS) if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_SS"]]->Fill(tau_p4.Pt(), final_weight);
-	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_eta"]]->Fill(tau_p4.Eta(), final_weight);
-	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_phi"]]->Fill(tau_p4.Phi(), final_weight);
-	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_DM"]]->Fill(tau_decayMode->at(iTau), final_weight);
-	        if (!SS) if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["mu_pt"]]->Fill(mu_gt_pt->at(iMu), final_weight);
-	        if (SS) if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["mu_pt_SS"]]->Fill(mu_gt_pt->at(iMu), final_weight);
-	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["mu_eta"]]->Fill(mu_gt_eta->at(iMu), final_weight);
-	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["mu_phi"]]->Fill(mu_gt_phi->at(iMu), final_weight);
-	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["Z_pt"]]->Fill(total_p4.Pt(), final_weight);
-	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_MET"]]->Fill(met_p4.Pt(), final_weight);
-	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_METphi"]]->Fill(met_p4.Phi(), final_weight);
-	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Nvertex"]]->Fill(pv_n, final_weight);
+	        if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mt"]]->Fill(Mt, final_weight);
+	        if (!SS) if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis"]]->Fill(vis_p4.M(), final_weight);
+	        if (SS) if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_SS"]]->Fill(vis_p4.M(), final_weight);
+	        if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mtot"]]->Fill(total_p4.M(), final_weight);
+	        if (!SS) if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt"]]->Fill(tau_p4.Pt(), final_weight);
+	        if (SS) if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_SS"]]->Fill(tau_p4.Pt(), final_weight);
+	        if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_eta"]]->Fill(tau_p4.Eta(), final_weight);
+	        if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_phi"]]->Fill(tau_p4.Phi(), final_weight);
+	        if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_DM"]]->Fill(tau_decayMode->at(iTau), final_weight);
+	        if (!SS) if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["mu_pt"]]->Fill(mu_gt_pt->at(iMu), final_weight);
+	        if (SS) if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["mu_pt_SS"]]->Fill(mu_gt_pt->at(iMu), final_weight);
+	        if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["mu_eta"]]->Fill(mu_gt_eta->at(iMu), final_weight);
+	        if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["mu_phi"]]->Fill(mu_gt_phi->at(iMu), final_weight);
+	        if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["Z_pt"]]->Fill(total_p4.Pt(), final_weight);
+	        if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_MET"]]->Fill(met_p4.Pt(), final_weight);
+	        if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_METphi"]]->Fill(met_p4.Phi(), final_weight);
+	        if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Nvertex"]]->Fill(pv_n, final_weight);
 
 		//Min Bias variations, change pu weight
 		final_weight = pu_weight_low*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight;
-	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_MinBiasdown"]]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Nvertex_MinBiasdown"]]->Fill(pv_n, final_weight);
+	        if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_MinBiasdown"]]->Fill(vis_p4.M(), final_weight);
+	        if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Nvertex_MinBiasdown"]]->Fill(pv_n, final_weight);
 		final_weight = pu_weight_high*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight;
-	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_MinBiasup"]]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Nvertex_MinBiasup"]]->Fill(pv_n, final_weight);
+	        if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_MinBiasup"]]->Fill(vis_p4.M(), final_weight);
+	        if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Nvertex_MinBiasup"]]->Fill(pv_n, final_weight);
 
 
 		//anti-isolation SFs, which could be different from one
@@ -1040,8 +1056,8 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 		else {
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight*1.0;
 		}		  
-	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_antiisomu_down"]]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_antiisomu_down"]]->Fill(tau_p4.Pt(), final_weight);
+	        if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_antiisomu_down"]]->Fill(vis_p4.M(), final_weight);
+	        if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_antiisomu_down"]]->Fill(tau_p4.Pt(), final_weight);
 
 		if (fakemu_match) {
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight*antiisomu_weight_high;
@@ -1049,8 +1065,8 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 		else {
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight*1.0;
 		}		  
-	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_antiisomu_up"]]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_antiisomu_up"]]->Fill(tau_p4.Pt(), final_weight);
+	        if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_antiisomu_up"]]->Fill(vis_p4.M(), final_weight);
+	        if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_antiisomu_up"]]->Fill(tau_p4.Pt(), final_weight);
 
 
 		double antiisotau_weight_low = 0.9;
@@ -1061,8 +1077,8 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 		else {
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight*1.0;
 		}		  
-	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_antiisotau_down"]]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_antiisotau_down"]]->Fill(tau_p4.Pt(), final_weight);
+	        if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_antiisotau_down"]]->Fill(vis_p4.M(), final_weight);
+	        if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_antiisotau_down"]]->Fill(tau_p4.Pt(), final_weight);
 
 		if (realtau) {
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight*antiisotau_weight_high;
@@ -1070,8 +1086,8 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 		else {
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight*1.0;
 		}		  
-	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_antiisotau_up"]]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_antiisotau_up"]]->Fill(tau_p4.Pt(), final_weight);
+	        if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_antiisotau_up"]]->Fill(vis_p4.M(), final_weight);
+	        if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_antiisotau_up"]]->Fill(tau_p4.Pt(), final_weight);
 
 
 
@@ -1081,68 +1097,68 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 		if (tau_decayMode->at(iTau) == 0) {
 		  //for the histos dedicated to DM0 variation, fill with a different weight
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight_low;
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM0_down"]]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM0_down"]]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM0_down"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM0_down"]]->Fill(tau_p4.Pt(), final_weight);
 
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight_high;
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM0_up"]]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM0_up"]]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM0_up"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM0_up"]]->Fill(tau_p4.Pt(), final_weight);
 
 		  //other histos should be filled with the "normal" weight
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight;
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM1_down"]]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM1_down"]]->Fill(tau_p4.Pt(), final_weight);
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM1_up"]]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM1_up"]]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM1_down"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM1_down"]]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM1_up"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM1_up"]]->Fill(tau_p4.Pt(), final_weight);
 
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM10_down"]]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM10_down"]]->Fill(tau_p4.Pt(), final_weight);
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM10_up"]]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM10_up"]]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM10_down"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM10_down"]]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM10_up"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM10_up"]]->Fill(tau_p4.Pt(), final_weight);
 		}
 		else if (tau_decayMode->at(iTau) == 1) {
 		  //for the histos dedicated to DM1 variation, fill with a different weight
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight_low;
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM1_down"]]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM1_down"]]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM1_down"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM1_down"]]->Fill(tau_p4.Pt(), final_weight);
 
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight_high;
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM1_up"]]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM1_up"]]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM1_up"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM1_up"]]->Fill(tau_p4.Pt(), final_weight);
 
 		  //other histos should be filled with the "normal" weight
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight;
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM0_down"]]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM0_down"]]->Fill(tau_p4.Pt(), final_weight);
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM0_up"]]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM0_up"]]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM0_down"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM0_down"]]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM0_up"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM0_up"]]->Fill(tau_p4.Pt(), final_weight);
 
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM10_down"]]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM10_down"]]->Fill(tau_p4.Pt(), final_weight);
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM10_up"]]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM10_up"]]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM10_down"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM10_down"]]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM10_up"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM10_up"]]->Fill(tau_p4.Pt(), final_weight);
 		}
 		else if (tau_decayMode->at(iTau) == 10) {
 		  //for the histos dedicated to DM10 variation, fill with a different weight
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight_low;
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM10_down"]]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM10_down"]]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM10_down"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM10_down"]]->Fill(tau_p4.Pt(), final_weight);
 
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight_high;
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM10_up"]]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM10_up"]]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM10_up"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM10_up"]]->Fill(tau_p4.Pt(), final_weight);
 
 		  //other histos should be filled with the "normal" weight
 		  final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*fakerate_weight;
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM0_down"]]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM0_down"]]->Fill(tau_p4.Pt(), final_weight);
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM0_up"]]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM0_up"]]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM0_down"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM0_down"]]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM0_up"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM0_up"]]->Fill(tau_p4.Pt(), final_weight);
 
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM10_down"]]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM10_down"]]->Fill(tau_p4.Pt(), final_weight);
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM10_up"]]->Fill(vis_p4.M(), final_weight);
-		  if (Mt_accept) htau[n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM10_up"]]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM10_down"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM10_down"]]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_FRS_DM10_up"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_FRS_DM10_up"]]->Fill(tau_p4.Pt(), final_weight);
 		}
 
 	      }//loop over tau IDs
@@ -1159,8 +1175,23 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
    h_reweight->Write();
    h_weight_afterallsel->Write();
    h_debug->Write();
+
+   TDirectory* NotauID_dir = file_out->mkdir("NoTauID");
+   NotauID_dir->cd();
    for (unsigned int i = 0; i<histo_notauID_names.size(); ++i) for (unsigned int k = 0; k<taun; ++k) hnotauID[k][i]->Write();
-   for (unsigned int i = 0; i<htau_names.size(); ++i) for (unsigned int j = 0; j<nTauIDs; ++j) for (unsigned int k = 0; k<taun; ++k) for (unsigned int l = 0; l<passfail.size(); ++l) for (unsigned int m = 0; m<dms.size(); ++m) for (unsigned int n = 0; n<eta.size(); ++n) htau[n][m][l][k][j][i]->Write();
+   NotauID_dir->Close();
+
+   TDirectory* Gen_dir = file_out->mkdir("GenLevel");
+   Gen_dir->cd();
    if (DY) for (unsigned int i = 0; i<hgen.size(); ++i) hgen[i]->Write();
+   Gen_dir->Close();
+
+   vector<TDirectory*> tauID_dirs;
+   for (unsigned int j = 0; j<nTauIDs; ++j) {
+     tauID_dirs.push_back( file_out->mkdir( HPS_WP[j] ) );
+     tauID_dirs[j]->cd();
+     for (unsigned int i = 0; i<htau_names.size(); ++i) for (unsigned int k = 0; k<taun; ++k) for (unsigned int l = 0; l<passfail.size(); ++l) for (unsigned int m = 0; m<dms.size(); ++m) for (unsigned int n = 0; n<eta.size(); ++n) for (unsigned int p = 0; p<ptrange.size(); ++p) htau[p][n][m][l][k][j][i]->Write();
+     tauID_dirs[j]->Close();
+   }
    file_out->Close();
 }

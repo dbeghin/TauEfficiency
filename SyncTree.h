@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Fri Dec  7 12:34:28 2018 by ROOT version 6.12/07
+// Tue Dec 11 20:02:08 2018 by ROOT version 6.12/07
 // from TTree SyncTree/SyncTree
-// found on file: SyncNtuple.root
+// found on file: SyncCleaned.root
 //////////////////////////////////////////////////////////
 
 #ifndef SyncTree_h
@@ -11,18 +11,12 @@
 #include <TROOT.h>
 #include <TChain.h>
 #include <TFile.h>
-#include "TTree.h"
-#include "TLeaf.h"
-#include "TH1.h"
-#include "TH2.h"
-#include "TGraphErrors.h"
 #include <vector>
 #include <iostream>
-#include "TString.h"
-
-using namespace std;
 
 // Header file for the classes stored in the TTree if any.
+
+using namespace std;
 
 class SyncTree {
 public :
@@ -32,9 +26,9 @@ public :
 // Fixed size dimensions of array or collections stored in the TTree if any.
 
    // Declaration of leaf types
-   Int_t       run;
-   Int_t       lumi;
-   Int_t       evt;
+   Int_t           run;
+   Int_t           lumi;
+   Int_t           evt;
    Float_t         pt_1;
    Float_t         eta_1;
    Float_t         phi_1;
@@ -59,7 +53,7 @@ public :
    virtual Int_t    GetEntry(Long64_t entry);
    virtual Long64_t LoadTree(Long64_t entry);
    virtual void     Init(TTree *tree);
-   virtual void     Loop(string inname, string outname);
+   virtual void     Loop(string in_name, string out_name);
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
 };
@@ -72,9 +66,9 @@ SyncTree::SyncTree(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("SyncNtuple.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("SyncCleaned.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("SyncNtuple.root");
+         f = new TFile("SyncCleaned.root");
       }
       f->GetObject("SyncTree",tree);
 
