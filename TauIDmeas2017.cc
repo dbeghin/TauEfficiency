@@ -353,119 +353,32 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
       float first_weight = pu_weight;
       float reweight_njets = 1.0;
       
-      bool gen_mutau = false, gen_mumu = false, unusualtau = false;
-      vector<TLorentzVector> gentau_had_visp4, gentau_mu_visp4, genmu_p4, jetp4;
-      gentau_had_visp4.clear(), gentau_mu_visp4.clear(), genmu_p4.clear(), jetp4.clear();
+      bool gen_mumu = false;
+      vector<TLorentzVector> gentau_had_visp4, genmu_p4;
+      gentau_had_visp4.clear(), genmu_p4.clear();
       if (!data) {
 	
-	vector<TLorentzVector> gentau_p4;
-	vector<int> tau_ind, mu_ind;
-	TLorentzVector p4;
-	int moth_ind = -10;
+	TLorentzVector p4, p4_2;
 	//start loop over all simulated particules
-	for (unsigned int iMC = 0; iMC < mc_pt->size(); ++iMC) {
-	  moth_ind = mc_mother_index->at(iMC).at(0);
-	  if (moth_ind < 0) continue;
-	  //Find out if the generated event is Z->mumu
-	  if (abs(mc_pdgId->at(iMC)) == 13) {
-	    if (abs(mc_pdgId->at(moth_ind)) != 15) {
-	      mu_ind.push_back(iMC);
-	      p4.SetPxPyPzE(mc_px->at(iMC), mc_py->at(iMC), mc_pz->at(iMC), mc_energy->at(iMC));
-	      genmu_p4.push_back(p4);
-	    }//end condition on mus' mothers
-	  }//end condition on particle's id = mu
-	  if (abs(mc_pdgId->at(iMC)) <= 10 || abs(mc_pdgId->at(iMC)) >= 100 || abs(mc_pdgId->at(iMC)) == 21) {
-	    if (mc_pt->at(iMC) < 10) continue;
-	    p4.SetPxPyPzE(mc_px->at(iMC), mc_py->at(iMC), mc_pz->at(iMC), mc_energy->at(iMC));
-	    if (p4.Pt() > 10000) continue;
-	    jetp4.push_back(p4);
-	  }
-
-	  //Find taus whose mothers are either photons or Z bosons
-	  if (abs(mc_pdgId->at(iMC)) == 15) {
-	    tau_ind.push_back(iMC);
-	    p4.SetPxPyPzE(mc_px->at(iMC), mc_py->at(iMC), mc_pz->at(iMC), mc_energy->at(iMC));
-	    gentau_p4.push_back(p4);
-	  }//end condition on particle's id = tau
+	for (unsigned int iMC = 0; iMC < mc_tau_had_pt->size(); ++iMC) {
+	  p4.SetPtEtaPhiE(mc_tau_had_pt->at(iMC), mc_tau_had_eta->at(iMC), mc_tau_had_phi->at(iMC), mc_tau_had_energy->at(iMC));
+	  gentau_had_visp4.push_back( p4 );
+	  cout << mc_tau_had_pt->at(iMC) << "  " <<  mc_tau_had_eta->at(iMC) << "  " << mc_tau_had_phi->at(iMC) << "  " <<  mc_tau_had_energy->at(iMC) << endl;
 	}//1st loop over sim particules
 
 	
-	int nTaus = tau_ind.size();
-	int tau_dm[nTaus];
-	TLorentzVector nutau_p4[nTaus], gentau_visp4[nTaus];
-	for (unsigned int iTau = 0; iTau < nTaus; ++iTau) {
-	  nutau_p4[iTau].SetPxPyPzE(0,0,0,0);
-	  gentau_visp4[iTau].SetPxPyPzE(0,0,0,0);
-	}
-	for (unsigned int iTau = 0; iTau < nTaus; ++iTau) {
-	  tau_dm[iTau] = 2;//we assume it's a hadronic tau by default
-	  for (unsigned int iMC = 0; iMC < mc_pt->size(); ++iMC) {
-	    moth_ind = mc_mother_index->at(iMC).at(0);
-	    if (moth_ind < 0) continue;
-	    if (moth_ind != tau_ind[iTau]) continue;
-	    //now we now the mother of iMC's particle is a tau, we can classify that tau's decay mode
-	    if (abs(mc_pdgId->at(iMC)) == 11) {
-	      tau_dm[iTau] = 0;//electron tau
-	      p4.SetPxPyPzE(mc_px->at(iMC), mc_py->at(iMC), mc_pz->at(iMC), mc_energy->at(iMC));
-	      gentau_visp4[iTau] = p4;
-	    }
-	    else if (abs(mc_pdgId->at(iMC)) == 13) {
-	      tau_dm[iTau] = 1;//muon tau
-	      p4.SetPxPyPzE(mc_px->at(iMC), mc_py->at(iMC), mc_pz->at(iMC), mc_energy->at(iMC));
-	      gentau_visp4[iTau] = p4;
-	    }
-	    else if (abs(mc_pdgId->at(iMC)) == 15) {
-	      tau_dm[iTau] = -1;//tau becoming a tau!
-	      p4.SetPxPyPzE(mc_px->at(iMC), mc_py->at(iMC), mc_pz->at(iMC), mc_energy->at(iMC));
-	      gentau_visp4[iTau] = p4;
-	    }
-	    else if (abs(mc_pdgId->at(iMC)) < 11 || abs(mc_pdgId->at(iMC)) > 16) {
-	      tau_dm[iTau] = 2;//hadronic tau
-	      unusualtau = true;
-	    }
-	    else if (abs(mc_pdgId->at(iMC)) == 16) {
-	      //cout << jEntry << " iTau " << iTau << "  Nu #" << iMC << "  Nu mother#" << moth_ind << "  Nu px " << mc_px->at(iMC) << endl; 
-	      p4.SetPxPyPzE(mc_px->at(iMC), mc_py->at(iMC), mc_pz->at(iMC), mc_energy->at(iMC));
-	      nutau_p4[iTau] = p4;
-	    }
-	  }
-	}
-
-	
-	if (mu_ind.size() > 1) {
-	  for (unsigned int iMu1 = 0; iMu1<mu_ind.size(); ++iMu1) {
-	    for (unsigned int iMu2 = 0; iMu2<iMu1; ++iMu2) {
-	      if (genmu_p4[iMu1].DeltaR(genmu_p4[iMu2]) > 0.5) {
-		gen_mumu = true;
-		break;
-	      }
+	for (unsigned int iMC1 = 0; iMC1 < mc_pt->size(); ++iMC1) {
+	  if (abs(mc_pdgId->at(iMC1)) != 13) continue;
+	  p4.SetPtEtaPhiE(mc_pt->at(iMC1), mc_eta->at(iMC1), mc_phi->at(iMC1), mc_energy->at(iMC1));
+	  for (unsigned int iMC2 = 0; iMC2 < iMC1; ++iMC2) {
+	    if (abs(mc_pdgId->at(iMC2)) != 13) continue;
+	    p4_2.SetPtEtaPhiE(mc_pt->at(iMC2), mc_eta->at(iMC2), mc_phi->at(iMC2), mc_energy->at(iMC2));
+	    if (p4.DeltaR(p4_2) > 0.5) {
+	      gen_mumu = true;
+	      break;
 	    }
 	    if (gen_mumu) break;
 	  }
-	}
-
-	//getting vis tau_had p4 vector and tau_mu p4 vector
-	for (unsigned int iTau1 = 0; iTau1 < nTaus; ++iTau1) {
-	  if (print_count < 20) cout << jEntry << " iTau " << iTau1 << "  tau index " << tau_ind[iTau1] << "  decay mode " << tau_dm[iTau1] << endl;
-	  if (tau_dm[iTau1] != 2) continue;//hadronic tau
-	  gentau_visp4[iTau1] = gentau_p4[iTau1] - nutau_p4[iTau1];
-	  gentau_had_visp4.push_back(gentau_visp4[iTau1]);
-	    
-	  for (unsigned int iTau2 = 0; iTau2 < nTaus; ++iTau2) {
-	    if (tau_dm[iTau2] != 1) continue;//muon tau
-	    gen_mutau = true;
-	    gentau_mu_visp4.push_back( gentau_visp4[iTau2]);
-	  }
-	}
-
-	if (gentau_p4.size()>0 && print_count < 20) {
-	  ++print_count;
-	  cout << endl;
-	  for (unsigned int iMC = 0; iMC < mc_pdgId->size(); ++iMC) {
-	    cout << jEntry;
-	    cout << " " << iMC << "  PDG ID " << mc_pdgId->at(iMC) << "  Mother Number " << mc_mother_index->at(iMC).at(0) << "  pt " << mc_pt->at(iMC) << /*"  eta " << mc_eta->at(iMC) << "  phi " << mc_phi->at(iMC) <<*/ endl;
-	  }
-	  cout << gen_mutau << endl << endl;
 	}
       }//end is this MC? condition
 
@@ -724,18 +637,13 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 	  bool fakemu_match = false;
 	  float fakemu_reweight = 1;
 	  if (DY) {
-	    //we need to have a tau_mu tau_h pair at gen-level, the tau_h must have same sign and be DeltaR-compatible with the reco tau
-	    if (gen_mutau) {
-	      for (unsigned int iGen = 0; iGen < gentau_had_visp4.size(); ++iGen) {
-		if (tau_p4.DeltaR(gentau_had_visp4[iGen]) < 0.5) {
-		  DY_sig = true;
-		  break;
-		}
+	    for (unsigned int iGen = 0; iGen < gentau_had_visp4.size(); ++iGen) {
+	      if (tau_p4.DeltaR(gentau_had_visp4[iGen]) < 0.5) {
+		DY_sig = true;
+		break;
 	      }
 	    }
-	    else {
-	      DY_sig = false;
-	      
+	    if (!DY_sig) {
 	      //reweighting for DY->mumu
 	      if (gen_mumu) {
 		for (unsigned int iGen = 0; iGen < genmu_p4.size(); ++iGen) {
@@ -758,7 +666,6 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 	  //final_weight = first_weight;
 	  
 	  bool realtau = false;
-	  bool jetmatch = false;
 	  if (!data) {
 	    for (unsigned int iGen = 0; iGen < gentau_had_visp4.size(); ++iGen) {
 	      if (tau_p4.DeltaR(gentau_had_visp4[iGen]) < 0.5) {
@@ -766,26 +673,14 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 		break;
 	      }
 	    }
-	    for (unsigned int iGen = 0; iGen < jetp4.size(); ++iGen) {
-	      if (tau_p4.DeltaR(jetp4[iGen]) < 0.2) {
-		jetmatch = true;
-	      }
-	    }
 	  }
-	  if (jetmatch) realtau = false;
 	  
 	  int iBkgOrSig = -1;
 	  if (realtau && DY_sig) {
 	    iBkgOrSig = 0;
 	  }
 	  else {
-	    if (jetmatch) {
-	      iBkgOrSig = 2;
-	      continue;
-	    }
-	    else {
-	      iBkgOrSig = 1;
-	    }	      
+	    iBkgOrSig = 1;
 	  }
 	  
 	  for (int iTES = 0; iTES < 3; ++iTES) {

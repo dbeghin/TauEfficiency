@@ -41,7 +41,7 @@ void SyncTree::Loop(string in_name, string out_name) {
    //opening file in out(write) mode 
    event_file.open(out_event,ios::out);
    event_file << "root file: " <<  in_name << endl;
-   event_file << "run, LS, event" << endl;
+   event_file << "run, LS, event, mupt, mueta, muphi, taupt, taueta, tauphi" << endl;
 
 
 
@@ -57,7 +57,7 @@ void SyncTree::Loop(string in_name, string out_name) {
       nbytes += nb;
 
 
-      event_file << jentry << ", "  << lumi << ", " << evt << endl;
+      event_file << run << ", "  << lumi << ", " << evt  << ", " << pt_1  << ", " << eta_1 << ", " << phi_1 << ", " << pt_2 << ", " << eta_2 << ", " << phi_2 << ", " << endl;
 
    }
 }

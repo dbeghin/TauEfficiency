@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Tue Dec 11 20:02:08 2018 by ROOT version 6.12/07
+// Tue Jan 22 10:54:36 2019 by ROOT version 6.12/07
 // from TTree SyncTree/SyncTree
-// found on file: SyncCleaned.root
+// found on file: SyncNtuple.root
 //////////////////////////////////////////////////////////
 
 #ifndef SyncTree_h
@@ -11,12 +11,11 @@
 #include <TROOT.h>
 #include <TChain.h>
 #include <TFile.h>
-#include <vector>
 #include <iostream>
 
-// Header file for the classes stored in the TTree if any.
-
 using namespace std;
+
+// Header file for the classes stored in the TTree if any.
 
 class SyncTree {
 public :
@@ -28,13 +27,20 @@ public :
    // Declaration of leaf types
    Int_t           run;
    Int_t           lumi;
-   Int_t           evt;
+   //ULong64_t       evt;
+   UInt_t           evt;
    Float_t         pt_1;
    Float_t         eta_1;
    Float_t         phi_1;
    Float_t         pt_2;
    Float_t         phi_2;
    Float_t         eta_2;
+   Float_t         TransverseMass;
+   Float_t         PZetaVis;
+   Float_t         PZetaAll;
+   Float_t         PZeta;
+   Float_t         met;
+   Float_t         metphi;
 
    // List of branches
    TBranch        *b_run;   //!
@@ -46,6 +52,12 @@ public :
    TBranch        *b_pt_2;   //!
    TBranch        *b_phi_2;   //!
    TBranch        *b_eta_2;   //!
+   TBranch        *b_TransverseMass;   //!
+   TBranch        *b_PZetaVis;   //!
+   TBranch        *b_PZetaAll;   //!
+   TBranch        *b_PZeta;   //!
+   TBranch        *b_met;   //!
+   TBranch        *b_metphi;   //!
 
    SyncTree(TTree *tree=0);
    virtual ~SyncTree();
@@ -53,7 +65,7 @@ public :
    virtual Int_t    GetEntry(Long64_t entry);
    virtual Long64_t LoadTree(Long64_t entry);
    virtual void     Init(TTree *tree);
-   virtual void     Loop(string in_name, string out_name);
+   virtual void     Loop(string inname, string outname);
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
 };
@@ -66,9 +78,9 @@ SyncTree::SyncTree(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("SyncCleaned.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("SyncNtuple.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("SyncCleaned.root");
+         f = new TFile("SyncNtuple.root");
       }
       f->GetObject("SyncTree",tree);
 
@@ -126,6 +138,12 @@ void SyncTree::Init(TTree *tree)
    fChain->SetBranchAddress("pt_2", &pt_2, &b_pt_2);
    fChain->SetBranchAddress("phi_2", &phi_2, &b_phi_2);
    fChain->SetBranchAddress("eta_2", &eta_2, &b_eta_2);
+   fChain->SetBranchAddress("TransverseMass", &TransverseMass, &b_TransverseMass);
+   fChain->SetBranchAddress("PZetaVis", &PZetaVis, &b_PZetaVis);
+   fChain->SetBranchAddress("PZetaAll", &PZetaAll, &b_PZetaAll);
+   fChain->SetBranchAddress("PZeta", &PZeta, &b_PZeta);
+   fChain->SetBranchAddress("met", &met, &b_met);
+   fChain->SetBranchAddress("metphi", &metphi, &b_metphi);
    Notify();
 }
 
