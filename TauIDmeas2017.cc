@@ -380,6 +380,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 	    if (gen_mumu) break;
 	  }
 	}
+
       }//end is this MC? condition
 
 
@@ -456,11 +457,10 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 
 
       //Sort muons, taus, by increasing isolation/decreasing pt
-      float iso = 1.5, pt = 0.0;
+      float pt = -1000;
       int lowest = -1;
       vector<int> orderedMu, orderedTau;
       vector<int> rest, rest2;
-      bool interesting = false;
 
 
       //sorting muons
@@ -470,20 +470,12 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
       while (rest.size()>0) {
 	rest2.clear();
 	lowest = -1;
-	iso = 10000000;
-	pt = 0;
+	pt = -1000;
 	for (unsigned int ii = 0; ii < rest.size(); ++ii) {
-	  if (mu_pfIsoDbCorrected04->at(rest[ii]) < iso) {
-	    iso = mu_pfIsoDbCorrected04->at(rest[ii]);
+	  if (mu_gt_pt->at(rest[ii]) > pt) {
 	    pt = mu_gt_pt->at(rest[ii]);
 	    if (lowest > -1) rest2.push_back(lowest);
 	    lowest = rest[ii];
-	  }
-	  else if (mu_pfIsoDbCorrected04->at(rest[ii]) == iso && mu_gt_pt->at(rest[ii]) > pt) {
-	    pt = mu_gt_pt->at(rest[ii]);
-	    if (lowest > -1) rest2.push_back(lowest);
-	    lowest = rest[ii];
-	    interesting = true;//just a flag to see if this actually happens
 	  }
 	  else {
 	    rest2.push_back(rest[ii]);
@@ -502,20 +494,12 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
       while (rest.size()>0) {
 	rest2.clear();
 	lowest = -1;
-	iso = -1000;
-	pt = 0;
+	pt = -1000;
 	for (unsigned int ii = 0; ii < rest.size(); ++ii) {
-	  if (tau_byIsolationMVArun2v1DBoldDMwLTraw->at(rest[ii]) > iso) {
-	    iso = tau_byIsolationMVArun2v1DBoldDMwLTraw->at(rest[ii]);
+	  if (tau_pt->at(rest[ii]) > pt) {
 	    pt = tau_pt->at(rest[ii]);
 	    if (lowest > -1) rest2.push_back(lowest);
 	    lowest = rest[ii];
-	  }
-	  else if (tau_byIsolationMVArun2v1DBoldDMwLTraw->at(rest[ii]) == iso && tau_pt->at(rest[ii]) > pt) {
-	    pt = tau_pt->at(rest[ii]);
-	    if (lowest > -1) rest2.push_back(lowest);
-	    lowest = rest[ii];
-	    interesting = true;
 	  }
 	  else {
 	    rest2.push_back(rest[ii]);
@@ -682,7 +666,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 	  else {
 	    iBkgOrSig = 1;
 	  }
-	  
+
 	  for (int iTES = 0; iTES < 3; ++iTES) {
 	    int iTES_down = 0; //0 : TES down
 	    int iTES_up = 1; //1 : TES up
@@ -837,7 +821,6 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 	      reweight_njets = 1;
 	      float final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight;
 	      
-	      
 
 	      if (Mt_accept && iTES == iTES_nope) hnotauID[iBkgOrSig][1]->Fill(dR, final_weight);
 	      if (Mt_accept && iTES == iTES_nope) hnotauID[iBkgOrSig][3]->Fill(p_zeta_mis-0.85*pzeta_vis, final_weight);
@@ -862,6 +845,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 		hnotauID[iBkgOrSig][0]->Fill(tau_byIsolationMVArun2v1DBoldDMwLTraw->at(iTau), final_weight);
 	      }
 	      
+	      
 	      int latestloosestID = -1, s_counter = 0;
 	      float fakerate_weight = 1, fakerate_weight_low = 1, fakerate_weight_high = 1;
 	      for (unsigned int iValue=0; iValue<HPS_WP.size(); ++iValue) {
@@ -873,6 +857,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 	        else {
 		  iPass = pass_map["fail"];
 	        }
+
 	      
 	        //fake rate method
 	        if (isFakesphase || isWJetsFakephase) {
