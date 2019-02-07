@@ -127,8 +127,6 @@ for k in range (0,nvar):
             TT=file.Get("TT_"+var_in)
             VV=file.Get("VV_"+var_in)
             DY=file.Get("DY_"+var_in)
-            ST=file.Get("ST_"+var_in)
-            Signal=file.Get("Signal_"+var_in)
             
             rebin = 1
             if "taupt" in var_in: rebin=10
@@ -151,7 +149,6 @@ for k in range (0,nvar):
             VV.SetFillColor(ROOT.TColor.GetColor("#d89a6a"))
             TT.SetFillColor(ROOT.TColor.GetColor("#9999cc"))
             DY.SetFillColor(ROOT.TColor.GetColor("#ffcc66"))
-            ST.SetFillColor(ROOT.TColor.GetColor("#c338e2"))
             
             Data.SetMarkerStyle(20)
             Data.SetMarkerSize(1)
@@ -166,14 +163,11 @@ for k in range (0,nvar):
             TT.Rebin(rebin)
             DY.SetLineColor(1)
             DY.Rebin(rebin)
-            ST.SetLineColor(1)
-            ST.Rebin(rebin)
             Data.SetLineColor(1)
             Data.SetLineWidth(2)
             
             
             stack=ROOT.THStack("stack","stack")
-            stack.Add(ST)
             #stack.Add(QCD)
             stack.Add(W)
             stack.Add(VV)
@@ -183,7 +177,6 @@ for k in range (0,nvar):
             errorBand = W.Clone()
             #errorBand.Add(QCD)
             errorBand.Add(TT)
-            errorBand.Add(ST)
             errorBand.Add(DY)
             errorBand.Add(VV)
             errorBand.SetMarkerSize(0)
@@ -222,20 +215,14 @@ for k in range (0,nvar):
             Data.Draw("esame")
             
             
-            Signal.SetLineColor(2)
-            Signal.SetLineWidth(2)
-            Signal.Draw("histsame")
-            
             
             legende=make_legend()
             legende.AddEntry(Data,"Observed","elp")
-            legende.AddEntry(Signal,"RPV#rightarrow #mu #tau","f")
             legende.AddEntry(DY,"Drell-Yann","f")
             legende.AddEntry(TT,"t#bar{t}+jets","f")
             legende.AddEntry(W,"W+jets","f")
             legende.AddEntry(VV,"Diboson","f")
             #legende.AddEntry(QCD,"QCD multijet","f")
-            legende.AddEntry(ST,"Single Top","f")
             legende.AddEntry(errorBand,"Uncertainty","f")
             legende.Draw()
             

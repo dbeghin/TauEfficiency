@@ -13,7 +13,7 @@ def add_lumi():
     lumi.SetTextColor(    1 )
     lumi.SetTextSize(0.06)
     lumi.SetTextFont (   42 )
-    lumi.AddText("2017, 40.8 fb^{-1} (13 TeV)")
+    lumi.AddText("2017, 41.5 fb^{-1} (13 TeV)")
     return lumi
 
 def add_CMS():
@@ -74,7 +74,7 @@ var=[]
 #var.append("ev_Mt_raw")
 tauID_cutoff=len(var)
 #var.append("ev_Mt")                
-#var.append("ev_Mvis")              
+var.append("ev_Mvis")              
 #var.append("ev_Mvis_TESup")        
 #var.append("ev_Mvis_TESdown")      
 #var.append("ev_Mvis_MESup")        
@@ -91,10 +91,10 @@ tauID_cutoff=len(var)
 #var.append("ev_Mvis_antiisomu_up")
 #var.append("ev_Mvis_antiisotau_down")
 #var.append("ev_Mvis_antiisotau_up")
-var.append("tau_pt_TESup")         
-var.append("tau_pt_TESdown")       
-var.append("tau_pt_MESup")         
-var.append("tau_pt_MESdown")       
+#var.append("tau_pt_TESup")         
+#var.append("tau_pt_TESdown")       
+#var.append("tau_pt_MESup")         
+#var.append("tau_pt_MESdown")       
 #var.append("tau_pt_FRS_DM0_down") 
 #var.append("tau_pt_FRS_DM0_up")   
 #var.append("tau_pt_FRS_DM1_down") 
@@ -105,13 +105,13 @@ var.append("tau_pt_MESdown")
 #var.append("tau_pt_antiisomu_up") 
 #var.append("tau_pt_antiisotau_down")
 #var.append("tau_pt_antiisotau_up")
-#var.append("tau_pt")               
-#var.append("tau_eta")              
-#var.append("tau_phi")              
-#var.append("mu_pt")                
-#var.append("mu_eta")               
-#var.append("mu_phi")               
-#var.append("ev_Nvertex")           
+var.append("tau_pt")               
+var.append("tau_eta")              
+var.append("tau_phi")              
+var.append("mu_pt")                
+var.append("mu_eta")               
+var.append("mu_phi")               
+var.append("ev_Nvertex")           
 #var.append("ev_Nvertex_MinBiasdown")
 #var.append("ev_Nvertex_Minbiasup")
 
@@ -171,14 +171,6 @@ tauIDs=[
 #"cutbased_loose",   
 #"cutbased_medium",  
 #"cutbased_tight",   
-#                    
-#"MVA_2017v1vvloose",
-#"MVA_2017v1vloose", 
-#"MVA_2017v1loose",  
-#"MVA_2017v1medium", 
-#"MVA_2017v1tight",  
-#"MVA_2017v1vtight", 
-#"MVA_2017v1vvtight",
 #                    
 #"MVA_2017v2vvloose",
 #"MVA_2017v2vloose", 

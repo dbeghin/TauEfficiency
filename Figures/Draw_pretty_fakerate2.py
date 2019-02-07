@@ -13,7 +13,7 @@ def add_lumi():
     lumi.SetTextColor(    1 )
     lumi.SetTextSize(0.06)
     lumi.SetTextFont (   42 )
-    lumi.AddText("2017, 40.08 fb^{-1} (13 TeV)")
+    lumi.AddText("2017, 41.5 fb^{-1} (13 TeV)")
     return lumi
 
 def add_CMS():
@@ -116,7 +116,7 @@ for k in range (0,nvar):
             Data.GetXaxis().SetTitleSize(0.08)
             Data.GetXaxis().SetTitleOffset(0.8)
             #Data.GetXaxis().SetTitleSize(0)
-            Data.GetXaxis().SetRangeUser(20,400)
+            Data.GetXaxis().SetRangeUser(20,800)
             Data.GetXaxis().SetNdivisions(505)
             Data.GetYaxis().SetLabelFont(42)
             Data.GetYaxis().SetLabelOffset(0.01)

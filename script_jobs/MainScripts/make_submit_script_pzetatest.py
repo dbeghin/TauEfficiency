@@ -9,9 +9,9 @@ from datasets2017 import * #imports dataset paths: pnfn[], myname[] and myoption
 if __name__ == "__main__":
     location=os.getcwd();
     #name of your *compiled* code (omit the .exe extension)
-    code_name = "MakeSyncTree"
+    code_name = "pzetatest"
     phase_name = "final"
-    folder = "TauID2017/SyncTree"
+    folder = "TauID2017/PzetaTest"
 
     for jj in range(0, len(pnfn)):    
         #Main file, which you'll use to submit the jobs
@@ -34,13 +34,12 @@ if __name__ == "__main__":
         #command1 = command1 + "export workdir=/user/dbeghin/Work/POGTau/ " + "\n"  #Set your working directory, where the code is located
         #command1 = command1 + "cd $workdir"
         outFile.write(command1)
-        command3 = "qsub -q localgrid@cream02 -o " + "../out_err/"+myname[jj] +".stdout -e " +"../out_err/"+myname[jj] +".stderr -l walltime=05:00:00    " + "../Jobs_to_submit/"+name_out + "\n"  #Command to submit one job to the localgrid
+        command3 = "qsub -q localgrid@cream02 -o " + "../out_err/"+myname[jj] +".stdout -e " +"../out_err/"+myname[jj] +".stderr -l walltime=30:00:00    " + "../Jobs_to_submit/"+name_out + "\n"  #Command to submit one job to the localgrid
         submit_File.write(command3)
         ligne=0
 
         #files_per_job = 50  #Set the number of root files per job
         files_per_job = int(filesperjob[jj])
-        #files_per_job = 50
         con_number = 0
         con_name = ""
         scr_name = ""
@@ -49,10 +48,14 @@ if __name__ == "__main__":
             ligne=ligne+1
             if ligne%files_per_job==0:   
                 con_name = "Con"+str(con_number)+myname[jj]+".root"
+                con_name2 = "Con"+str(con_number)+myname[jj]+".txt"
                 con_number += 1
                 outFile.write("hadd -f "+con_name+" Outout*.root\n")
                 outFile.write("cp "+con_name+" \t" + "/user/dbeghin/Work/POGTau/"+folder+"/Out_"+myname[jj]+"/"+con_name+"\n")
+                outFile.write("cat Outout*.txt > " +con_name2+ "\n")
+                outFile.write("cp "+con_name2+" /user/dbeghin/Work/POGTau/"+folder+"/Out_"+myname[jj]+"/" +con_name2+ "\n")
                 outFile.write("rm -f *.root\n")
+                outFile.write("rm -f *.txt\n")
                 outFile.close()
                 scr_name = "test"+str(con_number)+myname[jj]
                 outFile = open("../Jobs_to_submit/"+scr_name+".sh" , 'w')
@@ -68,7 +71,7 @@ if __name__ == "__main__":
                 command1 = command1 + "cp /user/dbeghin/Work/POGTau/Reweighting/*.root Reweighting/" + "\n"
                 command1 = command1 + "cp /user/dbeghin/Work/POGTau/" + code_name + ".exe $scratchdir/" + "\n"
                 outFile.write(command1)
-                command3 = "qsub -q localgrid@cream02 -o "+ "../out_err/"+scr_name+".stdout -e " +"../out_err/"+scr_name +".stderr -l walltime=10:00:00    " + "../Jobs_to_submit/"+scr_name+ ".sh\n"
+                command3 = "qsub -q localgrid@cream02 -o "+ "../out_err/"+scr_name+".stdout -e " +"../out_err/"+scr_name +".stderr -l walltime=30:00:00    " + "../Jobs_to_submit/"+scr_name+ ".sh\n"
                 submit_File.write(command3)
             #Below, the command to execute your code, use the correct syntax for your own code, with all arguments (file in, file out, etc.) in the proper order
             #Note that i[0:-1] is just the name of the root file in /pnfs
@@ -81,8 +84,12 @@ if __name__ == "__main__":
             outFile.write(command2)
             
         con_name = "Con"+str(con_number)+myname[jj]+".root"
+        con_name2 = "Con"+str(con_number)+myname[jj]+".txt"
         outFile.write("hadd -f "+con_name+" Outout*.root\n")
         outFile.write("cp " +con_name+ " \t" + "/user/dbeghin/Work/POGTau/"+folder+"/Out_"+myname[jj]+"/" +con_name+ "\n")
+        outFile.write("cat Outout*.txt > " +con_name2+ "\n")
+        outFile.write("cp "+con_name2+" /user/dbeghin/Work/POGTau/"+folder+"/Out_"+myname[jj]+"/" +con_name2+ "\n")
         outFile.write("rm -f *.root\n")
+        outFile.write("rm -f *.txt\n")
         outFile.close()
         submit_File.close()

@@ -23,14 +23,6 @@ int main(int argc, char** argv) {
   tauID.push_back("cutbased_medium");
   tauID.push_back("cutbased_tight");
 
-  tauID.push_back("MVA_2017v1vvloose");
-  tauID.push_back("MVA_2017v1vloose");
-  tauID.push_back("MVA_2017v1loose");
-  tauID.push_back("MVA_2017v1medium");
-  tauID.push_back("MVA_2017v1tight");
-  tauID.push_back("MVA_2017v1vtight");
-  tauID.push_back("MVA_2017v1vvtight");
-
   tauID.push_back("MVA_2017v2vvloose");
   tauID.push_back("MVA_2017v2vloose");
   tauID.push_back("MVA_2017v2loose");
@@ -79,7 +71,7 @@ int main(int argc, char** argv) {
   in_names.push_back("TTB_ev_Mvis");   		  out_names.push_back("TTB");   
   in_names.push_back("data_ev_Mvis"); 		  out_names.push_back("data_obs");
 
-  vector<TString> in_sys,      out_sys;
+  vector<string> in_sys,      out_sys;
   in_sys.push_back("");        out_sys.push_back("");
   in_sys.push_back("TESup_");  out_sys.push_back("_tesUp");
   in_sys.push_back("TESdown_");out_sys.push_back("_tesDown");
@@ -115,8 +107,24 @@ int main(int argc, char** argv) {
 	  pass_dir->cd();
 	  for (unsigned int j=0; j<in_names.size(); ++j) {
 	    for (unsigned int k=0; k<in_sys.size(); ++k) {
-	      cout << in_names[j]+"_"+in_sys[k]+fileID+"_pass" << endl;
-	      TH1F* h = (TH1F*) file_in_mutau->Get(tauID[i]+"/"+in_names[j]+"_"+in_sys[k]+fileID+"_pass");
+	      TString iin_sys = in_sys[k];
+	      TString oout_sys = out_sys[k];
+	      cout << in_names[j]+"_"+iin_sys+fileID+"_pass" << endl;
+
+	      if (l>0 && in_sys[k].find("FRS") !=string::npos) {
+		if (in_sys[k].find(dms[l]) == string::npos) {
+		  continue;
+		}
+		else {
+		  if (out_sys[k].find("Down") != string::npos) {
+		    oout_sys = "_frsdmDown";
+		  }
+		  else {
+		    oout_sys = "_frsdmUp";
+		  }
+		}
+	      }
+	      TH1F* h = (TH1F*) file_in_mutau->Get(tauID[i]+"/"+in_names[j]+"_"+iin_sys+fileID+"_pass");
 	      h->Rebin(rebin);
 	      TH1F* h2 = new TH1F(h->GetName(), h->GetTitle(), Nbins, firstbin, lastbin);
 	      int ll=0;
@@ -133,7 +141,8 @@ int main(int argc, char** argv) {
 		float bin_error = h->GetBinError(l);
 		h2->SetBinError(ll, bin_error);
 	      }
-	      h2->SetName(out_names[j]+out_sys[k]);
+	      h2->SetName(out_names[j]+oout_sys);
+	      if (out_names[j] == "data_obs") cout << h2->Integral() << endl << endl;
 	      if (out_names[j] == "data_obs" && k >0) continue;
 	      h2->Write();
 	    }

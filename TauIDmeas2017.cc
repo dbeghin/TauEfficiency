@@ -248,14 +248,6 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
    HPS_WP.push_back("cutbased_medium");	                                                  
    HPS_WP.push_back("cutbased_tight");	                                                  
 		                      	                                                  
-   HPS_WP.push_back("MVA_2017v1vvloose");   specialValues.push_back(HPS_WP.size()-1);
-   HPS_WP.push_back("MVA_2017v1vloose");                                                  
-   HPS_WP.push_back("MVA_2017v1loose");	                                                  
-   HPS_WP.push_back("MVA_2017v1medium");                                                  
-   HPS_WP.push_back("MVA_2017v1tight");	                                                  
-   HPS_WP.push_back("MVA_2017v1vtight");                                                  
-   HPS_WP.push_back("MVA_2017v1vvtight");                                                 
-		                      	                                                  
    HPS_WP.push_back("MVA_2017v2vvloose");   specialValues.push_back(HPS_WP.size()-1);
    HPS_WP.push_back("MVA_2017v2vloose");                                                  
    HPS_WP.push_back("MVA_2017v2loose");	                                                  
@@ -577,14 +569,6 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 	  tauIDvalues_map["cutbased_medium"] = tau_byMediumCombinedIsolationDeltaBetaCorr3Hits->at(iTau);
 	  tauIDvalues_map["cutbased_tight"] = tau_byTightCombinedIsolationDeltaBetaCorr3Hits->at(iTau);
 			                    
-	  tauIDvalues_map["MVA_2017v1vvloose"] = tau_byVVLooseIsolationMVArun2017v1DBoldDMwLT2017->at(iTau);   
-	  tauIDvalues_map["MVA_2017v1vloose"] = tau_byVLooseIsolationMVArun2017v1DBoldDMwLT2017->at(iTau);
-	  tauIDvalues_map["MVA_2017v1loose"] = tau_byLooseIsolationMVArun2017v1DBoldDMwLT2017->at(iTau);
-	  tauIDvalues_map["MVA_2017v1medium"] = tau_byMediumIsolationMVArun2017v1DBoldDMwLT2017->at(iTau);
-	  tauIDvalues_map["MVA_2017v1tight"] = tau_byTightIsolationMVArun2017v1DBoldDMwLT2017->at(iTau);
-	  tauIDvalues_map["MVA_2017v1vtight"] = tau_byVTightIsolationMVArun2017v1DBoldDMwLT2017->at(iTau);
-	  tauIDvalues_map["MVA_2017v1vvtight"] = tau_byVVTightIsolationMVArun2017v1DBoldDMwLT2017->at(iTau);
-			                    
 	  tauIDvalues_map["MVA_2017v2vvloose"] = tau_byVVLooseIsolationMVArun2017v2DBoldDMwLT2017->at(iTau);   
 	  tauIDvalues_map["MVA_2017v2vloose"] = tau_byVLooseIsolationMVArun2017v2DBoldDMwLT2017->at(iTau);
 	  tauIDvalues_map["MVA_2017v2loose"] = tau_byLooseIsolationMVArun2017v2DBoldDMwLT2017->at(iTau);
@@ -780,7 +764,8 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 	      float y_zeta= (tau_p4.Py()/tau_p4.Pt()+mu_p4.Py()/mu_p4.Pt())/norm_zeta;
 	      float p_zeta_mis=met_p4.Px()*x_zeta+met_p4.Py()*y_zeta;
 	      float pzeta_vis=(tau_p4.Px()+mu_p4.Px())*x_zeta+(tau_p4.Py()+mu_p4.Py())*y_zeta;
-	      bool cut_zeta= p_zeta_mis-0.85*pzeta_vis>-25;
+	      //bool cut_zeta= p_zeta_mis-0.85*pzeta_vis>-25;
+	      bool cut_zeta= p_zeta_mis+0.15*pzeta_vis>-25;
 	      
 	      
 
@@ -823,7 +808,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 	      
 
 	      if (Mt_accept && iTES == iTES_nope) hnotauID[iBkgOrSig][1]->Fill(dR, final_weight);
-	      if (Mt_accept && iTES == iTES_nope) hnotauID[iBkgOrSig][3]->Fill(p_zeta_mis-0.85*pzeta_vis, final_weight);
+	      if (Mt_accept && iTES == iTES_nope) hnotauID[iBkgOrSig][3]->Fill(p_zeta_mis+0.15*pzeta_vis, final_weight);
 	      //if (Mt_accept && iTES == 2) hnotauID[0][6]->Fill(x_zeta*x_zeta + y_zeta*y_zeta, final_weight);
 	      
 	      if (tau_p4.DeltaR(mu_p4) < 0.5) continue;

@@ -83,14 +83,6 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
    HPS_WP.push_back("cutbased_medium");
    HPS_WP.push_back("cutbased_tight");
 
-   HPS_WP.push_back("MVA_2017v1vvloose");
-   HPS_WP.push_back("MVA_2017v1vloose");
-   HPS_WP.push_back("MVA_2017v1loose");
-   HPS_WP.push_back("MVA_2017v1medium");
-   HPS_WP.push_back("MVA_2017v1tight");
-   HPS_WP.push_back("MVA_2017v1vtight");
-   HPS_WP.push_back("MVA_2017v1vvtight");
-
    HPS_WP.push_back("MVA_2017v2vvloose");
    HPS_WP.push_back("MVA_2017v2vloose");
    HPS_WP.push_back("MVA_2017v2loose");
@@ -283,14 +275,6 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 	    tauIDvalues.push_back(tau_byLooseCombinedIsolationDeltaBetaCorr3Hits->at(iTau));        specialValues.push_back(tauIDvalues.size()-1);
 	    tauIDvalues.push_back(tau_byMediumCombinedIsolationDeltaBetaCorr3Hits->at(iTau));
 	    tauIDvalues.push_back(tau_byTightCombinedIsolationDeltaBetaCorr3Hits->at(iTau));
-
-	    tauIDvalues.push_back(tau_byVVLooseIsolationMVArun2017v1DBoldDMwLT2017->at(iTau));      specialValues.push_back(tauIDvalues.size()-1);
-	    tauIDvalues.push_back(tau_byVLooseIsolationMVArun2017v1DBoldDMwLT2017->at(iTau));
-	    tauIDvalues.push_back(tau_byLooseIsolationMVArun2017v1DBoldDMwLT2017->at(iTau));
-	    tauIDvalues.push_back(tau_byMediumIsolationMVArun2017v1DBoldDMwLT2017->at(iTau));
-	    tauIDvalues.push_back(tau_byTightIsolationMVArun2017v1DBoldDMwLT2017->at(iTau));
-	    tauIDvalues.push_back(tau_byVTightIsolationMVArun2017v1DBoldDMwLT2017->at(iTau));
-	    tauIDvalues.push_back(tau_byVVTightIsolationMVArun2017v1DBoldDMwLT2017->at(iTau));
 
 	    tauIDvalues.push_back(tau_byVVLooseIsolationMVArun2017v2DBoldDMwLT2017->at(iTau));      specialValues.push_back(tauIDvalues.size()-1);
 	    tauIDvalues.push_back(tau_byVLooseIsolationMVArun2017v2DBoldDMwLT2017->at(iTau));

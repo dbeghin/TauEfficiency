@@ -5,7 +5,7 @@
 #Note : your code needs to be already compiler (with a .exe extension for this to work)
 
 import os
-from skimmed_datasets2017 import * #imports dataset paths: pnfn[], myname[] and myoption[] arrays 
+from datasets2017 import * #imports dataset paths: pnfn[], myname[] and myoption[] arrays 
 if __name__ == "__main__":
     location=os.getcwd();
     #name of your *compiled* code (omit the .exe extension)
@@ -17,7 +17,7 @@ if __name__ == "__main__":
         #Main file, which you'll use to submit the jobs
         #To submit the jobs, you'll need to type "source Submit_myname.sh" in your terminal
         submit_File = open("../Submit/Submit_"+myname[jj]+".sh" , 'w')
-        f=os.popen("ls -t " + pnfn[jj] + "skim* | sort")   #you may want to replace "outfile" with the name of the root files found in the /pnfs folder
+        f=os.popen("ls -t " + pnfn[jj] + "out* | sort")   #you may want to replace "outfile" with the name of the root files found in the /pnfs folder
         dir = "dcap://maite.iihe.ac.be" +  pnfn[jj]  + "/"
         name_out =  myname[jj] + ".sh"
         outFile = open("../Jobs_to_submit/"+name_out , 'w')
