@@ -31,14 +31,6 @@ int main(/*int argc, char** argv*/) {
   HPS_WP.push_back("cutbased_medium");
   HPS_WP.push_back("cutbased_tight");
 
-  HPS_WP.push_back("MVA_2017v1vvloose");
-  HPS_WP.push_back("MVA_2017v1vloose");
-  HPS_WP.push_back("MVA_2017v1loose");
-  HPS_WP.push_back("MVA_2017v1medium");
-  HPS_WP.push_back("MVA_2017v1tight");
-  HPS_WP.push_back("MVA_2017v1vtight");
-  HPS_WP.push_back("MVA_2017v1vvtight");
-
   HPS_WP.push_back("MVA_2017v2vvloose");
   HPS_WP.push_back("MVA_2017v2vloose");
   HPS_WP.push_back("MVA_2017v2loose");

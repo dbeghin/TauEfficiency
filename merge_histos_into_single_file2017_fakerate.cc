@@ -21,7 +21,7 @@ TH1F* MC_histo(TString var, TFile* file_in, double xs, long Nevents, int rebin) 
 
   cout << file_in->GetName() << endl;
 
-  double lumi = 38936; //luminosity in pb^-1
+  double lumi = 41529; //luminosity in pb^-1
 
   double e_Nevents = pow(Nevents,0.5);
   double e_xs = 0.01*xs;
@@ -91,14 +91,6 @@ int main(int argc, char** argv) {
   HPS_WP.push_back("cutbased_loose");
   HPS_WP.push_back("cutbased_medium");
   HPS_WP.push_back("cutbased_tight");
-
-  HPS_WP.push_back("MVA_2017v1vvloose");
-  HPS_WP.push_back("MVA_2017v1vloose");
-  HPS_WP.push_back("MVA_2017v1loose");
-  HPS_WP.push_back("MVA_2017v1medium");
-  HPS_WP.push_back("MVA_2017v1tight");
-  HPS_WP.push_back("MVA_2017v1vtight");
-  HPS_WP.push_back("MVA_2017v1vvtight");
 
   HPS_WP.push_back("MVA_2017v2vvloose");
   HPS_WP.push_back("MVA_2017v2vloose");

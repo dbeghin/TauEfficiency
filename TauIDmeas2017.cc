@@ -1,5 +1,6 @@
 #define IIHEAnalysis_cxx
 #include "IIHEAnalysis.h"
+#include "meta.h"
 #include "PU_reWeighting.cc"
 //#include <TH1.h>
 #include <TLorentzVector.h>
@@ -28,12 +29,55 @@ int main(int argc, char** argv) {
   TTree* tree = (TTree*) fIn->Get("IIHEAnalysis");
 
 
+  TTree* mmeta = (TTree*) fIn->Get("meta");
+  meta* m = new meta(mmeta);
+  Float_t nEvents = m->Loop(type);
+  //delete m;
+
   IIHEAnalysis* a = new IIHEAnalysis(tree);
-  a->Loop(phase, type, inname, out_name, mc_nickname);
+  a->Loop(phase, type, out_name, mc_nickname, nEvents);
+  fIn->Close();
+  //delete a;
   return 0;
 }
 
-void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, string out_name, string mc_nickname) {
+
+
+//Get weighted events
+Float_t meta::Loop(string type_of_data) {
+  if (fChain == 0) return -1;
+
+  bool data;
+  if (type_of_data == "Data" || type_of_data == "data" || type_of_data == "singlephoton" || type_of_data == "SinglePhoton" || type_of_data == "singlemu" || type_of_data == "SingleMu") {
+    data = true;
+  }
+  else {
+    data = false;
+  }
+
+  Long64_t nentries = fChain->GetEntriesFast();
+
+  Long64_t nbytes = 0, nb = 0;
+  Float_t nEvents = -1;
+  for (Long64_t jentry=0; jentry<nentries;jentry++) {
+    Long64_t ientry = LoadTree(jentry);
+    if (ientry < 0) break;
+    nb = fChain->GetEntry(jentry);   nbytes += nb;
+
+    if (data) {
+      nEvents = nEventsRaw;
+    }
+    else {
+      nEvents = mc_nEventsWeighted;
+    }
+  }
+  return nEvents;
+}
+
+
+
+//Main analysis code
+void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, string out_name, string mc_nickname, Float_t nEvents) {
    if (fChain == 0) return;
 
 
@@ -196,10 +240,20 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
    htau_names.push_back("ev_Nvertex");             nBins_tau.push_back(120);  x_min_tau.push_back(0);    x_max_tau.push_back(120);
    htau_names.push_back("Z_pt");                   nBins_tau.push_back(300);  x_min_tau.push_back(0);    x_max_tau.push_back(300);
 						   
-   htau_names.push_back("ev_Mvis_TESdown");        nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   htau_names.push_back("ev_Mvis_TESup");          nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   htau_names.push_back("tau_pt_TESdown");         nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
-   htau_names.push_back("tau_pt_TESup");           nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("ev_Mvis_TES_DM0_down");   nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("ev_Mvis_TES_DM0_up");     nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("tau_pt_TES_DM0_down");    nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("tau_pt_TES_DM0_up");      nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+						   
+   htau_names.push_back("ev_Mvis_TES_DM1_down");   nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("ev_Mvis_TES_DM1_up");     nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("tau_pt_TES_DM1_down");    nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("tau_pt_TES_DM1_up");      nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+						   
+   htau_names.push_back("ev_Mvis_TES_DM10_down");  nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("ev_Mvis_TES_DM10_up");    nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("tau_pt_TES_DM10_down");   nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
+   htau_names.push_back("tau_pt_TES_DM10_up");     nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
 						   
    htau_names.push_back("ev_Mvis_MESdown");        nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
    htau_names.push_back("ev_Mvis_MESup");          nBins_tau.push_back(150);  x_min_tau.push_back(0);    x_max_tau.push_back(150);
@@ -355,7 +409,6 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 	for (unsigned int iMC = 0; iMC < mc_tau_had_pt->size(); ++iMC) {
 	  p4.SetPtEtaPhiE(mc_tau_had_pt->at(iMC), mc_tau_had_eta->at(iMC), mc_tau_had_phi->at(iMC), mc_tau_had_energy->at(iMC));
 	  gentau_had_visp4.push_back( p4 );
-	  cout << mc_tau_had_pt->at(iMC) << "  " <<  mc_tau_had_eta->at(iMC) << "  " << mc_tau_had_phi->at(iMC) << "  " <<  mc_tau_had_energy->at(iMC) << endl;
 	}//1st loop over sim particules
 
 	
@@ -874,11 +927,22 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 		}
 		if (iMES != iMES_nope) continue;
 	      
-	        if (Mt_accept && (iTES == iTES_down || !realtau)) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_TESdown"]]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept && (iTES == iTES_up || !realtau))   htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_TESup"]]->Fill(vis_p4.M(), final_weight);
-	        if (Mt_accept && (iTES == iTES_down || !realtau)) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_TESdown"]]->Fill(tau_p4.Pt(), final_weight);
-	        if (Mt_accept && (iTES == iTES_up || !realtau))   htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_TESup"]]->Fill(tau_p4.Pt(), final_weight);
+		//fill variations for the DM present in this event
+	        if (Mt_accept && (iTES == iTES_down || !realtau)) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_TES_"+str_dm+"_down"]]->Fill(vis_p4.M(), final_weight);
+	        if (Mt_accept && (iTES == iTES_up || !realtau))   htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_TES_"+str_dm+"_up"]]->Fill(vis_p4.M(), final_weight);
+	        if (Mt_accept && (iTES == iTES_down || !realtau)) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_TES_"+str_dm+"_down"]]->Fill(tau_p4.Pt(), final_weight);
+	        if (Mt_accept && (iTES == iTES_up || !realtau))   htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_TES_"+str_dm+"_up"]]->Fill(tau_p4.Pt(), final_weight);
 		if (iTES != iTES_nope) continue;
+		
+		//iterate over other decay modes and fill the unmodified event
+		for (map<TString,int>::iterator it=dms_map.begin(); it!=dms_map.end(); ++it) {
+		  if (it->first == str_dm) continue;
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_TES_"+it->first+"_down"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept)   htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_TES_"+it->first+"_up"]]->Fill(vis_p4.M(), final_weight);
+		  if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_TES_"+it->first+"_down"]]->Fill(tau_p4.Pt(), final_weight);
+		  if (Mt_accept)   htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["tau_pt_TES_"+it->first+"_up"]]->Fill(tau_p4.Pt(), final_weight);
+		}
+
 
 		//fill text file with the run number etc.
 		if (Mt_accept && iValue==0) event_file << ev_run << ", " << ev_luminosityBlock << ", " << ev_event << endl; 
@@ -1036,7 +1100,10 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
    event_file << endl << endl << endl;
    event_file.close();
 
+   TH1F* h_total_events =  new TH1F("weighted_events", "weighted_events", 1, 0, 1);
+   h_total_events->Fill(0.5, nEvents);
    file_out->cd();
+   h_total_events->Write();
    h_reweight->Write();
    h_weight_afterallsel->Write();
    h_debug->Write();

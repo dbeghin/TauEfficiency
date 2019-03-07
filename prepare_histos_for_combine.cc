@@ -73,8 +73,12 @@ int main(int argc, char** argv) {
 
   vector<string> in_sys,      out_sys;
   in_sys.push_back("");        out_sys.push_back("");
-  in_sys.push_back("TESup_");  out_sys.push_back("_tesUp");
-  in_sys.push_back("TESdown_");out_sys.push_back("_tesDown");
+  in_sys.push_back("TES_DM0_up_");     out_sys.push_back("_tesdm0Up");
+  in_sys.push_back("TES_DM0_down_");   out_sys.push_back("_tesdm0Down");
+  in_sys.push_back("TES_DM1_up_");     out_sys.push_back("_tesdm1Up");
+  in_sys.push_back("TES_DM1_down_");   out_sys.push_back("_tesdm1Down");
+  in_sys.push_back("TES_DM10_up_");    out_sys.push_back("_tesdm10Up");
+  in_sys.push_back("TES_DM10_down_");  out_sys.push_back("_tesdm10Down");
   in_sys.push_back("MESup_");  out_sys.push_back("_mesUp");
   in_sys.push_back("MESdown_");out_sys.push_back("_mesDown");
   in_sys.push_back("MinBiasup_");  out_sys.push_back("_minbiasUp");
