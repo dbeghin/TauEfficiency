@@ -7,8 +7,8 @@ hadd -f Arranged_DY/DY_4.root Out_DY*amc*4/Con*DY*.root
 hadd -f Arranged_DY/DY_5.root Out_DY*amc*5/Con*DY*.root 
 hadd -f Arranged_DY/DY_6.root Out_DY*amc*6/Con*DY*.root 
 hadd -f Arranged_DY/DY_7.root Out_DY*amc*7/Con*DY*.root 
-hadd -f Arranged_DY/DY_8.root Out_DY*amc*8/Con*DY*.root 
-hadd -f Arranged_DY/DY_9.root Out_DY*amc*9/Con*DY*.root 
+#hadd -f Arranged_DY/DY_8.root Out_DY*amc*8/Con*DY*.root 
+#hadd -f Arranged_DY/DY_9.root Out_DY*amc*9/Con*DY*.root 
 hadd -f Arranged_DY/DY.root Arranged_DY/DY_*.root
 
 

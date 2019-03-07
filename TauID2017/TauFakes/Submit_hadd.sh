@@ -1,0 +1,16 @@
+qsub -q localgrid@cream02 -o DY_0.stdout -e DY_0.stderr -l walltime=02:00:00  DY_0.sh
+qsub -q localgrid@cream02 -o DY_1.stdout -e DY_1.stderr -l walltime=02:00:00  DY_1.sh
+qsub -q localgrid@cream02 -o DY_2.stdout -e DY_2.stderr -l walltime=02:00:00  DY_2.sh
+qsub -q localgrid@cream02 -o DY_3.stdout -e DY_3.stderr -l walltime=02:00:00  DY_3.sh
+qsub -q localgrid@cream02 -o DY_4.stdout -e DY_4.stderr -l walltime=02:00:00  DY_4.sh
+qsub -q localgrid@cream02 -o DY_5.stdout -e DY_5.stderr -l walltime=02:00:00  DY_5.sh
+qsub -q localgrid@cream02 -o DY_6.stdout -e DY_6.stderr -l walltime=02:00:00  DY_6.sh
+qsub -q localgrid@cream02 -o DY_7.stdout -e DY_7.stderr -l walltime=02:00:00  DY_7.sh
+qsub -q localgrid@cream02 -o TT_2l2nu.stdout -e TT_2l2nu.stderr -l walltime=02:00:00  TT_2l2nu.sh
+qsub -q localgrid@cream02 -o TT_semilep.stdout -e TT_semilep.stderr -l walltime=02:00:00  TT_semilep.sh
+qsub -q localgrid@cream02 -o VVTThad.stdout -e VVTThad.stderr -l walltime=02:00:00  VVTThad.sh
+qsub -q localgrid@cream02 -o Data_B.stdout -e Data_B.stderr -l walltime=02:00:00  Data_B.sh
+qsub -q localgrid@cream02 -o Data_C.stdout -e Data_C.stderr -l walltime=02:00:00  Data_C.sh
+qsub -q localgrid@cream02 -o Data_D.stdout -e Data_D.stderr -l walltime=02:00:00  Data_D.sh
+qsub -q localgrid@cream02 -o Data_E.stdout -e Data_E.stderr -l walltime=02:00:00  Data_E.sh
+qsub -q localgrid@cream02 -o Data_F.stdout -e Data_F.stderr -l walltime=02:00:00  Data_F.sh
