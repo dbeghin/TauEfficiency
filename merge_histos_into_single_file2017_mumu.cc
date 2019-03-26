@@ -17,43 +17,39 @@
 using namespace std;
 
 
-TH1F* MC_histo(bool DYSig, TString var, TFile* file_in, double xs, long Nevents, int rebin) {
+
+TH1F* MC_histo(TString prestring, TString var, TFile* file_in, TFile* file_in_d, double xs, int rebin) {
 
   cout << file_in->GetName() << endl;
 
-  //double lumi = 41525.735; //luminosity in pb^-1
-  double lumi = 38936;; //luminosity in pb^-1
-  //double lumi = 4794; //luminosity 2017B in pb^-1
-  //double lumi = 9631; //luminosity 2017C in pb^-1
-  //double lumi = 4248; //luminosity 2017D in pb^-1
-  //double lumi = 9314; //luminosity 2017E in pb^-1
-  //double lumi = 13539; //luminosity 2017F in pb^-1
+  TH1F* h_events_data = (TH1F*) file_in_d->Get("weighted_events");
+  double full_data = 7.3968038e+08;
+  double succ_data_ratio = h_events_data->Integral()/full_data;
+  cout << "succesfull data ratio " << succ_data_ratio << endl;
+  double lumi = 41.529 * pow(10,3) * succ_data_ratio; //luminosity in pb^-1
+
+  TH1F* h_events = (TH1F*) file_in->Get("weighted_events");
+  double Nevents = h_events->Integral();
 
   double e_Nevents = pow(Nevents,0.5);
   double e_xs = 0.01*xs;
 
   //Weight
-  double w = xs*lumi/Nevents;
-  cout << "Events in data/events in MC " << xs*lumi/Nevents << endl;
+  double w = 0;
+  if (Nevents != 0) w = xs*lumi/Nevents;
+  cout << "Events in data/events in MC " << w << endl;
   
   TH1F* h;
+  h = (TH1F*) file_in -> Get(prestring+var);
 
-  if (DYSig) {
-    var = "Sig_"+var;
-  }
-  else {
-    var = "Bkg_"+var;
-  }
-  h = (TH1F*) file_in -> Get(var);
-
-  h -> Sumw2();
   h -> Scale(w);
-  //h -> GetXaxis()->SetRange(60,120);
   h -> Rebin(rebin);
-
+  
   return h;
 
 }
+
+
 
 
 
@@ -77,19 +73,6 @@ int main(int argc, char** argv) {
   TFile* file_in_ZZ = new TFile(folder_in+"/Arranged_ZZ/ZZ.root", "R");
   TFile* file_in_data = new TFile(folder_in+"/Arranged_data/data.root", "R");
   
-  vector<TFile*> QCD_files;
-  TFile* file_in_QCD_20to30 = new TFile(folder_in+"/Arranged_QCD/QCD_20to30.root", "R");              QCD_files.push_back(file_in_QCD_20to30);
-  TFile* file_in_QCD_30to50 = new TFile(folder_in+"/Arranged_QCD/QCD_30to50.root", "R");              QCD_files.push_back(file_in_QCD_30to50);
-  TFile* file_in_QCD_50to80 = new TFile(folder_in+"/Arranged_QCD/QCD_50to80.root", "R");              QCD_files.push_back(file_in_QCD_50to80);
-  TFile* file_in_QCD_80to120 = new TFile(folder_in+"/Arranged_QCD/QCD_80to120.root", "R");            QCD_files.push_back(file_in_QCD_80to120);
-  TFile* file_in_QCD_120to170 = new TFile(folder_in+"/Arranged_QCD/QCD_120to170.root", "R");          QCD_files.push_back(file_in_QCD_120to170);
-  TFile* file_in_QCD_170to300 = new TFile(folder_in+"/Arranged_QCD/QCD_170to300.root", "R");          QCD_files.push_back(file_in_QCD_170to300);
-  TFile* file_in_QCD_300to470 = new TFile(folder_in+"/Arranged_QCD/QCD_300to470.root", "R");          QCD_files.push_back(file_in_QCD_300to470);
-  TFile* file_in_QCD_470to600 = new TFile(folder_in+"/Arranged_QCD/QCD_470to600.root", "R");          QCD_files.push_back(file_in_QCD_470to600);
-  TFile* file_in_QCD_600to800 = new TFile(folder_in+"/Arranged_QCD/QCD_600to800.root", "R");          QCD_files.push_back(file_in_QCD_600to800);
-  TFile* file_in_QCD_800to1000 = new TFile(folder_in+"/Arranged_QCD/QCD_800to1000.root", "R");        QCD_files.push_back(file_in_QCD_800to1000);
-  TFile* file_in_QCD_1000toInf = new TFile(folder_in+"/Arranged_QCD/QCD_1000toInf.root", "R");        QCD_files.push_back(file_in_QCD_1000toInf);
-  
 
   vector<TString> vars;                    vector<int> rrebin;
   vars.push_back("mu_pt");                 rrebin.push_back(2);
@@ -104,7 +87,7 @@ int main(int argc, char** argv) {
   vars.push_back("ev_DRmumu");	 	   rrebin.push_back(2);	 
   vars.push_back("ev_Mt_raw");	 	   rrebin.push_back(2);	 
   vars.push_back("ev_Mt");	 	   rrebin.push_back(2);
-  vars.push_back("ev_Mvis");	 	   rrebin.push_back(60);//FIXME
+  vars.push_back("ev_Mvis");	 	   rrebin.push_back(2);//FIXME
   //vars.push_back("ev_Mvis_SS");	   rrebin.push_back(2);	 
   //vars.push_back("ev_METmumass");	   rrebin.push_back(2);
   vars.push_back("ev_MET");	 	   rrebin.push_back(2);
@@ -122,39 +105,7 @@ int main(int argc, char** argv) {
   double xs_WZ = 23.4;
   double xs_ZZ = 10.16;
 
-  vector<double> xs_QCD;
-  double xs_QCD_20to30 = 562700000*0.007087;    xs_QCD.push_back(xs_QCD_20to30);
-  double xs_QCD_30to50 = 139900000*0.01219;     xs_QCD.push_back(xs_QCD_30to50);
-  double xs_QCD_50to80 = 19400000*0.02037;      xs_QCD.push_back(xs_QCD_50to80);
-  double xs_QCD_80to120 = 2762000*0.0387;       xs_QCD.push_back(xs_QCD_80to120);
-  double xs_QCD_120to170 = 479500*0.04958;      xs_QCD.push_back(xs_QCD_120to170);
-  double xs_QCD_170to300 = 118100*0.07022;      xs_QCD.push_back(xs_QCD_170to300);
-  double xs_QCD_300to470 = 7820.25*0.10196;     xs_QCD.push_back(xs_QCD_300to470);
-  double xs_QCD_470to600 = 648.8*0.08722;       xs_QCD.push_back(xs_QCD_470to600);
-  double xs_QCD_600to800 = 187.109*0.13412;     xs_QCD.push_back(xs_QCD_600to800);
-  double xs_QCD_800to1000 = 32.3486*0.14552;    xs_QCD.push_back(xs_QCD_800to1000);
-  double xs_QCD_1000toInf = 10.4305*0.15544;    xs_QCD.push_back(xs_QCD_1000toInf);
 
-  //Nevents
-  long N_DY =  142161151;
-  long N_WJets = 23133163;//25950745;
-  long N_TT = 8634992;
-  long N_WW = 7547722;
-  long N_WZ = 3928630;
-  long N_ZZ = 1949768;
-
-  vector<long> N_QCD;
-  long N_QCD_20to30 = 24545944+3460458;      N_QCD.push_back(N_QCD_20to30);
-  long N_QCD_30to50 = 24604628+4063290;      N_QCD.push_back(N_QCD_30to50);
-  long N_QCD_50to80 = 23955198;              N_QCD.push_back(N_QCD_50to80);
-  long N_QCD_80to120 = 23098427;             N_QCD.push_back(N_QCD_80to120);
-  long N_QCD_120to170 = 20821535;            N_QCD.push_back(N_QCD_120to170);
-  long N_QCD_170to300 = 24561531+21877145;   N_QCD.push_back(N_QCD_170to300);
-  long N_QCD_300to470 = 17620456;            N_QCD.push_back(N_QCD_300to470);
-  long N_QCD_470to600 = 18774218;            N_QCD.push_back(N_QCD_470to600);
-  long N_QCD_600to800 = 16392140;            N_QCD.push_back(N_QCD_600to800);
-  long N_QCD_800to1000 = 15694987;           N_QCD.push_back(N_QCD_800to1000);
-  long N_QCD_1000toInf = 11464778;           N_QCD.push_back(N_QCD_1000toInf);
 
   TString var_in;
 
@@ -165,10 +116,10 @@ int main(int argc, char** argv) {
     var_in = vars[i];
     int rebin = rrebin[i];
     
-    TH1F* h_DYSig = MC_histo(true, var_in, file_in_DY, xs_DY, N_DY, rebin);
+    TH1F* h_DYSig = MC_histo("Sig_", var_in, file_in_DY, file_in_data, xs_DY, rebin);
     h_DYSig -> SetName("DYB_"+var_in);
     h_DYSig->Write();
-    TH1F* h_DYBkg = MC_histo(false, var_in, file_in_DY, xs_DY, N_DY, rebin);
+    TH1F* h_DYBkg = MC_histo("Bkg_", var_in, file_in_DY, file_in_data, xs_DY, rebin);
     h_DYBkg -> SetName("DYS_"+var_in);
     h_DYBkg->Write();
     
@@ -176,22 +127,22 @@ int main(int argc, char** argv) {
     //h_WJets -> SetName("WJets_"+var_in);
     //h_WJets->Write();
       
-    TH1F* h_TT = MC_histo(true, var_in, file_in_TT, xs_TT, N_TT, rebin);
-    h_TT -> SetName("TTB_"+var_in);
-    h_TT->Write();
-
-    TH1F* h_WW = MC_histo(true, var_in, file_in_WW, xs_WW, N_WW, rebin);
-    //TH1F* h_WZ = MC_histo(true, var_in, file_in_WZ, xs_WZ, N_WZ, rebin);
-    //TH1F* h_ZZ = MC_histo(true, var_in, file_in_ZZ, xs_ZZ, N_ZZ, rebin);
-    cout << "before cloning" << endl;
-    TH1F* h_VV = (TH1F*) h_WW->Clone("VV_"+var_in);
-    cout << "after cloning" << endl;
+    //TH1F* h_TT = MC_histo("Sig_", var_in, file_in_TT, file_in_data, xs_TT, rebin);
+    //h_TT -> SetName("TTB_"+var_in);
+    //h_TT->Write();
+    //
+    //TH1F* h_WW = MC_histo("Sig_", var_in, file_in_WW, file_in_data, xs_WW, rebin);
+    //TH1F* h_WZ = MC_histo("Sig_", var_in, file_in_WZ, file_in_data, xs_WZ, rebin);
+    //TH1F* h_ZZ = MC_histo("Sig_", var_in, file_in_ZZ, file_in_data, xs_ZZ, rebin);
+    //cout << "before cloning" << endl;
+    //TH1F* h_VV = (TH1F*) h_WW->Clone("VV_"+var_in);
+    //cout << "after cloning" << endl;
     //h_VV->Add(h_WZ);
     //h_VV->Add(h_ZZ);
-    //h_VV -> SetName("VV_"+var_in);
-    h_VV->Write();
-
-    cout << "?" << endl;
+    ////h_VV -> SetName("VV_"+var_in);
+    //h_VV->Write();
+    //
+    //cout << "?" << endl;
 
     TH1F* h_data = (TH1F*) file_in_data -> Get("Sig_"+var_in);//Data is, by definition, normalized
     h_data -> SetName("data_"+var_in);

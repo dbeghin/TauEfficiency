@@ -19,25 +19,33 @@
 using namespace std;
 
 
-TH1F* MC_histo(TString prestring, TString dir_in, TString var, TFile* file_in, double xs, long Nevents, int rebin) {
+TH1F* MC_histo(TString prestring, TString dir_in, TString var, TFile* file_in, TFile* file_in_d, double xs, int rebin) {
 
   cout << file_in->GetName() << endl;
 
-  double lumi = 40.76*pow(10,3); //luminosity in pb^-1
+  TH1F* h_events_data = (TH1F*) file_in_d->Get("weighted_events");
+  cout << "what" << endl;
+  double full_data = 7.3968038e+08;
+  double succ_data_ratio = h_events_data->Integral()/full_data;
+  cout << "succesfull data ratio " << succ_data_ratio << endl;
+  double lumi = 41.529 * pow(10,3) * succ_data_ratio; //luminosity in pb^-1
+
+  TH1F* h_events = (TH1F*) file_in->Get("weighted_events");
+  double Nevents = h_events->Integral();
 
   double e_Nevents = pow(Nevents,0.5);
   double e_xs = 0.01*xs;
 
   //Weight
-  double w = xs*lumi/Nevents;
-  cout << "Events in data/events in MC " << xs*lumi/Nevents << endl;
-  
+  double w = 0;
+  if (Nevents != 0) w = xs*lumi/Nevents;
+  cout << "Events in data/events in MC " << w << endl;
+
   var = dir_in+prestring+var;
   cout << var << endl;
   TH1F* h = (TH1F*) file_in -> Get(var);
   TH1F* h1 = (TH1F*) h->Clone("tempname");
   h1->SetDirectory(0);
-  //file_in->Close();
 
   h1 -> Sumw2();
   h1 -> Scale(w);
@@ -56,8 +64,8 @@ int main(int argc, char** argv) {
   string option_name= option;
   //option = "QCD", "QCD_control", "final", "Wjets_pre", "Wjets_post", "quick_test"
 
-  int rebin = 1;
-  if (option_name == "Fakes") rebin=1;
+  int rebin = 5;
+  if (option_name == "Fakes" || option_name == "WJetsFake") rebin=1;
   float Wjets_scale_factor_notauID = 1.22504;//1.16223;//1.24298;
   bool final = false;
   bool antimu = false;
@@ -189,36 +197,36 @@ int main(int argc, char** argv) {
   vars.push_back("ev_Mvis_TES_DM10_up"); 
   vars.push_back("tau_pt_TES_DM10_down");
   vars.push_back("tau_pt_TES_DM10_up");
-  vars.push_back("Z_pt");                    
+  //vars.push_back("Z_pt");                    
   vars.push_back("tau_DM");                  
   vars.push_back("ev_Mvis_MESdown");         
   vars.push_back("ev_Mvis_MESup");           
-  vars.push_back("tau_pt_MESdown");          
-  vars.push_back("tau_pt_MESup");            
+  //vars.push_back("tau_pt_MESdown");          
+  //vars.push_back("tau_pt_MESup");            
   vars.push_back("ev_Mvis_MinBiasdown");     
   vars.push_back("ev_Mvis_MinBiasup");       
   //vars.push_back("ev_Nvertex_MinBiasdown");  
   //vars.push_back("ev_Nvertex_Minbiasup");    
   vars.push_back("ev_Mvis_FRS_DM0_down");    
   vars.push_back("ev_Mvis_FRS_DM0_up");      
-  vars.push_back("tau_pt_FRS_DM0_down");     
-  vars.push_back("tau_pt_FRS_DM0_up");       
+  //vars.push_back("tau_pt_FRS_DM0_down");     
+  //vars.push_back("tau_pt_FRS_DM0_up");       
   vars.push_back("ev_Mvis_FRS_DM1_down");    
   vars.push_back("ev_Mvis_FRS_DM1_up");      
-  vars.push_back("tau_pt_FRS_DM1_down");     
-  vars.push_back("tau_pt_FRS_DM1_up");       
+  //vars.push_back("tau_pt_FRS_DM1_down");     
+  //vars.push_back("tau_pt_FRS_DM1_up");       
   vars.push_back("ev_Mvis_FRS_DM10_down");   
   vars.push_back("ev_Mvis_FRS_DM10_up");     
-  vars.push_back("tau_pt_FRS_DM10_down");    
-  vars.push_back("tau_pt_FRS_DM10_up");
+  //vars.push_back("tau_pt_FRS_DM10_down");    
+  //vars.push_back("tau_pt_FRS_DM10_up");
   vars.push_back("ev_Mvis_antiisomu_down");  
   vars.push_back("ev_Mvis_antiisomu_up");    
-  vars.push_back("tau_pt_antiisomu_down");   
-  vars.push_back("tau_pt_antiisomu_up");     
+  //vars.push_back("tau_pt_antiisomu_down");   
+  //vars.push_back("tau_pt_antiisomu_up");     
   vars.push_back("ev_Mvis_antiisotau_down"); 
   vars.push_back("ev_Mvis_antiisotau_up");   
-  vars.push_back("tau_pt_antiisotau_down");  
-  vars.push_back("tau_pt_antiisotau_up");
+  //vars.push_back("tau_pt_antiisotau_down");  
+  //vars.push_back("tau_pt_antiisotau_up");
   if (antimu) {
     vars.push_back("ev_Mvis_SS");
     vars.push_back("tau_pt_SS");
@@ -229,16 +237,8 @@ int main(int argc, char** argv) {
   //HPS_WP.push_back("cutbased_loose");
   //HPS_WP.push_back("cutbased_medium");
   //HPS_WP.push_back("cutbased_tight");
-  //
-  //HPS_WP.push_back("MVA_2017v1vvloose");
-  //HPS_WP.push_back("MVA_2017v1vloose");
-  //HPS_WP.push_back("MVA_2017v1loose");
-  //HPS_WP.push_back("MVA_2017v1medium");
-  //HPS_WP.push_back("MVA_2017v1tight");
-  //HPS_WP.push_back("MVA_2017v1vtight");
-  //HPS_WP.push_back("MVA_2017v1vvtight");
-  //
-  //HPS_WP.push_back("MVA_2017v2vvloose");
+  
+  HPS_WP.push_back("MVA_2017v2vvloose");
   //HPS_WP.push_back("MVA_2017v2vloose");
   //HPS_WP.push_back("MVA_2017v2loose");
   //HPS_WP.push_back("MVA_2017v2medium");
@@ -261,8 +261,8 @@ int main(int argc, char** argv) {
   //HPS_WP.push_back("MVA_PWdR03vvtight");
 
   vector<TString> categ;
-  categ.push_back("pass");
-  categ.push_back("fail");
+  if (option_name != "Fakes" && option_name != "WJetsFake") categ.push_back("pass");
+  if (option_name == "Fakes" || option_name == "WJetsFake") categ.push_back("fail");
 
   vector<TString> dms;
   //dms.push_back("allDMs");
@@ -285,37 +285,6 @@ int main(int argc, char** argv) {
   double xs_DY = 6225.42;//5675.4; 
   double xs_WJets = 61526.7;
 
-  double xs_QCD_muenriched = 720648000*0.00042;//0.0003739 //Mu-enriched sample, this includes filter efficiency
-  vector<double> xs_QCD;
-  if (antimu) {
-    double xs_QCD_15to30 = 1.822*pow(10,9);    xs_QCD.push_back(xs_QCD_15to30);
-    double xs_QCD_30to50 = 1.387*pow(10,8);    xs_QCD.push_back(xs_QCD_30to50);
-    double xs_QCD_50to80 = 1.913*pow(10,7);    xs_QCD.push_back(xs_QCD_50to80);
-    double xs_QCD_80to120 = 2.736*pow(10,6);   xs_QCD.push_back(xs_QCD_80to120);
-    double xs_QCD_120to170 = 4.663*pow(10,5);  xs_QCD.push_back(xs_QCD_120to170);
-    double xs_QCD_170to300 = 1.172*pow(10,5);  xs_QCD.push_back(xs_QCD_170to300);
-    double xs_QCD_300to470 = 7.76*pow(10,3);   xs_QCD.push_back(xs_QCD_300to470);
-    double xs_QCD_470to600 = 640.5;            xs_QCD.push_back(xs_QCD_470to600);
-    double xs_QCD_600to800 = 185.9;            xs_QCD.push_back(xs_QCD_600to800);
-    double xs_QCD_800to1000 = 32;              xs_QCD.push_back(xs_QCD_800to1000);
-    double xs_QCD_1000to1400 = 9.37;           xs_QCD.push_back(xs_QCD_1000to1400);
-    double xs_QCD_1400to1800 = 0.838;          xs_QCD.push_back(xs_QCD_1400to1800);
-    double xs_QCD_1800to2400 = 0.112;          xs_QCD.push_back(xs_QCD_1800to2400);
-    double xs_QCD_2400to3200 = 6.74*pow(10,-3); xs_QCD.push_back(xs_QCD_2400to3200);
-  }
-  else {
-    double xs_QCD_20to30 = 562700000*0.007087;    xs_QCD.push_back(xs_QCD_20to30);
-    double xs_QCD_30to50 = 139900000*0.01219;     xs_QCD.push_back(xs_QCD_30to50);
-    double xs_QCD_50to80 = 19400000*0.02037;      xs_QCD.push_back(xs_QCD_50to80);
-    double xs_QCD_80to120 = 2762000*0.0387;       xs_QCD.push_back(xs_QCD_80to120);
-    double xs_QCD_120to170 = 479500*0.04958;      xs_QCD.push_back(xs_QCD_120to170);
-    double xs_QCD_170to300 = 118100*0.07022;      xs_QCD.push_back(xs_QCD_170to300);
-    double xs_QCD_300to470 = 7820.25*0.10196;     xs_QCD.push_back(xs_QCD_300to470);
-    double xs_QCD_470to600 = 648.8*0.08722;       xs_QCD.push_back(xs_QCD_470to600);
-    double xs_QCD_600to800 = 187.109*0.13412;     xs_QCD.push_back(xs_QCD_600to800);
-    double xs_QCD_800to1000 = 32.3486*0.14552;    xs_QCD.push_back(xs_QCD_800to1000);
-    double xs_QCD_1000toInf = 10.4305*0.15544;    xs_QCD.push_back(xs_QCD_1000toInf);
-  }  
 
   double xs_TT_had = 831.76*0.457;//831.76;                 
   double xs_TT_semilep = 831.76*0.438;//831.76;                 
@@ -328,37 +297,6 @@ int main(int argc, char** argv) {
   long N_DY = 142161151;
   long N_WJets = 23219762;//25950745;
 
-  long N_QCD_muenriched = 7373309;
-  vector<long> N_QCD;
-  if (antimu) {
-    long N_QCD_15to30 = 37585689;              N_QCD.push_back(N_QCD_15to30);
-    long N_QCD_30to50 = 9979945;               N_QCD.push_back(N_QCD_30to50);
-    long N_QCD_50to80 = 9954259;               N_QCD.push_back(N_QCD_50to80);
-    long N_QCD_80to120 = 7608728+6986638;      N_QCD.push_back(N_QCD_80to120);
-    long N_QCD_120to170 = 5504047+6324260;     N_QCD.push_back(N_QCD_120to170);
-    long N_QCD_170to300 = 6855630+6799704;     N_QCD.push_back(N_QCD_170to300);
-    long N_QCD_300to470 = 4150323+14771394;    N_QCD.push_back(N_QCD_300to470);
-    long N_QCD_470to600 = 3866704;             N_QCD.push_back(N_QCD_470to600);
-    long N_QCD_600to800 = 3810427+9496102;     N_QCD.push_back(N_QCD_600to800);
-    long N_QCD_800to1000 = 13715052;           N_QCD.push_back(N_QCD_800to1000);
-    long N_QCD_1000to1400 = 2829635+6539554;   N_QCD.push_back(N_QCD_1000to1400);
-    long N_QCD_1400to1800 = 312291+2310326;    N_QCD.push_back(N_QCD_1400to1800);
-    long N_QCD_1800to2400 = 397083+1549881;    N_QCD.push_back(N_QCD_1800to2400);
-    long N_QCD_2400to3200 = 398491+550068;     N_QCD.push_back(N_QCD_2400to3200);
-  }
-  else {
-    long N_QCD_20to30 = 24545944+3460458;      N_QCD.push_back(N_QCD_20to30);
-    long N_QCD_30to50 = 24604628+4063290;      N_QCD.push_back(N_QCD_30to50);
-    long N_QCD_50to80 = 23955198;              N_QCD.push_back(N_QCD_50to80);
-    long N_QCD_80to120 = 23098427;             N_QCD.push_back(N_QCD_80to120);
-    long N_QCD_120to170 = 20821535;            N_QCD.push_back(N_QCD_120to170);
-    long N_QCD_170to300 = 24561531+21877145;   N_QCD.push_back(N_QCD_170to300);
-    long N_QCD_300to470 = 17620456;            N_QCD.push_back(N_QCD_300to470);
-    long N_QCD_470to600 = 18774218;            N_QCD.push_back(N_QCD_470to600);
-    long N_QCD_600to800 = 16392140;            N_QCD.push_back(N_QCD_600to800);
-    long N_QCD_800to1000 = 15694987;           N_QCD.push_back(N_QCD_800to1000);
-    long N_QCD_1000toInf = 11464778;           N_QCD.push_back(N_QCD_1000toInf);
-  }    
                   
   long N_TT_2l2nu = 8705576;
   long N_TT_semilep = 41221873;
@@ -369,7 +307,7 @@ int main(int argc, char** argv) {
 
 
   vector<TString> process;
-  process.push_back("DYS");
+  if (final || option_name == "Fakes" || option_name == "WJetsFake" || wjets_pre) process.push_back("DYS");
   process.push_back("DYB");
   process.push_back("TTB");
   process.push_back("VV"); 
@@ -401,6 +339,7 @@ int main(int argc, char** argv) {
 	  for (unsigned int m = 0; m<categ.size(); ++m) {
 	    if ((i<tau_dependent_cutoff) && (m>0)) break;
 	    for (unsigned int p = 0; p<ptrange.size(); ++p) {
+	      cout << "a" << endl;
 	      if (i<tau_dependent_cutoff) {
 	        var_in = vars[i];
 		dir_in = "NoTauID/";
@@ -412,8 +351,9 @@ int main(int argc, char** argv) {
 	      }
 	      cout << var_in << endl;
 	      
-	      if (final || option_name == "quick_test" || option_name == "Fakes") {
-	        TH1F* h_DYSig = MC_histo("Sig_", dir_in, var_in, file_in_DY, xs_DY, N_DY, rebin);
+	      cout << "b" << endl;
+	      if (final || option_name == "quick_test" || option_name == "Fakes" || option_name == "WJetsFake" || option_name == "WJets_pre") {
+	        TH1F* h_DYSig = MC_histo("Sig_", dir_in, var_in, file_in_DY, file_in_data, xs_DY, rebin);
 		h_DYSig->SetName("DYS_"+var_in);
 		h_DYSig->SetTitle("DYS_"+var_in);
 		
@@ -431,8 +371,9 @@ int main(int argc, char** argv) {
 		}
 	      }
 	      
+	      cout << "bb" << endl;
 	      
-	      TH1F* h_DYBkg = MC_histo("Bkg_", dir_in, var_in, file_in_DY, xs_DY, N_DY, rebin);
+	      TH1F* h_DYBkg = MC_histo("Bkg_", dir_in, var_in, file_in_DY, file_in_data, xs_DY, rebin);
 	      h_DYBkg->SetName("DYB_"+var_in);
 	      
 	      h_DYBkg->Write();
@@ -467,9 +408,9 @@ int main(int argc, char** argv) {
 	        h_QCD->Write();
 	        }*/
 	      
-	      TH1F* h_TT_had = MC_histo("Bkg_", dir_in, var_in, file_in_TT_had, xs_TT_had, N_TT_had, rebin);
-	      TH1F* h_TT_semilep = MC_histo("Bkg_", dir_in, var_in, file_in_TT_semilep, xs_TT_semilep, N_TT_semilep, rebin);
-	      TH1F* h_TT_2l2nu = MC_histo("Bkg_", dir_in, var_in, file_in_TT_2l2nu, xs_TT_2l2nu, N_TT_2l2nu, rebin);
+	      TH1F* h_TT_had = MC_histo("Bkg_", dir_in, var_in, file_in_TT_had, file_in_data, xs_TT_had, rebin);
+	      TH1F* h_TT_semilep = MC_histo("Bkg_", dir_in, var_in, file_in_TT_semilep, file_in_data, xs_TT_semilep, rebin);
+	      TH1F* h_TT_2l2nu = MC_histo("Bkg_", dir_in, var_in, file_in_TT_2l2nu, file_in_data, xs_TT_2l2nu, rebin);
 	      TH1F* h_TTBkg = (TH1F*) h_TT_had->Clone("TTB_"+var_in);
 	      h_TTBkg->Add(h_TT_semilep);
 	      h_TTBkg->Add(h_TT_2l2nu);
@@ -488,9 +429,9 @@ int main(int argc, char** argv) {
 	      }
 
 
-	      TH1F* h_WW = MC_histo("Bkg_", dir_in, var_in, file_in_WW, xs_WW, N_WW, rebin);
-	      TH1F* h_WZ = MC_histo("Bkg_", dir_in, var_in, file_in_WZ, xs_WZ, N_WZ, rebin);
-	      TH1F* h_ZZ = MC_histo("Bkg_", dir_in, var_in, file_in_ZZ, xs_ZZ, N_ZZ, rebin);
+	      TH1F* h_WW = MC_histo("Bkg_", dir_in, var_in, file_in_WW, file_in_data, xs_WW, rebin);
+	      TH1F* h_WZ = MC_histo("Bkg_", dir_in, var_in, file_in_WZ, file_in_data, xs_WZ, rebin);
+	      TH1F* h_ZZ = MC_histo("Bkg_", dir_in, var_in, file_in_ZZ, file_in_data, xs_ZZ, rebin);
 	      TH1F* h_VV = (TH1F*) h_WW->Clone("VV_"+var_in);
 	      h_VV->Add(h_WZ);
 	      h_VV->Add(h_ZZ);
@@ -548,7 +489,9 @@ int main(int argc, char** argv) {
 	      }
 	    }//p
 	  }//m
-	  for (unsigned int dd=0; dd<process.size(); ++dd) h_cons_byDMeta[j][k][process[dd]]->Write();
+	  for (unsigned int dd=0; dd<process.size(); ++dd) {
+	    h_cons_byDMeta[j][k][process[dd]]->Write();
+	  }
 	}//k
       }//j
       for (unsigned int dd=0; dd<process.size(); ++dd) {

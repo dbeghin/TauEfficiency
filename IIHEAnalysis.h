@@ -2941,7 +2941,7 @@ public :
    virtual Int_t    GetEntry(Long64_t entry);
    virtual Long64_t LoadTree(Long64_t entry);
    virtual void     Init(TTree *tree);
-   virtual void     Loop(string phase, string type_of_data, string out_name, string mc_nickname, Float_t nEvents);
+   virtual void     Loop(string phase, string type_of_data, string in_name, string out_name, string mc_nickname, Float_t nEvents);
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
 };

@@ -1,12 +1,15 @@
 #define IIHEAnalysis_cxx
 #include "IIHEAnalysis.h"
 #include "PU_reWeighting.cc"
+#include "meta.h"
+#include "zptweight.cc"
 //#include <TH1.h>
 #include <TLorentzVector.h>
 //#include <TCanvas.h>
 #include "TString.h"
 #include <iostream>
 #include "TRandom3.h"
+//#include "aux.h"
 
 using namespace std;
 
@@ -24,12 +27,53 @@ int main(int argc, char** argv) {
   TFile *fIn = TFile::Open(inname.c_str());
   TTree* tree = (TTree*) fIn->Get("IIHEAnalysis");
 
+  TTree* mmeta = (TTree*) fIn->Get("meta");
+  meta* m = new meta(mmeta);
+  Float_t nEvents = m->Loop(type);
+  //delete m;
+
   IIHEAnalysis* a = new IIHEAnalysis(tree);
-  a->Loop(phase, type, out_name, mc_nickname);
+  a->Loop(phase, type, inname, out_name, mc_nickname, nEvents);
+  fIn->Close();
+  //delete a;
   return 0;
 }
 
-void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, string mc_nickname) {
+
+
+Float_t meta::Loop(string type_of_data) {
+  if (fChain == 0) return -1;
+
+  bool data;
+  if (type_of_data == "Data" || type_of_data == "data" || type_of_data == "singlephoton" || type_of_data == "SinglePhoton" || type_of_data == "singlemu" || type_of_data == "SingleMu") \
+    {
+      data = true;
+    }
+  else {
+    data = false;
+  }
+
+  Long64_t nentries = fChain->GetEntriesFast();
+
+  Long64_t nbytes = 0, nb = 0;
+  Float_t nEvents = -1;
+  for (Long64_t jentry=0; jentry<nentries;jentry++) {
+    Long64_t ientry = LoadTree(jentry);
+    if (ientry < 0) break;
+    nb = fChain->GetEntry(jentry);   nbytes += nb;
+
+    if (data) {
+      nEvents = nEventsRaw;
+    }
+    else {
+      nEvents = mc_nEventsWeighted;
+    }
+  }
+  return nEvents;
+}
+
+
+void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, string out_name, string mc_nickname, Float_t nEvents) {
    if (fChain == 0) return;
 
    bool DY, data;
@@ -86,9 +130,9 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
      }
    }
 
+   readZptFile(2017);
 
    TH1F* h_reweight = new TH1F("h_r", "h_r", 100, -2, 2);
-   TH1F* h_events = new TH1F("h_events", "h_events", 1, 0, 1);
 
    Long64_t nEntries = fChain->GetEntriesFast();
    Long64_t nbytes = 0, nb = 0;
@@ -99,7 +143,6 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
       Long64_t iEntry = LoadTree(jEntry);
       if (iEntry < 0) break;
       if (jEntry % 1000 == 0) fprintf(stdout, "\r  Processed events: %8d of %8d ", jEntry, nEntries);
-      h_events->Fill(0);
 
       nb = fChain->GetEntry(jEntry);
       nbytes += nb;
@@ -112,6 +155,36 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	//pu_weight = PU_2017_Rereco::MC_pileup_weight(mc_trueNumInteractions, mc_nickname, "Data_2017BtoF_80mb");
       }
 
+      float zpt_weight = 1;
+      if (DY) {
+	TLorentzVector l1_p4, l2_p4, ll_p4;
+	l1_p4.SetPxPyPzE(0, 0, 0, 0);
+	l2_p4.SetPxPyPzE(0, 0, 0, 0);
+	ll_p4.SetPxPyPzE(0, 0, 0, 0);
+	int l1_pdgid = 0, l2_pdgid = 0;
+	if (print_count < 20) {
+	  ++print_count;
+	  cout << endl << "LHE info" << endl;
+	}
+	for (unsigned int iLHE = 0; iLHE < LHE_Pt->size(); ++iLHE) {
+	  if (print_count < 20) {
+	    cout << LHE_pdgid->at(iLHE) << "  " << LHE_Pt->at(iLHE) << "  " << LHE_Eta->at(iLHE) << "  " << LHE_Phi->at(iLHE) << "  " << LHE_E->at(iLHE) << endl;
+	  }
+	  if (LHE_pdgid->at(iLHE) == 11 || LHE_pdgid->at(iLHE) == 13 || LHE_pdgid->at(iLHE) == 15) {
+	    l1_p4.SetPtEtaPhiE(LHE_Pt->at(iLHE),LHE_Eta->at(iLHE),LHE_Phi->at(iLHE),LHE_E->at(iLHE));
+	    l1_pdgid = LHE_pdgid->at(iLHE);
+	  }
+	  else if (LHE_pdgid->at(iLHE) == -11 || LHE_pdgid->at(iLHE) == -13 || LHE_pdgid->at(iLHE) == -15) {
+	    l2_p4.SetPtEtaPhiE(LHE_Pt->at(iLHE),LHE_Eta->at(iLHE),LHE_Phi->at(iLHE),LHE_E->at(iLHE));
+	    l2_pdgid = LHE_pdgid->at(iLHE);
+	  }
+	}
+	if (l1_pdgid == -l2_pdgid) {
+	  ll_p4 = l1_p4 + l2_p4;
+	  zpt_weight = getZpt(ll_p4.M(), ll_p4.Pt());
+	  if (print_count < 20) cout << zpt_weight << endl;
+	}
+      }
 
 
       //Is one of the triggers fired?
@@ -241,7 +314,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	  float mc_wweight = 1;
 	  //pu_weight = 1; //FIXME
 	  if (!data) other_weights = GetReweight_mumu(mu1_p4.Pt(), mu1_p4.Eta(), mu2_p4.Pt(), mu2_p4.Eta()), mc_wweight = mc_w_sign;
-	  float final_weight = pu_weight*other_weights*mc_wweight;
+	  float final_weight = pu_weight*other_weights/*zpt_weight*/*mc_wweight;
 	  //final_weight = 1; //FIXME
 	  if (final_weight != final_weight) continue;
 
@@ -260,8 +333,8 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
 	  }
 
 	  bPassedSel = true;
-	  h_reweight->Fill(final_weight);
-	  //h_reweight->Fill(pu_weight);
+	  //h_reweight->Fill(final_weight);
+	  h_reweight->Fill(zpt_weight);
 	  //h_reweight->Fill(mc_trueNumInteractions);
 
 	  h[1][0]->Fill(mu_gt_pt->at(iMu1), final_weight);
@@ -297,9 +370,11 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string out_name, stri
       }//loop over muons
    }//loop over events
 
+   TH1F* h_total_events =  new TH1F("weighted_events", "weighted_events", 1, 0, 1);
+   h_total_events->Fill(0.5, nEvents);
    file_out->cd();
+   h_total_events->Write();
    h_reweight->Write();
-   h_events->Write();
    for (unsigned int i = 0; i<histo_names.size(); ++i) for (unsigned int k = 0; k<two; ++k) h[k][i]->Write();
    file_out->Close();
 

@@ -13,8 +13,8 @@ def add_lumi():
     lumi.SetTextColor(    1 )
     lumi.SetTextSize(0.06)
     lumi.SetTextFont (   42 )
-    #lumi.AddText("2017, 41.5 fb^{-1} (13 TeV)")
-    lumi.AddText("2017, 38.9 fb^{-1} (13 TeV)")
+    lumi.AddText("2017, 41.5 fb^{-1} (13 TeV)")
+    #lumi.AddText("2017, 38.9 fb^{-1} (13 TeV)")
     #lumi.AddText("2017B, 4.8 fb^{-1} (13 TeV)")
     #lumi.AddText("2017C, 9.8 fb^{-1} (13 TeV)")
     #lumi.AddText("2017D, 4.3 fb^{-1} (13 TeV)")
@@ -75,9 +75,9 @@ trans=ROOT.TColor(new_idx, adapt.GetRed(), adapt.GetGreen(),adapt.GetBlue(), "",
 #ncat=2
 
 var=[]
-var.append("mu_pt")
-var.append("mu_eta")
-var.append("mu_phi")
+#var.append("mu_pt")
+#var.append("mu_eta")
+#var.append("mu_phi")
 #var.append("mu1_pt")
 #var.append("mu1_eta")
 #var.append("mu1_phi")
@@ -86,7 +86,7 @@ var.append("mu_phi")
 #var.append("mu2_phi")
 #var.append("ev_DRmumu")
 #var.append("ev_Mt_raw")
-var.append("ev_Mt")
+#var.append("ev_Mt")
 var.append("ev_Mvis")
 #var.append("ev_Mvis_SS")
 '''
@@ -99,9 +99,9 @@ nvar=len(var)
 print nvar
 
 photogenic_var=[]
-photogenic_var.append("#mu p_{T} (GeV)")
-photogenic_var.append("#mu #eta")
-photogenic_var.append("#mu #phi")
+#photogenic_var.append("#mu p_{T} (GeV)")
+#photogenic_var.append("#mu #eta")
+#photogenic_var.append("#mu #phi")
 #photogenic_var.append("#mu_{1} p_{T} (GeV)")
 #photogenic_var.append("#mu_{1} #eta")
 #photogenic_var.append("#mu_{1} #phi")
@@ -110,7 +110,7 @@ photogenic_var.append("#mu #phi")
 #photogenic_var.append("#mu_{2} #phi")
 #photogenic_var.append("#DeltaR (#mu #mu)")
 #photogenic_var.append("m_{T} (#mu E_{T}^{miss}) (GeV)")
-photogenic_var.append("m_{T} (#mu E_{T}^{miss}) (GeV)")
+#photogenic_var.append("m_{T} (#mu E_{T}^{miss}) (GeV)")
 photogenic_var.append("m_{vis} (GeV)")
 #photogenic_var.append("m_{vis} (SS) (GeV)")
 '''
@@ -124,9 +124,9 @@ for k in range (0,nvar):
     var_in = var[k]
     #print var_in
     Data=file.Get("data_"+var_in)
-    W=file.Get("WJets_"+var_in)
-    TT=file.Get("TTB_"+var_in)
-    VV=file.Get("VV_"+var_in)#VV
+    #W=file.Get("WJets_"+var_in)
+    #TT=file.Get("TTB_"+var_in)
+    #VV=file.Get("VV_"+var_in)#VV
     #W.Add(VV)
     DYB=file.Get("DYB_"+var_in)
     #if i<4:
@@ -147,7 +147,7 @@ for k in range (0,nvar):
     
     
     #W.SetFillColor(ROOT.TColor.GetColor("#de5a6a"))
-    TT.SetFillColor(ROOT.TColor.GetColor("#9999cc"))
+    #TT.SetFillColor(ROOT.TColor.GetColor("#9999cc"))
     DYB.SetFillColor(ROOT.TColor.GetColor("#4496c8"))
     
     DYS.SetFillColor(ROOT.TColor.GetColor("#ffcc66"))
@@ -156,7 +156,7 @@ for k in range (0,nvar):
     Data.SetMarkerSize(1)
     
     #W.SetLineColor(1)
-    TT.SetLineColor(1)
+    #TT.SetLineColor(1)
     
     DYS.SetLineColor(1)
     DYB.SetLineColor(1)
@@ -168,16 +168,16 @@ for k in range (0,nvar):
     stack=ROOT.THStack("stack","stack")
     
     #stack.Add(W)
-    stack.Add(TT)
+    #stack.Add(TT)
     stack.Add(DYS)
     stack.Add(DYB)
     
     
-    errorBand = TT.Clone()
+    errorBand = DYS.Clone()
     
     #errorBand.Add(W)
     
-    errorBand.Add(DYS)
+    #errorBand.Add(TT)
     errorBand.Add(DYB)
     errorBand.SetMarkerSize(0)
     errorBand.SetFillColor(new_idx)
@@ -216,7 +216,7 @@ for k in range (0,nvar):
     
     legende.AddEntry(DYS,"Z#rightarrow#tau_{#mu}#tau_{h}","f")
     legende.AddEntry(DYB,"DY others","f")
-    legende.AddEntry(TT,"t#bar{t}+jets","f")
+    #legende.AddEntry(TT,"t#bar{t}+jets","f")
     #legende.AddEntry(W,"Electroweak","f")
     
     legende.AddEntry(errorBand,"Uncertainty","f")

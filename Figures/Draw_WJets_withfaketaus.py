@@ -13,7 +13,7 @@ def add_lumi():
     lumi.SetTextColor(    1 )
     lumi.SetTextSize(0.06)
     lumi.SetTextFont (   42 )
-    lumi.AddText("2017, 38.9 fb^{-1} (13 TeV)")
+    lumi.AddText("2017, 41.5 fb^{-1} (13 TeV)")
     return lumi
 
 def add_CMS():
@@ -73,7 +73,7 @@ var=[]
 #var.append("ev_DRmutau")
 #var.append("ev_Mt_raw")
 tauID_cutoff=len(var)
-var.append("ev_Mt")                
+#var.append("ev_Mt")                
 var.append("ev_Mvis")              
 #var.append("ev_Mvis_TESup")        
 #var.append("ev_Mvis_TESdown")      
@@ -105,13 +105,13 @@ var.append("ev_Mvis")
 #var.append("tau_pt_antiisomu_up") 
 #var.append("tau_pt_antiisotau_down")
 #var.append("tau_pt_antiisotau_up")
-#var.append("tau_pt")               
-#var.append("tau_eta")              
-#var.append("tau_phi")              
-#var.append("mu_pt")                
-#var.append("mu_eta")               
-#var.append("mu_phi")               
-#var.append("ev_Nvertex")           
+var.append("tau_pt")               
+var.append("tau_eta")              
+var.append("tau_phi")              
+var.append("mu_pt")                
+var.append("mu_eta")               
+var.append("mu_phi")               
+var.append("ev_Nvertex")           
 #var.append("ev_Nvertex_MinBiasdown")
 #var.append("ev_Nvertex_Minbiasup")
 
@@ -213,10 +213,21 @@ photogenic_tauIDs={
 
 dms=[
 "allDMs",
+#"DM0",
+#"DM1",
+#"DM10",
 ]
 
 eta=[
-"fulletarange",
+"alleta",
+#"barrel",
+#"endcap",
+]
+
+ptrange=[
+"allpt",
+#"pt_20_40",
+#"pt_40_150",
 ]
 
 ntauID=len(tauIDs)
@@ -231,215 +242,226 @@ for i in range (0,nvar):
         for k in range (0,len(eta)):
             for l in range (0,ntauID):
                 for m in range (0,ncat):
-                    if i < tauID_cutoff:# or j == 0:
-                        if j>0 or k>0 or l>0 or m>0:
+                    for p in range (0,len(ptrange)):
+                        if i < tauID_cutoff:# or j == 0:
+                            if j>0 or k>0 or l>0 or m>0:
+                                continue
+                            var_in = var[i]
+                            ph_tauID_in = "No tau ID"
+                            categ_in = ""
+                        else:
+                            var_in = var[i]+"_"+dms[j]+"_"+eta[k]+"_"+ptrange[p]+"_"+tauIDs[l]+"_"+categories[m]
+                            ph_tauID_in = photogenic_tauIDs[tauIDs[l]]
+                            categ_in = categories[m]
+                        print var_in
+                        ph_var_in = photogenic_var[var[i]]
+                        
+                        Data=file.Get(tauIDs[l]+"/data_"+var_in)
+                        TT=file.Get(tauIDs[l]+"/TTB_"+var_in)
+                        VV=file.Get(tauIDs[l]+"/VV_"+var_in)
+                        DYS=file.Get(tauIDs[l]+"/DYS_"+var_in)
+                        DYB=file.Get(tauIDs[l]+"/DYB_"+var_in)
+                        Faketau=file.Get(tauIDs[l]+"/faketau_"+var_in)
+                        
+                        try:
+                            Data.GetXaxis().SetTitle("")
+                        except:
+                            print "non existent file:  "+ tauIDs[l]+"/data_"+var_in
                             continue
-                        var_in = var[i]
-                        ph_tauID_in = "No tau ID"
-                        categ_in = ""
-                    else:
-                        var_in = var[i]+"_"+dms[j]+"_"+eta[k]+"_"+tauIDs[l]+"_"+categories[m]
-                        ph_tauID_in = photogenic_tauIDs[tauIDs[l]]
-                        categ_in = categories[m]
-                    print var_in
-                    ph_var_in = photogenic_var[var[i]]
-
-                    Data=file.Get("data_"+var_in)
-                    TT=file.Get("TTB_"+var_in)
-                    VV=file.Get("VV_"+var_in)
-                    DYB=file.Get("DYB_"+var_in)
-                    Faketau=file.Get("faketau_"+var_in)
-                    
-                    Data.GetXaxis().SetTitle("")
-                    Data.GetXaxis().SetTitleSize(0)
-                    Data.GetXaxis().SetNdivisions(505)
-                    Data.GetYaxis().SetLabelFont(42)
-                    Data.GetYaxis().SetLabelOffset(0.01)
-                    Data.GetYaxis().SetLabelSize(0.06)
-                    Data.GetYaxis().SetTitleSize(0.075)
-                    Data.GetYaxis().SetTitleOffset(1.04)
-                    Data.SetTitle("")
-                    Data.GetYaxis().SetTitle("Events/bin")
-                    
-                    
-                    #Write number of events
-                    if k == nvar-1:
-                        nevents_file = open("nevents_"+var_in+".txt", 'w')
-                        nevents_file.write("processus | nevents \n")
-                        nevents_file.write("VV          " + str(VV.Integral()) + "\n")
-                        nevents_file.write("TT          " + str(TT.Integral()) + "\n")
-                        nevents_file.write("data        " + str(Data.Integral()) + "\n")
-                        nevents_file.close()
-                    
-                    
-                    
-                    #QCD.SetFillColor(ROOT.TColor.GetColor("#ffccff"))
-                    #W.SetFillColor(ROOT.TColor.GetColor("#de5a6a"))
-                    VV.SetFillColor(ROOT.TColor.GetColor("#d89a6a"))
-                    TT.SetFillColor(ROOT.TColor.GetColor("#9999cc"))
-                    DYB.SetFillColor(ROOT.TColor.GetColor("#4496c8"))
-                    Faketau.SetFillColor(ROOT.TColor.GetColor("#de5a6a"))
-                    
-                    Data.SetMarkerStyle(20)
-                    Data.SetMarkerSize(1)
-                    VV.SetLineColor(1)
-                    TT.SetLineColor(1)
-                    DYB.SetLineColor(1)
-                    Faketau.SetLineColor(1)
-                    Data.SetLineColor(1)
-                    Data.SetLineWidth(2)
-                    
-                    
-                    stack=ROOT.THStack("stack","stack")
-                    #stack.Add(W)
-                    stack.Add(VV)
-                    stack.Add(TT)
-                    stack.Add(Faketau)
-                    stack.Add(DYB)
-                    
-                    errorBand = TT.Clone()
-                    #errorBand.Add(QCD)
-                    errorBand.Add(DYB)
-                    errorBand.Add(VV)
-                    errorBand.Add(Faketau)
-                    errorBand.SetMarkerSize(0)
-                    errorBand.SetFillColor(new_idx)
-                    errorBand.SetFillStyle(3001)
-                    errorBand.SetLineWidth(1)
-                    
-                    pad1 = ROOT.TPad("pad1","pad1",0,0.35,1,1)
-                    pad1.Draw()
-                    pad1.cd()
-                    pad1.SetFillColor(0)
-                    pad1.SetBorderMode(0)
-                    pad1.SetBorderSize(10)
-                    pad1.SetTickx(1)
-                    pad1.SetTicky(1)
-                    pad1.SetLeftMargin(0.18)
-                    pad1.SetRightMargin(0.05)
-                    pad1.SetTopMargin(0.122)
-                    pad1.SetBottomMargin(0.026)
-                    pad1.SetFrameFillStyle(0)
-                    pad1.SetFrameLineStyle(0)
-                    pad1.SetFrameLineWidth(3)
-                    pad1.SetFrameBorderMode(0)
-                    pad1.SetFrameBorderSize(10)
-                    
-                    Data.GetXaxis().SetLabelSize(0)
-                    Data.SetMaximum(Data.GetMaximum()*2.5)#2.5)#FIXME
-                    Data.SetMinimum(0.1)
-                    Data.Draw("e")
-                    stack.Draw("histsame")
-                    errorBand.Draw("e2same")
-                    Data.Draw("esame")
-                    
-                    
-                    
-                    legende=make_legend()
-                    legende.AddEntry(Data,"Observed","elp")
-                    legende.AddEntry(DYB,"Z#rightarrow#mu #mu","f")
-                    legende.AddEntry(Faketau,"Fake #tau bg","f")
-                    legende.AddEntry(TT,"t#bar{t}+jets","f")
-                    #legende.AddEntry(W,"W+jets","f")
-                    legende.AddEntry(VV,"Diboson","f")
-                    #legende.AddEntry(QCD,"QCD multijet","f")
-                    legende.AddEntry(errorBand,"Uncertainty","f")
-                    legende.Draw()
-                    
-                    l1=add_lumi()
-                    l1.Draw("same")
-                    l2=add_CMS()
-                    l2.Draw("same")
-                    l3=add_Preliminary()
-                    l3.Draw("same")
-                    
-                    pad1.RedrawAxis()
-                    
-                    finalstate  = ROOT.TLegend(0.21, 0.52+0.013, 0.43, 0.70+0.155)
-                    finalstate.SetBorderSize(   0 )
-                    finalstate.SetFillStyle(    0 )
-                    finalstate.SetTextAlign(   12 )
-                    finalstate.SetTextSize ( 0.06 )
-                    finalstate.SetTextColor(    1 )
-                    #finalstate.SetTextFont (   41 )
-                    finalstate.SetHeader("#mu #tau")
-                    finalstate.Draw("same")
-                    
-                    '''
-                    categ  = ROOT.TPaveText(0.21, 0.45+0.013, 0.43, 0.65+0.155, "NDC")
-                    categ.SetBorderSize(   0 )
-                    categ.SetFillStyle(    0 )
-                    categ.SetTextAlign(   12 )
-                    categ.SetTextSize ( 0.06 )
-                    categ.SetTextColor(    1 )
-                    categ.SetTextFont (   41 )
-                    categ.AddText("OS iso #mu anti-iso #tau")
-                    #categ.AddText("Z#rightarrow#mu#mu CR")
-                    categ.Draw("same")
-                    '''
-                    
-                    tauID  = ROOT.TPaveText(0.21, 0.45+0.013, 0.43, 0.65+0.155, "NDC")
-                    tauID.SetBorderSize(   0 )
-                    tauID.SetFillStyle(    0 )
-                    tauID.SetTextAlign(   12 )
-                    tauID.SetTextSize ( 0.06 )
-                    tauID.SetTextColor(    1 )
-                    tauID.SetTextFont (   41 )
-                    tauID.AddText(ph_tauID_in)
-                    tauID.Draw("same")
-                    
-                    
-                    c.cd()
-                    pad2 = ROOT.TPad("pad2","pad2",0,0,1,0.35)
-                    pad2.SetTopMargin(0.05)
-                    pad2.SetBottomMargin(0.35)
-                    pad2.SetLeftMargin(0.18)
-                    pad2.SetRightMargin(0.05)
-                    pad2.SetTickx(1)
-                    pad2.SetTicky(1)
-                    pad2.SetFrameLineWidth(3)
-                    pad2.SetGridx()
-                    pad2.SetGridy()
-                    pad2.Draw()
-                    pad2.cd()
-                    h1=Data.Clone()
-                    h1.SetMaximum(1.3)#FIXME(1.5)
-                    h1.SetMinimum(0.7)#FIXME(0.5)
-                    h1.SetMarkerStyle(20)
-                    h3=errorBand.Clone()
-                    hwoE=errorBand.Clone()
-                    for iii in range (1,hwoE.GetSize()-2):
-                        hwoE.SetBinError(iii,0)
-                    h3.Sumw2()
-                    h1.Sumw2()
-                    h1.SetStats(0)
-                    h1.Divide(hwoE)
-                    h3.Divide(hwoE)
-                    h1.GetXaxis().SetTitle(ph_var_in)
-                    h1.GetXaxis().SetLabelSize(0.08)
-                    h1.GetYaxis().SetLabelSize(0.08)
-                    h1.GetYaxis().SetTitle("Obs./Exp.")
-                    h1.GetXaxis().SetNdivisions(505)
-                    h1.GetYaxis().SetNdivisions(6)
-                    
-                    h1.GetXaxis().SetTitleSize(0.15)
-                    h1.GetYaxis().SetTitleSize(0.15)
-                    h1.GetYaxis().SetTitleOffset(0.56)
-                    h1.GetXaxis().SetTitleOffset(1.04)
-                    h1.GetXaxis().SetLabelSize(0.11)
-                    h1.GetYaxis().SetLabelSize(0.11)
-                    h1.GetXaxis().SetTitleFont(42)
-                    h1.GetYaxis().SetTitleFont(42)
-                    
-                    h1.Draw("ep")
-                    h3.Draw("e2same")
-                    
-                    c.cd()
-                    pad1.Draw()
-                    
-                    ROOT.gPad.RedrawAxis()
-                    
-                    c.Modified()
-                    c.SaveAs(var_in+".png")
+                        Data.GetXaxis().SetTitleSize(0)
+                        Data.GetXaxis().SetNdivisions(505)
+                        Data.GetYaxis().SetLabelFont(42)
+                        Data.GetYaxis().SetLabelOffset(0.01)
+                        Data.GetYaxis().SetLabelSize(0.06)
+                        Data.GetYaxis().SetTitleSize(0.075)
+                        Data.GetYaxis().SetTitleOffset(1.04)
+                        Data.SetTitle("")
+                        Data.GetYaxis().SetTitle("Events/bin")
+                        
+                        
+                        #Write number of events
+                        if k == nvar-1:
+                            nevents_file = open("nevents_"+var_in+".txt", 'w')
+                            nevents_file.write("processus | nevents \n")
+                            nevents_file.write("VV          " + str(VV.Integral()) + "\n")
+                            nevents_file.write("TT          " + str(TT.Integral()) + "\n")
+                            nevents_file.write("data        " + str(Data.Integral()) + "\n")
+                            nevents_file.close()
+                        
+                        
+                        
+                        #QCD.SetFillColor(ROOT.TColor.GetColor("#ffccff"))
+                        #W.SetFillColor(ROOT.TColor.GetColor("#de5a6a"))
+                        VV.SetFillColor(ROOT.TColor.GetColor("#d89a6a"))
+                        TT.SetFillColor(ROOT.TColor.GetColor("#9999cc"))
+                        DYB.SetFillColor(ROOT.TColor.GetColor("#4496c8"))
+                        DYS.SetFillColor(ROOT.TColor.GetColor("#ffcc66"))
+                        Faketau.SetFillColor(ROOT.TColor.GetColor("#de5a6a"))
+                        
+                        Data.SetMarkerStyle(20)
+                        Data.SetMarkerSize(1)
+                        VV.SetLineColor(1)
+                        TT.SetLineColor(1)
+                        DYB.SetLineColor(1)
+                        DYS.SetLineColor(1)
+                        Faketau.SetLineColor(1)
+                        Data.SetLineColor(1)
+                        Data.SetLineWidth(2)
+                        
+                        
+                        stack=ROOT.THStack("stack","stack")
+                        #stack.Add(W)
+                        stack.Add(VV)
+                        stack.Add(TT)
+                        stack.Add(Faketau)
+                        stack.Add(DYB)
+                        stack.Add(DYS)
+                        
+                        errorBand = TT.Clone()
+                        #errorBand.Add(QCD)
+                        errorBand.Add(DYB)
+                        errorBand.Add(DYS)
+                        errorBand.Add(VV)
+                        errorBand.Add(Faketau)
+                        errorBand.SetMarkerSize(0)
+                        errorBand.SetFillColor(new_idx)
+                        errorBand.SetFillStyle(3001)
+                        errorBand.SetLineWidth(1)
+                        
+                        pad1 = ROOT.TPad("pad1","pad1",0,0.35,1,1)
+                        pad1.Draw()
+                        pad1.cd()
+                        pad1.SetFillColor(0)
+                        pad1.SetBorderMode(0)
+                        pad1.SetBorderSize(10)
+                        pad1.SetTickx(1)
+                        pad1.SetTicky(1)
+                        pad1.SetLeftMargin(0.18)
+                        pad1.SetRightMargin(0.05)
+                        pad1.SetTopMargin(0.122)
+                        pad1.SetBottomMargin(0.026)
+                        pad1.SetFrameFillStyle(0)
+                        pad1.SetFrameLineStyle(0)
+                        pad1.SetFrameLineWidth(3)
+                        pad1.SetFrameBorderMode(0)
+                        pad1.SetFrameBorderSize(10)
+                        
+                        Data.GetXaxis().SetLabelSize(0)
+                        Data.SetMaximum(Data.GetMaximum()*2.5)#2.5)#FIXME
+                        Data.SetMinimum(0.1)
+                        Data.Draw("e")
+                        stack.Draw("histsame")
+                        errorBand.Draw("e2same")
+                        Data.Draw("esame")
+                        
+                        
+                        
+                        legende=make_legend()
+                        legende.AddEntry(Data,"Observed","elp")
+                        legende.AddEntry(DYB,"Z#rightarrow#mu #mu","f")
+                        legende.AddEntry(DYS,"Z#rightarrow#mu #mu","f")
+                        legende.AddEntry(Faketau,"Fake #tau bg","f")
+                        legende.AddEntry(TT,"t#bar{t}+jets","f")
+                        #legende.AddEntry(W,"W+jets","f")
+                        legende.AddEntry(VV,"Diboson","f")
+                        #legende.AddEntry(QCD,"QCD multijet","f")
+                        legende.AddEntry(errorBand,"Uncertainty","f")
+                        legende.Draw()
+                        
+                        l1=add_lumi()
+                        l1.Draw("same")
+                        l2=add_CMS()
+                        l2.Draw("same")
+                        l3=add_Preliminary()
+                        l3.Draw("same")
+                        
+                        pad1.RedrawAxis()
+                        
+                        finalstate  = ROOT.TLegend(0.21, 0.52+0.013, 0.43, 0.70+0.155)
+                        finalstate.SetBorderSize(   0 )
+                        finalstate.SetFillStyle(    0 )
+                        finalstate.SetTextAlign(   12 )
+                        finalstate.SetTextSize ( 0.06 )
+                        finalstate.SetTextColor(    1 )
+                        #finalstate.SetTextFont (   41 )
+                        finalstate.SetHeader("#mu #tau")
+                        finalstate.Draw("same")
+                        
+                        '''
+                        categ  = ROOT.TPaveText(0.21, 0.45+0.013, 0.43, 0.65+0.155, "NDC")
+                        categ.SetBorderSize(   0 )
+                        categ.SetFillStyle(    0 )
+                        categ.SetTextAlign(   12 )
+                        categ.SetTextSize ( 0.06 )
+                        categ.SetTextColor(    1 )
+                        categ.SetTextFont (   41 )
+                        categ.AddText("OS iso #mu anti-iso #tau")
+                        #categ.AddText("Z#rightarrow#mu#mu CR")
+                        categ.Draw("same")
+                        '''
+                        
+                        tauID  = ROOT.TPaveText(0.21, 0.45+0.013, 0.43, 0.65+0.155, "NDC")
+                        tauID.SetBorderSize(   0 )
+                        tauID.SetFillStyle(    0 )
+                        tauID.SetTextAlign(   12 )
+                        tauID.SetTextSize ( 0.06 )
+                        tauID.SetTextColor(    1 )
+                        tauID.SetTextFont (   41 )
+                        tauID.AddText(ph_tauID_in)
+                        tauID.Draw("same")
+                        
+                        
+                        c.cd()
+                        pad2 = ROOT.TPad("pad2","pad2",0,0,1,0.35)
+                        pad2.SetTopMargin(0.05)
+                        pad2.SetBottomMargin(0.35)
+                        pad2.SetLeftMargin(0.18)
+                        pad2.SetRightMargin(0.05)
+                        pad2.SetTickx(1)
+                        pad2.SetTicky(1)
+                        pad2.SetFrameLineWidth(3)
+                        pad2.SetGridx()
+                        pad2.SetGridy()
+                        pad2.Draw()
+                        pad2.cd()
+                        h1=Data.Clone()
+                        h1.SetMaximum(1.3)#FIXME(1.5)
+                        h1.SetMinimum(0.7)#FIXME(0.5)
+                        h1.SetMarkerStyle(20)
+                        h3=errorBand.Clone()
+                        hwoE=errorBand.Clone()
+                        for iii in range (1,hwoE.GetSize()-2):
+                            hwoE.SetBinError(iii,0)
+                        h3.Sumw2()
+                        h1.Sumw2()
+                        h1.SetStats(0)
+                        h1.Divide(hwoE)
+                        h3.Divide(hwoE)
+                        h1.GetXaxis().SetTitle(ph_var_in)
+                        h1.GetXaxis().SetLabelSize(0.08)
+                        h1.GetYaxis().SetLabelSize(0.08)
+                        h1.GetYaxis().SetTitle("Obs./Exp.")
+                        h1.GetXaxis().SetNdivisions(505)
+                        h1.GetYaxis().SetNdivisions(6)
+                        
+                        h1.GetXaxis().SetTitleSize(0.15)
+                        h1.GetYaxis().SetTitleSize(0.15)
+                        h1.GetYaxis().SetTitleOffset(0.56)
+                        h1.GetXaxis().SetTitleOffset(1.04)
+                        h1.GetXaxis().SetLabelSize(0.11)
+                        h1.GetYaxis().SetLabelSize(0.11)
+                        h1.GetXaxis().SetTitleFont(42)
+                        h1.GetYaxis().SetTitleFont(42)
+                        
+                        h1.Draw("ep")
+                        h3.Draw("e2same")
+                        
+                        c.cd()
+                        pad1.Draw()
+                        
+                        ROOT.gPad.RedrawAxis()
+                        
+                        c.Modified()
+                        c.SaveAs(var_in+".png")
 
 

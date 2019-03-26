@@ -19,31 +19,31 @@ int main(int argc, char** argv) {
 
 
   vector<TString> tauID;
-  tauID.push_back("cutbased_loose");
-  tauID.push_back("cutbased_medium");
-  tauID.push_back("cutbased_tight");
-
+  //tauID.push_back("cutbased_loose");
+  //tauID.push_back("cutbased_medium");
+  //tauID.push_back("cutbased_tight");
+  
   tauID.push_back("MVA_2017v2vvloose");
-  tauID.push_back("MVA_2017v2vloose");
-  tauID.push_back("MVA_2017v2loose");
-  tauID.push_back("MVA_2017v2medium");
+  //tauID.push_back("MVA_2017v2vloose");
+  //tauID.push_back("MVA_2017v2loose");
+  //tauID.push_back("MVA_2017v2medium");
   tauID.push_back("MVA_2017v2tight");
-  tauID.push_back("MVA_2017v2vtight");
-  tauID.push_back("MVA_2017v2vvtight");
-
-  tauID.push_back("MVA_DBdR03vloose");
-  tauID.push_back("MVA_DBdR03loose");                                                  
-  tauID.push_back("MVA_DBdR03medium");                                                  
-  tauID.push_back("MVA_DBdR03tight");                                                  
-  tauID.push_back("MVA_DBdR03vtight");                                                  
-  tauID.push_back("MVA_DBdR03vvtight");                                                 
-
-  tauID.push_back("MVA_PWdR03vloose");
-  tauID.push_back("MVA_PWdR03loose");
-  tauID.push_back("MVA_PWdR03medium");
-  tauID.push_back("MVA_PWdR03tight");
-  tauID.push_back("MVA_PWdR03vtight");
-  tauID.push_back("MVA_PWdR03vvtight");
+  //tauID.push_back("MVA_2017v2vtight");
+  //tauID.push_back("MVA_2017v2vvtight");
+  //
+  //tauID.push_back("MVA_DBdR03vloose");
+  //tauID.push_back("MVA_DBdR03loose");                                                  
+  //tauID.push_back("MVA_DBdR03medium");                                                  
+  //tauID.push_back("MVA_DBdR03tight");                                                  
+  //tauID.push_back("MVA_DBdR03vtight");                                                  
+  //tauID.push_back("MVA_DBdR03vvtight");                                                 
+  //
+  //tauID.push_back("MVA_PWdR03vloose");
+  //tauID.push_back("MVA_PWdR03loose");
+  //tauID.push_back("MVA_PWdR03medium");
+  //tauID.push_back("MVA_PWdR03tight");
+  //tauID.push_back("MVA_PWdR03vtight");
+  //tauID.push_back("MVA_PWdR03vvtight");
 
 
   vector<TString> dms;
@@ -125,6 +125,19 @@ int main(int argc, char** argv) {
 		  }
 		  else {
 		    oout_sys = "_frsdmUp";
+		  }
+		}
+	      }
+	      if (l>0 && in_sys[k].find("TES") !=string::npos) {
+		if (in_sys[k].find(dms[l]) == string::npos) {
+		  continue;
+		}
+		else {
+		  if (out_sys[k].find("Down") != string::npos) {
+		    oout_sys = "_tesdmDown";
+		  }
+		  else {
+		    oout_sys = "_tesdmUp";
 		  }
 		}
 	      }

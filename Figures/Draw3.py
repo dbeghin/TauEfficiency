@@ -13,8 +13,8 @@ def add_lumi():
     lumi.SetTextColor(    1 )
     lumi.SetTextSize(0.06)
     lumi.SetTextFont (   42 )
-    #lumi.AddText("2017, 41.5 fb^{-1} (13 TeV)")
-    lumi.AddText("2017, 38.9 fb^{-1} (13 TeV)")
+    lumi.AddText("2017, 41.5 fb^{-1} (13 TeV)")
+    #lumi.AddText("2017, 38.9 fb^{-1} (13 TeV)")
     return lumi
 
 def add_CMS():
@@ -126,7 +126,7 @@ tauIDs=[
 #"MVA_veryloose",   
 #"MVA_loose",        
 #"MVA_medium",      
-"MVA_2017v2tight",       
+"allDMs_alleta_allpt_MVA_2017v2tight",       
 #"MVA_verytight",   
 #"MVA_veryverytight",
 #"MVAnew_veryloose",   
@@ -144,7 +144,7 @@ photogenic_tauIDs={
 "MVA_veryloose" :    "MVA very loose",
 "MVA_loose" :         "MVA loose",
 "MVA_medium" :       "MVA medium",
-"MVA_2017v2tight" :    "MVA 2017 v2 tight",
+"allDMs_alleta_allpt_MVA_2017v2tight" :    "MVA 2017 v2 tight",
 "MVA_verytight" :    "MVA very tight",
 "MVA_veryverytight" : "MVA very very tight",
 "MVAnew_veryloose" :    "MVA very loose",

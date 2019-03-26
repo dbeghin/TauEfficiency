@@ -65,71 +65,63 @@ int main(int argc, char** argv) {
   vars.push_back("ev_Mvis_TES_DM10_up");
   vars.push_back("tau_pt_TES_DM10_down");
   vars.push_back("tau_pt_TES_DM10_up");
-  vars.push_back("Z_pt");
+  //vars.push_back("Z_pt");
   vars.push_back("tau_DM");
   vars.push_back("ev_Mvis_MESdown");
   vars.push_back("ev_Mvis_MESup");
-  vars.push_back("tau_pt_MESdown");
-  vars.push_back("tau_pt_MESup");
+  //vars.push_back("tau_pt_MESdown");
+  //vars.push_back("tau_pt_MESup");
   vars.push_back("ev_Mvis_MinBiasdown");
   vars.push_back("ev_Mvis_MinBiasup");
   //vars.push_back("ev_Nvertex_MinBiasdown");
   //vars.push_back("ev_Nvertex_Minbiasup");
   vars.push_back("ev_Mvis_FRS_DM0_down");
   vars.push_back("ev_Mvis_FRS_DM0_up");
-  vars.push_back("tau_pt_FRS_DM0_down");
-  vars.push_back("tau_pt_FRS_DM0_up");
+  //vars.push_back("tau_pt_FRS_DM0_down");
+  //vars.push_back("tau_pt_FRS_DM0_up");
   vars.push_back("ev_Mvis_FRS_DM1_down");
   vars.push_back("ev_Mvis_FRS_DM1_up");
-  vars.push_back("tau_pt_FRS_DM1_down");
-  vars.push_back("tau_pt_FRS_DM1_up");
+  //vars.push_back("tau_pt_FRS_DM1_down");
+  //vars.push_back("tau_pt_FRS_DM1_up");
   vars.push_back("ev_Mvis_FRS_DM10_down");
   vars.push_back("ev_Mvis_FRS_DM10_up");
-  vars.push_back("tau_pt_FRS_DM10_down");
-  vars.push_back("tau_pt_FRS_DM10_up");
+  //vars.push_back("tau_pt_FRS_DM10_down");
+  //vars.push_back("tau_pt_FRS_DM10_up");
   vars.push_back("ev_Mvis_antiisomu_down");
   vars.push_back("ev_Mvis_antiisomu_up");
-  vars.push_back("tau_pt_antiisomu_down");
-  vars.push_back("tau_pt_antiisomu_up");
+  //vars.push_back("tau_pt_antiisomu_down");
+  //vars.push_back("tau_pt_antiisomu_up");
   vars.push_back("ev_Mvis_antiisotau_down");
   vars.push_back("ev_Mvis_antiisotau_up");
-  vars.push_back("tau_pt_antiisotau_down");
-  vars.push_back("tau_pt_antiisotau_up");
+  //vars.push_back("tau_pt_antiisotau_down");
+  //vars.push_back("tau_pt_antiisotau_up");
 
   vector<TString> HPS_WP;
-  HPS_WP.push_back("cutbased_loose");
-  HPS_WP.push_back("cutbased_medium");
-  HPS_WP.push_back("cutbased_tight");
-
-  HPS_WP.push_back("MVA_2017v1vvloose");
-  HPS_WP.push_back("MVA_2017v1vloose");
-  HPS_WP.push_back("MVA_2017v1loose");
-  HPS_WP.push_back("MVA_2017v1medium");
-  HPS_WP.push_back("MVA_2017v1tight");
-  HPS_WP.push_back("MVA_2017v1vtight");
-  HPS_WP.push_back("MVA_2017v1vvtight");
-
+  //HPS_WP.push_back("cutbased_loose");
+  //HPS_WP.push_back("cutbased_medium");
+  //HPS_WP.push_back("cutbased_tight");
+  
   HPS_WP.push_back("MVA_2017v2vvloose");
-  HPS_WP.push_back("MVA_2017v2vloose");
-  HPS_WP.push_back("MVA_2017v2loose");
-  HPS_WP.push_back("MVA_2017v2medium");
+  //HPS_WP.push_back("MVA_2017v2vloose");
+  //HPS_WP.push_back("MVA_2017v2loose");
+  //HPS_WP.push_back("MVA_2017v2medium");
   HPS_WP.push_back("MVA_2017v2tight");
-  HPS_WP.push_back("MVA_2017v2vtight");
-  HPS_WP.push_back("MVA_2017v2vvtight");
-
-  HPS_WP.push_back("MVA_DBdR03vloose"); 
-  HPS_WP.push_back("MVA_DBdR03loose");
-  HPS_WP.push_back("MVA_DBdR03medium");
-  HPS_WP.push_back("MVA_DBdR03tight");
-  HPS_WP.push_back("MVA_DBdR03vtight");
-  HPS_WP.push_back("MVA_DBdR03vvtight");
-
-  HPS_WP.push_back("MVA_PWdR03vloose"); 
-  HPS_WP.push_back("MVA_PWdR03loose");
-  HPS_WP.push_back("MVA_PWdR03medium");
-  HPS_WP.push_back("MVA_PWdR03tight");
-  HPS_WP.push_back("MVA_PWdR03vtight");
-  HPS_WP.push_back("MVA_PWdR03vvtight");
+  //HPS_WP.push_back("MVA_2017v2vtight");
+  //HPS_WP.push_back("MVA_2017v2vvtight");
+  //
+  //HPS_WP.push_back("MVA_DBdR03vloose"); 
+  //HPS_WP.push_back("MVA_DBdR03loose");
+  //HPS_WP.push_back("MVA_DBdR03medium");
+  //HPS_WP.push_back("MVA_DBdR03tight");
+  //HPS_WP.push_back("MVA_DBdR03vtight");
+  //HPS_WP.push_back("MVA_DBdR03vvtight");
+  //
+  //HPS_WP.push_back("MVA_PWdR03vloose"); 
+  //HPS_WP.push_back("MVA_PWdR03loose");
+  //HPS_WP.push_back("MVA_PWdR03medium");
+  //HPS_WP.push_back("MVA_PWdR03tight");
+  //HPS_WP.push_back("MVA_PWdR03vtight");
+  //HPS_WP.push_back("MVA_PWdR03vvtight");
 
   vector<TString> dms;
   //dms.push_back("allDMs");
@@ -157,6 +149,7 @@ int main(int argc, char** argv) {
 	for (unsigned int l=0; l<eta.size(); ++l) {
 	  for (unsigned int m=0; m<HPS_WP.size(); ++m) {
 	    for (unsigned int p=0; p<ptrange.size(); ++p) {
+	      cout << HPS_WP[m]+"/"+names[i]+vars[j]+"_"+dms[k]+"_"+eta[l]+"_"+ptrange[p]+"_"+HPS_WP[m]+"_fail" << endl;
 	      h[i][j][k][l][m].push_back( (TH1F*) file_in->Get(HPS_WP[m]+"/"+names[i]+vars[j]+"_"+dms[k]+"_"+eta[l]+"_"+ptrange[p]+"_"+HPS_WP[m]+"_fail") );
 	      h[i][j][k][l][m][p]->SetName(names[i]+vars[j]+"_"+dms[k]+"_"+eta[l]+"_"+ptrange[p]+"_"+HPS_WP[m]);
 	    }
