@@ -19,6 +19,13 @@ float norm_F(float x, float y){
 }
 
 
+bool checkBit (int word, int bitpos) {                   
+  bool res = word & (1 << bitpos);
+  return res; 
+} 
+
+
+
 double FakeRate(double taupt, TString HPS_WP, TString DM, TString eta) {
   if (taupt > 150) taupt = 149;
 

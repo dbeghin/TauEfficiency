@@ -508,6 +508,13 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
       if (trig_HLT_IsoMu27_accept) PassMuonTrigger = true;
       if (!PassMuonTrigger) continue;
 
+      if(!trig_Flag_goodVertices_accept) continue;
+      if(!trig_Flag_globalSuperTightHalo2016Filter_accept) continue;
+      if(!trig_Flag_HBHENoiseFilter_accept) continue;
+      if(!trig_Flag_HBHENoiseIsoFilter_accept) continue;
+      if(!trig_Flag_EcalDeadCellTriggerPrimitiveFilter_accept) continue;
+      if(!trig_Flag_BadPFMuonFilter_accept) continue;
+      //FIXME: add Ecal bad calibration when it's available
 
 
       //start muon counting loop

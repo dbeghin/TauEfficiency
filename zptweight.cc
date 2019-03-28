@@ -31,11 +31,14 @@ void readZptFile(Int_t year=2018){
 }
 
 Float_t getZpt(Float_t m_genboson, Float_t pt_genboson){
-  //Int_t xbin = histZpt->GetXaxis()->FindBin(m_genboson);
-  //Int_t ybin = histZpt->GetYaxis()->FindBin(pt_genboson);
-  //while(xbin<1) xbin++; while(xbin>histZpt->GetXaxis()->GetNbins()) xbin--;
-  //while(ybin<1) ybin++; while(ybin>histZpt->GetYaxis()->GetNbins()) ybin--;
-  //return histIWN->GetBinContent(xbin,ybin);
+  Int_t xbin = histZpt->GetXaxis()->FindBin(m_genboson);
+  if (xbin==0) xbin = 1;
+  else if (xbin > histZpt->GetNbinsX()) xbin -= 1;
+
+  Int_t ybin = histZpt->GetYaxis()->FindBin(pt_genboson);
+  if (ybin==0) ybin = 1;
+  else if (ybin > histZpt->GetNbinsY()) ybin -= 1;
+
   return histZpt->GetBinContent(histZpt->GetXaxis()->FindBin(m_genboson),histZpt->GetYaxis()->FindBin(pt_genboson));
 }
 
