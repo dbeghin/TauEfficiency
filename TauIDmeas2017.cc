@@ -375,6 +375,8 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
    TH1F* h_reweight = new TH1F("h_reweight", "h_reweight", 100, 0, 2.5);
    TH1F* h_weight_afterallsel = new TH1F("h_weight_afterallsel", "h_weight_afterallsel", 100, -2, 2);
    TH1F* h_debug = new TH1F("h_debug", "h_debug", 100, 0, 5);
+   TH1F* h_genmass = new TH1F("h_genmass", "h_genmass", 120, 0, 120);
+   TH1F* h_genpt = new TH1F("h_genpt", "h_genpt", 120, 0, 120);
 
    readZptFile(2017);
 
@@ -410,32 +412,45 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 	
 	//find Zpt weight
 	if (DY) {
-	  TLorentzVector l1_p4, l2_p4, ll_p4;
+	  TLorentzVector p4, l1_p4, l2_p4, z_p4;
+	  p4.SetPxPyPzE(0, 0, 0, 0);
 	  l1_p4.SetPxPyPzE(0, 0, 0, 0);
 	  l2_p4.SetPxPyPzE(0, 0, 0, 0);
-	  ll_p4.SetPxPyPzE(0, 0, 0, 0);
-          int l1_pdgid = 0, l2_pdgid = 0;
-          if (print_count < 20) {
-            ++print_count;
-            cout << endl << "LHE info" << endl;
-          }
-          for (unsigned int iLHE = 0; iLHE < LHE_Pt->size(); ++iLHE) {
-            if (print_count < 20) {
-              cout << LHE_pdgid->at(iLHE) << "  " << LHE_Pt->at(iLHE) << "  " << LHE_Eta->at(iLHE) << "  " << LHE_Phi->at(iLHE) << "  " << LHE_E->at(iLHE) << endl;
-            }
-            if (LHE_pdgid->at(iLHE) == 11 || LHE_pdgid->at(iLHE) == 13 || LHE_pdgid->at(iLHE) == 15) {
-              l1_p4.SetPtEtaPhiE(LHE_Pt->at(iLHE),LHE_Eta->at(iLHE),LHE_Phi->at(iLHE),LHE_E->at(iLHE));
-              l1_pdgid = LHE_pdgid->at(iLHE);
-            }
-            else if (LHE_pdgid->at(iLHE) == -11 || LHE_pdgid->at(iLHE) == -13 || LHE_pdgid->at(iLHE) == -15) {
-              l2_p4.SetPtEtaPhiE(LHE_Pt->at(iLHE),LHE_Eta->at(iLHE),LHE_Phi->at(iLHE),LHE_E->at(iLHE));
-              l2_pdgid = LHE_pdgid->at(iLHE);
-            }
-          }
-          if (l1_pdgid == -l2_pdgid) {
-            ll_p4 = l1_p4 + l2_p4;
-            zpt_weight = getZpt(ll_p4.M(), ll_p4.Pt());
-            if (print_count < 20) cout << zpt_weight << endl;
+	  z_p4.SetPxPyPzE(0, 0, 0, 0);
+	  int l1_pdgid = -1, l2_pdgid = -1;
+	  for (unsigned int iLHE = 0; iLHE < LHE_Pt->size(); ++iLHE) {
+	    if (LHE_pdgid->at(iLHE) == 11 || LHE_pdgid->at(iLHE) == 13 || LHE_pdgid->at(iLHE) == 15) {
+	      l1_pdgid = LHE_pdgid->at(iLHE);
+	    }
+	    else if (LHE_pdgid->at(iLHE) == -11 || LHE_pdgid->at(iLHE) == -13 || LHE_pdgid->at(iLHE) == -15) {
+	      l2_pdgid = LHE_pdgid->at(iLHE);
+	    }
+	  }
+
+	  bool found_1 = false, found_2 = false;
+	  for (unsigned int iMC = 0; iMC < mc_pt->size(); ++iMC) {
+	    p4.SetPtEtaPhiE(mc_pt->at(iMC),mc_eta->at(iMC),mc_phi->at(iMC),mc_energy->at(iMC));
+	    bool isfromHardProcess = checkBit (mc_status_flags->at(iMC),8);
+	    bool isGoodLep = (abs(mc_pdgId->at(iMC)) == 11 || abs(mc_pdgId->at(iMC)) == 13) && (mc_status->at(iMC) == 1 || mc_status->at(iMC) == 23);
+	    bool isGoodTau = abs(mc_pdgId->at(iMC)) == 15 && mc_status->at(iMC) == 2;
+	    bool isfromHardProcessFinalState = ( isGoodLep || isGoodTau ) && isfromHardProcess;
+
+	    if (mc_pdgId->at(iMC) == l1_pdgid) {
+	      if(!isfromHardProcessFinalState) continue;
+	      l1_p4 = p4;
+	      found_1 = true;
+	    }
+	    else if (mc_pdgId->at(iMC) == l2_pdgid) {
+	      if(!isfromHardProcessFinalState) continue;
+	      l2_p4 = p4;
+	      found_2 = true;
+	    }
+	  }
+	  if (found_1 && found_2) {
+	    z_p4 = l1_p4 + l2_p4;
+	    h_genmass->Fill(z_p4.M());
+	    h_genpt->Fill(z_p4.Pt());
+	    zpt_weight = getZpt(z_p4.M(), z_p4.Pt());
 	  }
 	}
 
@@ -1176,6 +1191,8 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
    TH1F* h_total_events =  new TH1F("weighted_events", "weighted_events", 1, 0, 1);
    h_total_events->Fill(0.5, nEvents);
    file_out->cd();
+   h_genmass->Write();
+   h_genpt->Write();
    h_total_events->Write();
    h_reweight->Write();
    h_weight_afterallsel->Write();
