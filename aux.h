@@ -25,6 +25,33 @@ bool checkBit (int word, int bitpos) {
 } 
 
 
+double FakeRate_2d(double taupt, double ratio, TString HPS_WP, TString DM, TString eta_string) {
+  if (taupt >= 1000) taupt = 999;
+  if (ratio >= 2) ratio = 1.9;
+
+  TFile* fake_file = new TFile("Reweighting/fakerate_2d.root","R");
+
+  TString hname = HPS_WP+"_"+DM+"_"+eta_string;
+  if (taupt > 150) {
+    hname += "_taupt_150_1000";
+  }
+  else {
+    hname += "_taupt_0_150";
+  }
+
+  TH1F* h_taupt = (TH1F*) fake_file->Get("FakeRateByTauPtAndRatio_"+hname);
+  int iBin = h_taupt->FindBin(taupt, ratio);
+  double base_SF = h_taupt->GetBinContent(iBin);
+  double error = h_taupt->GetBinError(iBin);
+
+  double weight = 0;
+  if (base_SF != 1) weight = base_SF/(1-base_SF);
+
+  fake_file->Close("R");
+
+  return weight;
+}
+
 
 double FakeRate(double taupt, TString HPS_WP, TString DM, TString eta) {
   if (taupt > 150) taupt = 149;

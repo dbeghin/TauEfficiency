@@ -725,6 +725,27 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 	  tau_p4.SetPtEtaPhiE(tau_pt->at(iTau), tau_eta->at(iTau), tau_phi->at(iTau), tau_energy->at(iTau));
 	  met_p4.SetPxPyPzE(met_px, met_py, 0, met_pt);
 
+	  // MATCH TAUS TO AK4 jets
+	  bool matched_to_reco_jet=false;
+	  TLorentzVector jet_p4(0.,0.,0.,0.);
+	  for (unsigned int ijet = 0; ijet < jet_pt->size(); ijet++){
+	    if(!(fabs(jet_eta->at(ijet)) < 2.3)) continue;
+	    if(!(jet_isJetIDLoose->at(ijet))) continue;
+	    TLorentzVector jet_p4_tmp;
+	    jet_p4_tmp.SetPxPyPzE(jet_px->at(ijet), jet_py->at(ijet), jet_pz->at(ijet), jet_energy->at(ijet));
+	    if(!(tau_p4.DeltaR(jet_p4_tmp) < 0.2)) continue;
+	    matched_to_reco_jet=true;
+	    jet_p4=jet_p4_tmp;
+	    break;
+
+	  }
+
+	  if(!(matched_to_reco_jet)) continue;
+	  float ratio = 0;
+	  if (jet_p4.Pt() != 0) ratio = tau_p4.Pt()/jet_p4.Pt();
+	  //END TAU JET MATCHING
+
+
 	  bool DY_sig = false;
 	  bool fakemu_match = false;
 	  float fakemu_reweight = 1;
@@ -791,6 +812,7 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 	      iBkgOrSig = iJet;
 	    }
 	  }
+	  if (data) iBkgOrSig = iBkg;
 
 	  for (int iTES = 0; iTES < 3; ++iTES) {
 	    int iTES_down = 0; //0 : TES down
@@ -922,9 +944,25 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 	        Mt = sqrt(2 * ( mu_gt_pt->at(iMu) * met_p4.Pt()  - mu_gt_px->at(iMu)*met_p4.Px() - mu_gt_py->at(iMu)*met_p4.Py() ));
 	      }
 	      
+	      float dR = tau_p4.DeltaR(mu_p4);
+	      if (tau_p4.DeltaR(mu_p4) < 0.5) continue;
+
+	      float mc_weight = 1;
+	      if (!data) mc_weight = mc_w_sign;
+	      
+	      float other_weights = 1;
+	      if (!data) other_weights = GetTriggerMuonIDMuonIsoReweight(mu_p4.Pt(), mu_p4.Eta());
+	      reweight_njets = 1;
+	      float final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*zpt_weight;
+	      first_weight = final_weight;
+
+	      if (iTES==iTES_nope && Mt_accept) h_debug->Fill(3);
+	      if (iTES == iTES_nope) hnotauID[iBkgOrSig][2]->Fill(Mt, final_weight);
+	      
 	      
 	      if (isfinalphase || isQCDphase || isAntiMuphase || isFakesphase) {
 	        if (Mt > 50) Mt_accept = false;  //Mt cut, against Wjets (for Wjets CR, Mt>80)
+		if (!cut_zeta) continue;
 	      }
 	      else if (isWJetsphase || isWJetsFakephase) {
 	        if (Mt < 80) Mt_accept = false;  //Mt cut, against Wjets (for Wjets CR, Mt>80)
@@ -937,25 +975,11 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 	      }	      
 	      if (iTES==iTES_nope && Mt_accept) h_debug->Fill(2);
 	      
-	      float dR = tau_p4.DeltaR(mu_p4);
 	      
-	      float mc_weight = 1;
-	      if (!data) mc_weight = mc_w_sign;
-	      
-	      float other_weights = 1;
-	      if (!data) other_weights = GetTriggerMuonIDMuonIsoReweight(mu_p4.Pt(), mu_p4.Eta());
-	      reweight_njets = 1;
-	      float final_weight = pu_weight*other_weights*reweight_njets*fakemu_reweight*mc_weight*zpt_weight;
-	      first_weight = final_weight;
 
 	      if (Mt_accept && iTES == iTES_nope) hnotauID[iBkgOrSig][1]->Fill(dR, final_weight);
 	      if (Mt_accept && iTES == iTES_nope) hnotauID[iBkgOrSig][3]->Fill(p_zeta_mis+0.15*pzeta_vis, final_weight);
 	      //if (Mt_accept && iTES == 2) hnotauID[0][6]->Fill(x_zeta*x_zeta + y_zeta*y_zeta, final_weight);
-	      
-	      if (tau_p4.DeltaR(mu_p4) < 0.5) continue;
-	      if (iTES==iTES_nope && Mt_accept) h_debug->Fill(3);
-	      if (iTES == iTES_nope) hnotauID[iBkgOrSig][2]->Fill(Mt, final_weight);
-	      if (!cut_zeta) continue;
 	      
 	      
 	      
@@ -964,7 +988,6 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 	      }
 
 	      
-	      //mu histos
 	      
 	      if (Mt_accept && iTES == iTES_nope) {
 		//tau MVA histo
@@ -987,7 +1010,8 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 	      
 	        //fake rate method
 	        if (isFakesphase || isWJetsFakephase) {
-	      	  fakerate_weight = FakeRate(tau_p4.Pt(), HPS_WP[iValue], str_dm, str_eta);
+	      	  //fakerate_weight = FakeRate(tau_p4.Pt(), HPS_WP[iValue], str_dm, str_eta);
+	      	  fakerate_weight = FakeRate_2d(tau_p4.Pt(), ratio, HPS_WP[iValue], str_dm, str_eta); //see if 2D fake rate improves things
 	      	  fakerate_weight_high = FakeRateFlat(HPS_WP[iValue], str_dm);
 		  fakerate_weight_low = 2*fakerate_weight - fakerate_weight_high;
 	      	  
@@ -1055,10 +1079,10 @@ void IIHEAnalysis::Loop(string phase, string type_of_data, string in_name, strin
 	        if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Nvertex"]]->Fill(pv_n, final_weight);
 
 		//Min Bias variations, change pu weight
-		final_weight = first_weight*fakerate_weight;
+		final_weight = first_weight*fakerate_weight*pu_weight_low/pu_weight;
 	        if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_MinBiasdown"]]->Fill(vis_p4.M(), final_weight);
 	        if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Nvertex_MinBiasdown"]]->Fill(pv_n, final_weight);
-		final_weight = first_weight*fakerate_weight;
+		final_weight = first_weight*fakerate_weight*pu_weight_high/pu_weight;
 	        if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Mvis_MinBiasup"]]->Fill(vis_p4.M(), final_weight);
 	        if (Mt_accept) htau[p_pt][n_eta][m_dm][iPass][iBkgOrSig][iValue][htau_map["ev_Nvertex_MinBiasup"]]->Fill(pv_n, final_weight);
 

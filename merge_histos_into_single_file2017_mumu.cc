@@ -127,22 +127,22 @@ int main(int argc, char** argv) {
     //h_WJets -> SetName("WJets_"+var_in);
     //h_WJets->Write();
       
-    //TH1F* h_TT = MC_histo("Sig_", var_in, file_in_TT, file_in_data, xs_TT, rebin);
-    //h_TT -> SetName("TTB_"+var_in);
-    //h_TT->Write();
-    //
-    //TH1F* h_WW = MC_histo("Sig_", var_in, file_in_WW, file_in_data, xs_WW, rebin);
-    //TH1F* h_WZ = MC_histo("Sig_", var_in, file_in_WZ, file_in_data, xs_WZ, rebin);
-    //TH1F* h_ZZ = MC_histo("Sig_", var_in, file_in_ZZ, file_in_data, xs_ZZ, rebin);
-    //cout << "before cloning" << endl;
-    //TH1F* h_VV = (TH1F*) h_WW->Clone("VV_"+var_in);
-    //cout << "after cloning" << endl;
-    //h_VV->Add(h_WZ);
-    //h_VV->Add(h_ZZ);
-    ////h_VV -> SetName("VV_"+var_in);
-    //h_VV->Write();
-    //
-    //cout << "?" << endl;
+    TH1F* h_TT = MC_histo("Sig_", var_in, file_in_TT, file_in_data, xs_TT, rebin);
+    h_TT -> SetName("TTB_"+var_in);
+    h_TT->Write();
+    
+    TH1F* h_WW = MC_histo("Sig_", var_in, file_in_WW, file_in_data, xs_WW, rebin);
+    TH1F* h_WZ = MC_histo("Sig_", var_in, file_in_WZ, file_in_data, xs_WZ, rebin);
+    TH1F* h_ZZ = MC_histo("Sig_", var_in, file_in_ZZ, file_in_data, xs_ZZ, rebin);
+    cout << "before cloning" << endl;
+    TH1F* h_VV = (TH1F*) h_WW->Clone("VV_"+var_in);
+    cout << "after cloning" << endl;
+    h_VV->Add(h_WZ);
+    h_VV->Add(h_ZZ);
+    //h_VV -> SetName("VV_"+var_in);
+    h_VV->Write();
+    
+    cout << "?" << endl;
 
     TH1F* h_data = (TH1F*) file_in_data -> Get("Sig_"+var_in);//Data is, by definition, normalized
     h_data -> SetName("data_"+var_in);
